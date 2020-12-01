@@ -4,7 +4,20 @@
 #include "rgb.h"
 #include "Ray.h"
 
+bool sphere( const P& center, double radius, const Ray& ray ) {
+	V o = ray.ori()-center ;
+	auto a = dot( ray.dir(), ray.dir() ) ;
+	auto b = 2.*dot( ray.dir(), o ) ;
+	auto c = dot( o, o )-radius*radius ;
+	auto discriminant = b*b-4*a*c ;
+
+	return ( discriminant > 0 ) ;
+}
+
 C skies( const Ray& ray ) {
+	if ( sphere( P( 0,0,-1 ), .5, ray ) )
+		return C( 1, 0, 0 ) ;
+
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
 
