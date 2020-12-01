@@ -15,9 +15,11 @@ CLS = \
 	rgb.h \
 	Ray.h \
 
-.PHONY: clean
+IMG = rtow.png
 
-all: $(EXE)
+.PHONY: all clean tidy
+
+all: $(EXE) $(IMG)
 
 main.o: $(CLS)
 
@@ -30,4 +32,12 @@ clean:
 	rm -f *.o
 
 tidy: clean
-	rm -f *.exe *.png
+	rm -f $(EXE) $(IMG)
+
+
+
+$(IMG): $(EXE)
+	./$< | magick ppm:- $@
+ifdef winos
+	cmd /c $@
+endif

@@ -4,7 +4,7 @@
 #include "rgb.h"
 #include "Ray.h"
 
-C color( const Ray& ray ) {
+C skies( const Ray& ray ) {
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
 
@@ -35,9 +35,11 @@ int main() {
 		for ( int i = 0 ; i<w ; ++i ) {
 			auto u = (double) i/( w-1 ) ;
 			auto v = (double) j/( h-1 ) ;
+
 			Ray ray( orig, bole+u*hori+v*vert-orig ) ;
-			C c = color( ray ) ;
-			rgb( std::cout, c ) ;
+			C color = skies( ray ) ;
+
+			rgb( std::cout, color ) ;
 		}
 	}
 }
