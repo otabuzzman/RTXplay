@@ -7,14 +7,20 @@
 #include "Sphere.h"
 #include "Camera.h"
 
+#define O_LAMB_LAZY 0
+#define O_LAMB_TRUE 1
+#define O_LAMB_NONE 2
+
+int omatt = O_LAMB_NONE ;
+
 double sphere( const P& center, double radius, const Ray& ray ) {
 	V o = ray.ori()-center ;
 	// auto a = dot( ray.dir(), ray.dir() ) ;
-	auto a = ray.dir().plen() ;             // simplified: V dot V equals len(V)^2
+	auto a = ray.dir().len2() ;             // simplified: V dot V equals len(V)^2
 	// auto b = 2.*dot( ray.dir(), o ) ;
 	auto b = dot( ray.dir(), o ) ;          // simplified: b/2
 	// auto c = dot( o, o )-radius*radius ;
-	auto c = o.plen()-radius*radius ; // simplified: V dot V equals len(V)^2
+	auto c = o.len2()-radius*radius ;       // simplified: V dot V equals len(V)^2
 	// auto discriminant = b*b-4*a*c ;
 	auto discriminant = b*b-a*c ;           // simplified: b/2
 
@@ -36,12 +42,23 @@ C skies( const Ray& ray, const Thing& scene ) {
 }
 
 C skies( const Ray& ray, const Thing& scene, int depth ) {
-	record rec ;
+	record rec ; P s ;
 	if ( 0>=depth )
 		return C( 0, 0, 0 ) ;
 	// else
 	if ( scene.hit( ray, .001, INF, rec ) ) {
-		P s = rec.p+rndVoppraydir( rec.normal ) ;
+		switch ( omatt ) {
+			case O_LAMB_LAZY:
+				s = rec.p+rec.normal+rndVin1sphere() ;  // lazy Lambertian
+				break ;
+			case O_LAMB_TRUE:
+				s = rec.p+rec.normal+rndVon1sphere() ;  // true Lambertian
+				break ;
+			case O_LAMB_NONE:
+			default:
+				s = rec.p+rndVoppraydir( rec.normal ) ; // Lambertian alternative
+				break ;
+		}
 		return .5*skies( Ray( rec.p, s-rec.p ), scene, depth-1 ) ;
 	}
 	// else

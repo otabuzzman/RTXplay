@@ -24,8 +24,8 @@ class V {
 		V& operator *= ( const double t )      { m[0] *= t ; m[1] *= t ; m[2] *= t ; return *this ; }
 		V& operator /= ( const double t )      { return *this *= 1/t ; }
 
-		double slen() const                    { return sqrt( plen() ) ; }
-		double plen() const                    { return m[0]*m[0]+m[1]*m[1]+m[2]*m[2] ; }
+		double len() const                     { return sqrt( len2() ) ; }
+		double len2() const                    { return m[0]*m[0]+m[1]*m[1]+m[2]*m[2] ; }
 
 		inline static V random() { return V( rnd(), rnd(), rnd() ) ; }
 		inline static V random( double min, double max ) { return V( rnd( min, max ), rnd( min, max ), rnd( min, max ) ) ; }
@@ -45,10 +45,10 @@ inline V operator / ( V v, double t )          { return ( 1/t )*v ; }
 
 inline double dot( const V &u, const V &v )    { return u.x()*v.x()+u.y()*v.y()+u.z()*v.z() ; }
 inline V cross( const V &u, const V &v )       { return V( u.y()*v.z()-u.z()*v.y(), u.z()*v.x()-u.x()*v.z(), u.x()*v.y()-u.y()*v.x() ) ; }
-inline V unitV( V v )                          { return v/v.slen() ; }
+inline V unitV( V v )                          { return v/v.len() ; }
 
 // random V in unit sphere
-V rndVin1sphere() { while ( true ) { auto p = V::random( -1, 1 ) ; if ( 1>p.plen() ) return p ; } }
+V rndVin1sphere() { while ( true ) { auto p = V::random( -1, 1 ) ; if ( 1>p.len2() ) return p ; } }
 // random V on unit sphere (chapter 8.5)
 V rndVon1sphere() { return unitV( rndVin1sphere() ) ; }
 // random V against ray (chapter 8.6)
