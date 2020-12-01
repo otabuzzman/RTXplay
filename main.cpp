@@ -35,12 +35,29 @@ C skies( const Ray& ray, const Thing& scene ) {
 	return ( 1.-t )*C( 1., 1., 1. )+t*C( .5, .7, 1. ) ;
 }
 
+C skies( const Ray& ray, const Thing& scene, int depth ) {
+	record rec ;
+	if ( 0>=depth )
+		return C( 0, 0, 0 ) ;
+	// else
+	if ( scene.hit( ray, .001, INF, rec ) ) {
+		P s = rec.p+rndVoppraydir( rec.normal ) ;
+		return .5*skies( Ray( rec.p, s-rec.p ), scene, depth-1 ) ;
+	}
+	// else
+	V unit = unitV( ray.dir() ) ;
+	auto t = .5*( unit.y()+1. ) ;
+
+	return ( 1.-t )*C( 1., 1., 1. )+t*C( .5, .7, 1. ) ;
+}
+
 int main() {
 	Camera camera ;
 
 	const int w = 400;                                   // image width in pixels
 	const int h = static_cast<int>( w/camera.ratio() ) ; // image height in pixels
 	const int spp = 100 ;                                // samples per pixel
+	const int dmax = 50 ;                                // recursion depth
 
 	Things scene ;
 	scene.add( make_shared<Sphere>(P( 0, 0, -1), .5 ) ) ;
@@ -58,7 +75,7 @@ int main() {
 				auto v = ( j+rnd() )/(h-1) ;
 
 				Ray ray = camera.ray( u, v ) ;
-				color += skies( ray, scene ) ;
+				color += skies( ray, scene, dmax ) ;
 			}
 			rgb( std::cout, color, spp ) ;
 		}

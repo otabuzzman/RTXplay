@@ -15,7 +15,7 @@ void rgb( std::ostream &out, C color, int spp ) {
 	auto r = color.x() ; auto g = color.y() ; auto b = color.z() ;
 
 	auto s = 1./spp ;
-	r *= s ; g *= s ; b *= s ;
+	r = sqrt( s*r ) ; g = sqrt( s*g ) ; b = sqrt( s*b ) ;
 
 	out << static_cast<int>( 256 * clamp( r, 0, .999 ) ) << ' '
 		<< static_cast<int>( 256 * clamp( g, 0, .999 ) ) << ' '
