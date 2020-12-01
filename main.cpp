@@ -1,23 +1,33 @@
 #include <iostream>
 
-#include "V.h"
+#include "util.h"
+
 #include "rgb.h"
-#include "Ray.h"
+#include "Things.h"
+#include "Sphere.h"
 
-bool sphere( const P& center, double radius, const Ray& ray ) {
+double sphere( const P& center, double radius, const Ray& ray ) {
 	V o = ray.ori()-center ;
-	auto a = dot( ray.dir(), ray.dir() ) ;
-	auto b = 2.*dot( ray.dir(), o ) ;
-	auto c = dot( o, o )-radius*radius ;
-	auto discriminant = b*b-4*a*c ;
+	// auto a = dot( ray.dir(), ray.dir() ) ;
+	auto a = ray.dir().plen() ;             // simplified: V dot V equals len(V)^2
+	// auto b = 2.*dot( ray.dir(), o ) ;
+	auto b = dot( ray.dir(), o ) ;          // simplified: b/2
+	// auto c = dot( o, o )-radius*radius ;
+	auto c = o.plen()-radius*radius ; // simplified: V dot V equals len(V)^2
+	// auto discriminant = b*b-4*a*c ;
+	auto discriminant = b*b-a*c ;           // simplified: b/2
 
-	return ( discriminant > 0 ) ;
+	if ( 0>discriminant )
+		return -1. ;
+	// else
+	return ( -b-sqrt( discriminant ) )/a ;  // simplified: b/2
 }
 
-C skies( const Ray& ray ) {
-	if ( sphere( P( 0,0,-1 ), .5, ray ) )
-		return C( 1, 0, 0 ) ;
-
+C skies( const Ray& ray, const Thing& scene ) {
+	record rec ;
+	if ( scene.hit( ray, 0, INF, rec ) )
+		return .5*( rec.normal+C( 1, 1, 1 ) ) ;
+	// else
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
 
@@ -30,6 +40,10 @@ int main() {
 	const auto ratio = 16./9. ;                       // aspect ratio
 	const int w = 400;                                // image width in pixels
 	const int h = static_cast<int>( w/ratio ) ;       // image height in pixels
+
+	Things scene ;
+	scene.add( make_shared<Sphere>(P( 0, 0, -1), .5 ) ) ;
+	scene.add( make_shared<Sphere>(P( 0, -100.5, -1 ), 100) ) ;
 
 	auto viewh = 2. ;                                 // virtual viewport height
 	auto vieww = ratio*viewh ;                        // virtual viewport width
@@ -50,7 +64,7 @@ int main() {
 			auto v = (double) j/( h-1 ) ;
 
 			Ray ray( orig, bole+u*hori+v*vert-orig ) ;
-			C color = skies( ray ) ;
+			C color = skies( ray, scene ) ;
 
 			rgb( std::cout, color ) ;
 		}
