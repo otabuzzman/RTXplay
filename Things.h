@@ -24,19 +24,19 @@ class Things : public Thing {
 } ;
 
 bool Things::hit( const Ray& ray, double tmin, double tmax, record& rec ) const {
-	record memrec ;
-	bool anyhit = false ;
-	auto memhit = tmax ;
+	record arec ;
+	bool ahit = false ;
+	auto tact = tmax ;
 
 	for ( const auto& thing : things ) {
-		if ( thing->hit( ray, tmin, memhit, memrec ) ) {
-			anyhit = true ;
-			memhit = memrec.t ;
-			rec = memrec ;
+		if ( thing->hit( ray, tmin, tact, arec ) ) {
+			ahit = true ;
+			tact = arec.t ;
+			rec  = arec ;
 		}
 	}
 
-	return anyhit ;
+	return ahit ;
 }
 
 #endif
