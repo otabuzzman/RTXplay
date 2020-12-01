@@ -2,6 +2,7 @@
 #define UTIL_H
 
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 
@@ -12,9 +13,12 @@ using std::sqrt ;
 const double INF = std::numeric_limits<double>::infinity() ;
 const double PI = 3.141592653589793238 ;
 
-inline double deg2rad( double d ) {
-    return d * PI/180. ;
-}
+inline double deg2rad( double d ) { return d*PI/180. ; }
+
+inline double rnd() { return rand()/( RAND_MAX+1. ) ; }
+inline double rnd( double min, double max ) { return min+rnd()*( max-min ) ; }
+
+inline double clamp( double x, double min, double max ) { return min>x ? min : x>max ? max : x ; }
 
 #include "Ray.h"
 #include "V.h"
