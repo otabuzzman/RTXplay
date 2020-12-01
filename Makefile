@@ -11,6 +11,7 @@ EXE = main
 endif
 
 CLS = \
+	Camera.h \
 	Ray.h \
 	Sphere.h \
 	Thing.h \

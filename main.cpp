@@ -5,6 +5,7 @@
 #include "rgb.h"
 #include "Things.h"
 #include "Sphere.h"
+#include "Camera.h"
 
 double sphere( const P& center, double radius, const Ray& ray ) {
 	V o = ray.ori()-center ;
@@ -35,38 +36,31 @@ C skies( const Ray& ray, const Thing& scene ) {
 }
 
 int main() {
-	int c = 255 ; // color maximum value
+	Camera camera ;
 
-	const auto ratio = 16./9. ;                       // aspect ratio
-	const int w = 400;                                // image width in pixels
-	const int h = static_cast<int>( w/ratio ) ;       // image height in pixels
+	const int w = 400;                                   // image width in pixels
+	const int h = static_cast<int>( w/camera.ratio() ) ; // image height in pixels
+	const int spp = 100 ;                                // samples per pixel
 
 	Things scene ;
 	scene.add( make_shared<Sphere>(P( 0, 0, -1), .5 ) ) ;
 	scene.add( make_shared<Sphere>(P( 0, -100.5, -1 ), 100) ) ;
 
-	auto viewh = 2. ;                                 // virtual viewport height
-	auto vieww = ratio*viewh ;                        // virtual viewport width
-	auto focll = 1. ;                                 // focal length (projection point distance from ~plane)
-
-	auto orig = P( 0, 0, 0 ) ;                        // camera origin
-	auto hori = V( vieww, 0, 0 ) ;
-	auto vert = V( 0, viewh, 0 ) ;
-	auto bole = orig-hori/2-vert/2-V( 0, 0, focll ) ; // bottom left viewport corner
-
 	std::cout
 		<< "P3\n"	// magic PPM header
-		<< w << ' ' << h << '\n' << c << '\n' ;
+		<< w << ' ' << h << '\n' << 255 << '\n' ;
 
 	for ( int j = h-1 ; j>=0 ; --j ) {
 		for ( int i = 0 ; i<w ; ++i ) {
-			auto u = (double) i/( w-1 ) ;
-			auto v = (double) j/( h-1 ) ;
+			C color( 0, 0, 0 ) ;
+			for ( int s = 0 ; s<spp ; ++s ) {
+				auto u = ( i+rnd() )/(w-1) ;
+				auto v = ( j+rnd() )/(h-1) ;
 
-			Ray ray( orig, bole+u*hori+v*vert-orig ) ;
-			C color = skies( ray, scene ) ;
-
-			rgb( std::cout, color ) ;
+				Ray ray = camera.ray( u, v ) ;
+				color += skies( ray, scene ) ;
+			}
+			rgb( std::cout, color, spp ) ;
 		}
 	}
 }
