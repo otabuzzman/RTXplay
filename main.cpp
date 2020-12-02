@@ -5,12 +5,7 @@
 #include "Things.h"
 #include "Sphere.h"
 #include "Camera.h"
-
-#define O_LAMB_LAZY 0
-#define O_LAMB_TRUE 1
-#define O_LAMB_NONE 2
-
-int o_lamb = O_LAMB_NONE ;
+#include "Material.h"
 
 const std::string rgbPP3( C color ) {
 	char pp3[16] ;
@@ -75,19 +70,12 @@ C trace( const Ray& ray, const Thing& scene, int depth ) {
 		return C( 0, 0, 0 ) ;
 	// else
 	if ( scene.hit( ray, .001, INF, rec ) ) {
-		switch ( o_lamb ) {
-			case O_LAMB_LAZY:
-				s = rec.p+rec.normal+rndVin1sphere() ;  // lazy Lambertian
-				break ;
-			case O_LAMB_TRUE:
-				s = rec.p+rec.normal+rndVon1sphere() ;  // true Lambertian
-				break ;
-			case O_LAMB_NONE:
-			default:
-				s = rec.p+rndVoppraydir( rec.normal ) ; // Lambertian alternative
-				break ;
-		}
-		return .5*trace( Ray( rec.p, s-rec.p ), scene, depth-1 ) ;
+		Ray sprayed ;
+		C attened ;
+		if ( rec.m->spray( ray, rec, attened, sprayed ) )
+			return attened*trace( sprayed, scene, depth-1 ) ;
+		// else
+		return C( 0, 0, 0 ) ;
 	}
 	// else
 	V unit = unitV( ray.dir() ) ;
@@ -105,8 +93,10 @@ int main() {
 	const int dmax = 50 ;                                // recursion depth
 
 	Things scene ;
-	scene.add( make_shared<Sphere>(P( 0, 0, -1), .5 ) ) ;
-	scene.add( make_shared<Sphere>(P( 0, -100.5, -1 ), 100) ) ;
+	scene.add( make_shared<Sphere>( P( .0, -100.5, -1. ), 100.,  make_shared<Lambertian>( C( .8, .8, .0 ) ) ) ) ; // ground
+	scene.add( make_shared<Sphere>( P( .0,     .0, -1. ),    .5, make_shared<Lambertian>( C( .7, .3, .3 ) ) ) ) ; // center
+	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),    .5, make_shared<Metal>( C( .8, .8, .8 ), .3 ) ) ) ;      // l sphere
+	scene.add( make_shared<Sphere>( P( 1.,     .0, -1. ),    .5, make_shared<Metal>( C( .8, .6, .2 ), 1. ) ) ) ;      // r sphere
 
 	std::cout
 		<< "P3\n"	// magic PPM header

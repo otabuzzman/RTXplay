@@ -7,7 +7,7 @@
 class Sphere : public Thing {
 	public:
 		Sphere() {}
-		Sphere( P center, double radius ) : cen(center), rad(radius) {}
+		Sphere( P center, double radius, shared_ptr<Material> material ) : cen(center), rad(radius), mat(material) {}
 
 		P      center() { return cen ; }
 		double radius() const { return rad ; }
@@ -17,6 +17,7 @@ class Sphere : public Thing {
 	private:
 		P cen ;
 		double rad ;
+		shared_ptr<Material> mat ;
 } ;
 
 bool Sphere::hit( const Ray& ray, double tmin, double tmax, record& rec ) const {
@@ -43,6 +44,7 @@ bool Sphere::hit( const Ray& ray, double tmin, double tmax, record& rec ) const 
 	rec.p = ray.at( rec.t ) ;
 	V outward = ( rec.p-cen )/rad ;
 	rec.setnormal( ray, outward ) ;
+	rec.m = mat ;
 
 	return true ;
 }

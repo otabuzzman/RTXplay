@@ -27,6 +27,8 @@ class V {
 		double len() const                     { return sqrt( len2() ) ; }
 		double len2() const                    { return m[0]*m[0]+m[1]*m[1]+m[2]*m[2] ; }
 
+		bool isnear0() const { return ( fabs(m[0])<1e-8) && (fabs(m[1])<1e-8) && (fabs(m[2])<1e-8 ) ; }
+
 		inline static V random() { return V( rnd(), rnd(), rnd() ) ; }
 		inline static V random( double min, double max ) { return V( rnd( min, max ), rnd( min, max ), rnd( min, max ) ) ; }
 
@@ -53,6 +55,8 @@ V rndVin1sphere() { while ( true ) { auto p = V::random( -1, 1 ) ; if ( 1>p.len2
 V rndVon1sphere() { return unitV( rndVin1sphere() ) ; }
 // random V against ray (chapter 8.6)
 V rndVoppraydir( const V& normal ) { auto p = rndVin1sphere() ; if ( dot( p, normal ) ) return p ; else return -p ; }
+
+V reflect( const V& v, const V& n ) { return v-2*dot( v, n )*n ; }
 
 inline std::ostream& operator << ( std::ostream &out, const V &v ) { return out << v.x() << ' ' << v.y() << ' ' << v.z() ; }
 
