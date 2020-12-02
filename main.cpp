@@ -2,7 +2,6 @@
 
 #include "util.h"
 
-#include "rgb.h"
 #include "Things.h"
 #include "Sphere.h"
 #include "Camera.h"
@@ -11,7 +10,36 @@
 #define O_LAMB_TRUE 1
 #define O_LAMB_NONE 2
 
-int omatt = O_LAMB_NONE ;
+int o_lamb = O_LAMB_NONE ;
+
+const std::string rgbPP3( C color ) {
+	char pp3[16] ;
+
+	sprintf( pp3, "%d %d %d",
+		static_cast<int>( 255*color.x() ),
+		static_cast<int>( 255*color.y() ),
+		static_cast<int>( 255*color.z() ) ) ;
+
+	return std::string( pp3 ) ;
+
+}
+
+const std::string rgbPP3( C color, int spp ) {
+	char pp3[16] ;
+	auto r = color.x() ;
+	auto g = color.y() ;
+	auto b = color.z() ;
+
+	auto s = 1./spp ;
+	r = sqrt( s*r ) ; g = sqrt( s*g ) ; b = sqrt( s*b ) ;
+
+	sprintf( pp3, "%d %d %d",
+		static_cast<int>( 256*clamp( r, 0, .999 ) ),
+		static_cast<int>( 256*clamp( g, 0, .999 ) ),
+		static_cast<int>( 256*clamp( b, 0, .999 ) ) ) ;
+
+	return std::string( pp3 ) ;
+}
 
 double sphere( const P& center, double radius, const Ray& ray ) {
 	V o = ray.ori()-center ;
@@ -30,7 +58,7 @@ double sphere( const P& center, double radius, const Ray& ray ) {
 	return ( -b-sqrt( discriminant ) )/a ;  // simplified: b/2
 }
 
-C skies( const Ray& ray, const Thing& scene ) {
+C trace( const Ray& ray, const Thing& scene ) {
 	record rec ;
 	if ( scene.hit( ray, 0, INF, rec ) )
 		return .5*( rec.normal+C( 1, 1, 1 ) ) ;
@@ -41,13 +69,13 @@ C skies( const Ray& ray, const Thing& scene ) {
 	return ( 1.-t )*C( 1., 1., 1. )+t*C( .5, .7, 1. ) ;
 }
 
-C skies( const Ray& ray, const Thing& scene, int depth ) {
+C trace( const Ray& ray, const Thing& scene, int depth ) {
 	record rec ; P s ;
 	if ( 0>=depth )
 		return C( 0, 0, 0 ) ;
 	// else
 	if ( scene.hit( ray, .001, INF, rec ) ) {
-		switch ( omatt ) {
+		switch ( o_lamb ) {
 			case O_LAMB_LAZY:
 				s = rec.p+rec.normal+rndVin1sphere() ;  // lazy Lambertian
 				break ;
@@ -59,7 +87,7 @@ C skies( const Ray& ray, const Thing& scene, int depth ) {
 				s = rec.p+rndVoppraydir( rec.normal ) ; // Lambertian alternative
 				break ;
 		}
-		return .5*skies( Ray( rec.p, s-rec.p ), scene, depth-1 ) ;
+		return .5*trace( Ray( rec.p, s-rec.p ), scene, depth-1 ) ;
 	}
 	// else
 	V unit = unitV( ray.dir() ) ;
@@ -92,9 +120,10 @@ int main() {
 				auto v = ( j+rnd() )/(h-1) ;
 
 				Ray ray = camera.ray( u, v ) ;
-				color += skies( ray, scene, dmax ) ;
+				color += trace( ray, scene, dmax ) ;
 			}
-			rgb( std::cout, color, spp ) ;
+			std::cout
+				<< rgbPP3( color, spp ) << '\n' ;
 		}
 	}
 }
