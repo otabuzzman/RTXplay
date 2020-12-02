@@ -12,6 +12,7 @@ endif
 
 CLS = \
 	Camera.h \
+	Material.h \
 	Ray.h \
 	Sphere.h \
 	Thing.h \

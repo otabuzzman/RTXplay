@@ -3,9 +3,12 @@
 
 #include "Ray.h"
 
+class Material ;
+
 struct record {
 	P p ;
 	V normal ;
+	shared_ptr<Material> m ;
 	double t ;
 	bool facing ;
 
