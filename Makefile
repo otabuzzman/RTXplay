@@ -17,7 +17,6 @@ CLS = \
 	Thing.h \
 	Things.h \
 	V.h \
-	rgb.h \
 	util.h \
 
 IMG = rtow.png
