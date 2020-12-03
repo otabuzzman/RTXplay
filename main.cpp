@@ -94,9 +94,10 @@ int main() {
 
 	Things scene ;
 	scene.add( make_shared<Sphere>( P( .0, -100.5, -1. ), 100.,  make_shared<Lambertian>( C( .8, .8, .0 ) ) ) ) ; // ground
-	scene.add( make_shared<Sphere>( P( .0,     .0, -1. ),    .5, make_shared<Lambertian>( C( .7, .3, .3 ) ) ) ) ; // center
-	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),    .5, make_shared<Metal>( C( .8, .8, .8 ), .3 ) ) ) ;      // l sphere
-	scene.add( make_shared<Sphere>( P( 1.,     .0, -1. ),    .5, make_shared<Metal>( C( .8, .6, .2 ), 1. ) ) ) ;      // r sphere
+	scene.add( make_shared<Sphere>( P( .0,     .0, -1. ),    .5, make_shared<Lambertian>( C( .1, .2, .5 ) ) ) ) ; // center
+	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),    .5, make_shared<Dielectric>( 1.5 ) ) ) ;             // l sphere
+	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),   -.4, make_shared<Dielectric>( 1.5 ) ) ) ;             // l sphere
+	scene.add( make_shared<Sphere>( P( 1.,     .0, -1. ),    .5, make_shared<Metal>( C( .8, .6, .2 ), 1. ) ) ) ;  // r sphere
 
 	std::cout
 		<< "P3\n"	// magic PPM header
