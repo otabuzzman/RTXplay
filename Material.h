@@ -12,7 +12,7 @@ class Material {
 
 class Lambertian : public Material {
 	public:
-		Lambertian( const C& albedo) : a(albedo) {}
+		Lambertian( const C& albedo ) : a(albedo) {}
 
 		virtual bool spray( const Ray& ray, const record& rec, C& attened, Ray& sprayed ) const override {
 			auto d = rec.normal + rndVon1sphere() ; 

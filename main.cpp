@@ -84,34 +84,59 @@ C trace( const Ray& ray, const Thing& scene, int depth ) {
 	return ( 1.-t )*C( 1., 1., 1. )+t*C( .5, .7, 1. ) ;
 }
 
-int main() {
-	double ratio = 16./9. ;
+Things scene() {
+	Things s ;
 
-	P pos( 3, 3, 2 ) ;
-	P pov( 0, 0, -1 ) ;
+	s.add( make_shared<Sphere>( P( 0, -1000, 0 ), 1000., make_shared<Lambertian>( C( .5, .5, .5 ) ) ) ) ;
+
+	for ( int a = -11 ; a<11 ; a++ ) {
+		for ( int b = -11 ; b<11; b++ ) {
+			auto select = rnd() ;
+			P center( a+.9*rnd(), .2, b+.9*rnd() ) ;
+			if ( ( center-P( 4, .2, 0 ) ).len()>.9) {
+				if ( select<.8 ) {
+					auto albedo = C::rnd()*C::rnd() ;
+					s.add( make_shared<Sphere>( center, .2, make_shared<Lambertian>( albedo ) ) ) ;
+				} else if ( select<.95 ) {
+					auto albedo = C::rnd( .5, 1. ) ;
+					auto fuzz = rnd( 0, .5 ) ;
+					s.add( make_shared<Sphere>( center, .2, make_shared<Metal>( albedo, fuzz ) ) ) ;
+				} else {
+					s.add( make_shared<Sphere>( center, .2, make_shared<Dielectric>( 1.5 ) ) ) ;
+				}
+			}
+		}
+	}
+
+	s.add( make_shared<Sphere>( P(  0, 1, 0 ), 1., make_shared<Dielectric>( 1.5 ) ) ) ;
+	s.add( make_shared<Sphere>( P( -4, 1, 0 ), 1., make_shared<Lambertian>( C( .4, .2, .1 ) ) ) ) ;
+	s.add( make_shared<Sphere>( P(  4, 1, 0 ), 1., make_shared<Metal>( C( .7, .6, .5 ), 0 ) ) ) ;
+
+	return s ;
+}
+
+int main() {
+	double ratio = 3./2. ;
+
+	P pos( 13, 2, 3 ) ;
+	P pov( 0, 0, 0 ) ;
 	V up( 0, 1, 0 ) ;
-	double aperture = 2. ;
-	double distance = ( pos-pov ).len() ;
+	double aperture = .1 ;
+	double distance = 10. ;
 
 	Camera camera( pos, pov, up, 20., ratio, aperture, distance ) ;
 
-	const int w = 400;                                   // image width in pixels
+	const int w = 1200 ;                        // image width in pixels
 	const int h = static_cast<int>( w/ratio ) ; // image height in pixels
-	const int spp = 100 ;                                // samples per pixel
-	const int dmax = 50 ;                                // recursion depth
-
-	Things scene ;
-	scene.add( make_shared<Sphere>( P( .0, -100.5, -1. ), 100.,  make_shared<Lambertian>( C( .8, .8, .0 ) ) ) ) ; // ground
-	scene.add( make_shared<Sphere>( P( .0,     .0, -1. ),    .5, make_shared<Lambertian>( C( .1, .2, .5 ) ) ) ) ; // center
-	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),    .5, make_shared<Dielectric>( 1.5 ) ) ) ;             // l sphere
-	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),  -.45, make_shared<Dielectric>( 1.5 ) ) ) ;             // l sphere
-	scene.add( make_shared<Sphere>( P( 1.,     .0, -1. ),    .5, make_shared<Metal>( C( .8, .6, .2 ), 1. ) ) ) ;  // r sphere
+	const int spp = 10 ;                        // samples per pixel
+	const int dmax = 50 ;                       // recursion depth
 
 	std::cout
 		<< "P3\n"	// magic PPM header
 		<< w << ' ' << h << '\n' << 255 << '\n' ;
 
 	for ( int j = h-1 ; j>=0 ; --j ) {
+		std::cerr << "\r" << j << ' ' << std::flush ;
 		for ( int i = 0 ; i<w ; ++i ) {
 			C color( 0, 0, 0 ) ;
 			for ( int k = 0 ; k<spp ; ++k ) {
@@ -119,7 +144,7 @@ int main() {
 				auto t = ( j+rnd() )/(h-1) ;
 
 				Ray ray = camera.ray( s, t ) ;
-				color += trace( ray, scene, dmax ) ;
+				color += trace( ray, scene(), dmax ) ;
 			}
 			std::cout
 				<< rgbPP3( color, spp ) << '\n' ;
