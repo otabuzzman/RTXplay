@@ -85,10 +85,12 @@ C trace( const Ray& ray, const Thing& scene, int depth ) {
 }
 
 int main() {
-	Camera camera ;
+	double ratio = 16./9. ;
+
+	Camera camera( P( -2, 2, 1 ), P( 0, 0, -1 ), V( 0, 1, 0 ), 20., ratio ) ;
 
 	const int w = 400;                                   // image width in pixels
-	const int h = static_cast<int>( w/camera.ratio() ) ; // image height in pixels
+	const int h = static_cast<int>( w/ratio ) ; // image height in pixels
 	const int spp = 100 ;                                // samples per pixel
 	const int dmax = 50 ;                                // recursion depth
 
@@ -96,7 +98,7 @@ int main() {
 	scene.add( make_shared<Sphere>( P( .0, -100.5, -1. ), 100.,  make_shared<Lambertian>( C( .8, .8, .0 ) ) ) ) ; // ground
 	scene.add( make_shared<Sphere>( P( .0,     .0, -1. ),    .5, make_shared<Lambertian>( C( .1, .2, .5 ) ) ) ) ; // center
 	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),    .5, make_shared<Dielectric>( 1.5 ) ) ) ;             // l sphere
-	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),   -.4, make_shared<Dielectric>( 1.5 ) ) ) ;             // l sphere
+	scene.add( make_shared<Sphere>( P( -1.,    .0, -1. ),  -.45, make_shared<Dielectric>( 1.5 ) ) ) ;             // l sphere
 	scene.add( make_shared<Sphere>( P( 1.,     .0, -1. ),    .5, make_shared<Metal>( C( .8, .6, .2 ), 1. ) ) ) ;  // r sphere
 
 	std::cout
@@ -106,11 +108,11 @@ int main() {
 	for ( int j = h-1 ; j>=0 ; --j ) {
 		for ( int i = 0 ; i<w ; ++i ) {
 			C color( 0, 0, 0 ) ;
-			for ( int s = 0 ; s<spp ; ++s ) {
-				auto u = ( i+rnd() )/(w-1) ;
-				auto v = ( j+rnd() )/(h-1) ;
+			for ( int k = 0 ; k<spp ; ++k ) {
+				auto s = ( i+rnd() )/(w-1) ;
+				auto t = ( j+rnd() )/(h-1) ;
 
-				Ray ray = camera.ray( u, v ) ;
+				Ray ray = camera.ray( s, t ) ;
 				color += trace( ray, scene, dmax ) ;
 			}
 			std::cout
