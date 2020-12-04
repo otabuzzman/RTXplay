@@ -54,7 +54,10 @@ V rndVin1sphere()                  { while ( true ) { auto p = V::random( -1, 1 
 // random V on unit sphere (chapter 8.5)
 V rndVon1sphere()                  { return unitV( rndVin1sphere() ) ; }
 // random V against ray (chapter 8.6)
-V rndVoppraydir( const V& normal ) { auto p = rndVin1sphere() ; if ( dot( p, normal ) ) return p ; else return -p ; }
+V rndVoppraydir( const V& normal ) { auto p = rndVin1sphere() ; return dot( p, normal ) ? p : -p ; }
+// random V in unit disk (chapter 12.2)
+V rndVin1disk() { while ( true ) { auto p = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ; if ( 1>p.len2() ) return p ; }
+}
 
 V reflect( const V& v, const V& n )             { return v-2*dot( v, n )*n ; }
 V refract( const V& v, const V& n, double qeta) { auto tta = fmin( dot( -v, n ), 1. ) ; V perp =  qeta*( v+tta*n ) ; V parl = -sqrt( fabs( 1.-perp.len2() ) )*n ; return perp+parl ; }

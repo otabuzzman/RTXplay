@@ -87,7 +87,13 @@ C trace( const Ray& ray, const Thing& scene, int depth ) {
 int main() {
 	double ratio = 16./9. ;
 
-	Camera camera( P( -2, 2, 1 ), P( 0, 0, -1 ), V( 0, 1, 0 ), 20., ratio ) ;
+	P pos( 3, 3, 2 ) ;
+	P pov( 0, 0, -1 ) ;
+	V up( 0, 1, 0 ) ;
+	double aperture = 2. ;
+	double distance = ( pos-pov ).len() ;
+
+	Camera camera( pos, pov, up, 20., ratio, aperture, distance ) ;
 
 	const int w = 400;                                   // image width in pixels
 	const int h = static_cast<int>( w/ratio ) ; // image height in pixels
