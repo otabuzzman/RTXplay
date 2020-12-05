@@ -93,7 +93,7 @@ Things scene() {
 		for ( int b = -11 ; b<11; b++ ) {
 			auto select = rnd() ;
 			P center( a+.9*rnd(), .2, b+.9*rnd() ) ;
-			if ( ( center-P( 4, .2, 0 ) ).len()>.9) {
+			if ( ( center-P( 4, .2, 0 ) ).len()>.9 ) {
 				if ( select<.8 ) {
 					auto albedo = C::rnd()*C::rnd() ;
 					s.add( make_shared<Sphere>( center, .2, make_shared<Lambertian>( albedo ) ) ) ;
@@ -116,6 +116,8 @@ Things scene() {
 }
 
 int main() {
+	Things scene = ::scene() ;
+
 	double ratio = 3./2. ;
 
 	P pos( 13, 2, 3 ) ;
@@ -128,7 +130,7 @@ int main() {
 
 	const int w = 1200 ;                        // image width in pixels
 	const int h = static_cast<int>( w/ratio ) ; // image height in pixels
-	const int spp = 10 ;                        // samples per pixel
+	const int spp = 50 ;                        // samples per pixel
 	const int dmax = 50 ;                       // recursion depth
 
 	std::cout
@@ -140,11 +142,11 @@ int main() {
 		for ( int i = 0 ; i<w ; ++i ) {
 			C color( 0, 0, 0 ) ;
 			for ( int k = 0 ; k<spp ; ++k ) {
-				auto s = ( i+rnd() )/(w-1) ;
-				auto t = ( j+rnd() )/(h-1) ;
+				auto s = ( i+rnd() )/( w-1 ) ;
+				auto t = ( j+rnd() )/( h-1 ) ;
 
 				Ray ray = camera.ray( s, t ) ;
-				color += trace( ray, scene(), dmax ) ;
+				color += trace( ray, scene, dmax ) ;
 			}
 			std::cout
 				<< rgbPP3( color, spp ) << '\n' ;

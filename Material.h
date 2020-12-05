@@ -1,7 +1,7 @@
 #ifndef MATERIAL_H
 #define MATERIAL_H
 
-#include "util.h"
+#include "Ray.h"
 
 struct record ;
 
@@ -12,7 +12,7 @@ class Material {
 
 class Lambertian : public Material {
 	public:
-		Lambertian( const C& albedo ) : a(albedo) {}
+		Lambertian( const C& albedo ) : a( albedo ) {}
 
 		virtual bool spray( const Ray& ray, const record& rec, C& attened, Ray& sprayed ) const override {
 			auto d = rec.normal + rndVon1sphere() ; 
@@ -31,7 +31,7 @@ class Lambertian : public Material {
 
 class Metal : public Material {
 	public:
-		Metal( const C& albedo, double fuzz ) : a(albedo), f(fuzz) {}
+		Metal( const C& albedo, double fuzz ) : a( albedo ), f( fuzz ) {}
 
 		virtual bool spray( const Ray& ray, const record& rec, C& attened, Ray& sprayed ) const override {
 			V r = reflect( unitV( ray.dir() ), rec.normal ) ;
@@ -48,7 +48,7 @@ class Metal : public Material {
 
 class Dielectric : public Material {
 	public:
-		Dielectric( double refraction ) : ridx(refraction) {}
+		Dielectric( double refraction ) : ridx( refraction ) {}
 
 		virtual bool spray( const Ray& ray, const record& rec, C& attened, Ray& sprayed ) const override {
 			attened = C( 1., 1., 1. ) ;
