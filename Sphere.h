@@ -2,12 +2,11 @@
 #define SPHERE_H
 
 #include "Thing.h"
-#include "V.h"
 
 class Sphere : public Thing {
 	public:
 		Sphere() {}
-		Sphere( P center, double radius, shared_ptr<Material> material ) : cen(center), rad(radius), mat(material) {}
+		Sphere( P center, double radius, shared_ptr<Material> material ) : cen( center ), rad( radius ), mat( material ) {}
 
 		P      center() { return cen ; }
 		double radius() const { return rad ; }

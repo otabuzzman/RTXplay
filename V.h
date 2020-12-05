@@ -4,6 +4,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "util.h"
+
 using std::sqrt ;
 
 class V {
@@ -27,7 +29,7 @@ class V {
 		double len() const                     { return sqrt( len2() ) ; }
 		double len2() const                    { return m[0]*m[0]+m[1]*m[1]+m[2]*m[2] ; }
 
-		bool isnear0() const                   { return ( fabs(m[0] )<1e-8 ) && ( fabs( m[1] )<1e-8) && ( fabs( m[2] )<1e-8 ) ; }
+		bool isnear0() const                   { return ( fabs(m[0] )<1e-8 ) && ( fabs( m[1] )<1e-8 ) && ( fabs( m[2] )<1e-8 ) ; }
 
 		inline static V rnd()                  { return V( ::rnd(), ::rnd(), ::rnd() ) ; }
 		inline static V rnd( double min, double max ) { return V( ::rnd( min, max ), ::rnd( min, max ), ::rnd( min, max ) ) ; }
@@ -39,7 +41,7 @@ class V {
 using P = V ; // point
 using C = V ; // color
 
-inline V operator + (const V& u, const V& v)   { return V( u.x()+v.x(), u.y()+v.y(), u.z()+v.z() ) ; }
+inline V operator + ( const V& u, const V& v ) { return V( u.x()+v.x(), u.y()+v.y(), u.z()+v.z() ) ; }
 inline V operator - ( const V& u, const V& v ) { return V( u.x()-v.x(), u.y()-v.y(), u.z()-v.z() ) ; }
 inline V operator * ( const V& u, const V& v ) { return V( u.x()*v.x(), u.y()*v.y(), u.z()*v.z() ) ; }
 inline V operator * ( double t, const V& v )   { return V( t*v.x(), t*v.y(), t*v.z() ) ; }
@@ -60,7 +62,7 @@ V rndVin1disk() { while ( true ) { auto p = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ;
 }
 
 V reflect( const V& v, const V& n )             { return v-2*dot( v, n )*n ; }
-V refract( const V& v, const V& n, double qeta) { auto tta = fmin( dot( -v, n ), 1. ) ; V perp =  qeta*( v+tta*n ) ; V parl = -sqrt( fabs( 1.-perp.len2() ) )*n ; return perp+parl ; }
+V refract( const V& v, const V& n, double qeta ) { auto tta = fmin( dot( -v, n ), 1. ) ; V perp =  qeta*( v+tta*n ) ; V parl = -sqrt( fabs( 1.-perp.len2() ) )*n ; return perp+parl ; }
 
 inline std::ostream& operator << ( std::ostream &out, const V &v ) { return out << v.x() << ' ' << v.y() << ' ' << v.z() ; }
 
