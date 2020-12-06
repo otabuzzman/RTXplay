@@ -66,13 +66,10 @@ C trace( const Ray& ray, const Thing& scene ) {
 
 C trace( const Ray& ray, const Thing& scene, int depth ) {
 	record rec ; P s ;
-	if ( 0>=depth )
-		return C( 0, 0, 0 ) ;
-	// else
 	if ( scene.hit( ray, .001, INF, rec ) ) {
 		Ray sprayed ;
 		C attened ;
-		if ( rec.m->spray( ray, rec, attened, sprayed ) )
+		if ( depth>0 && rec.m->spray( ray, rec, attened, sprayed ) )
 			return attened*trace( sprayed, scene, depth-1 ) ;
 		// else
 		return C( 0, 0, 0 ) ;
