@@ -14,25 +14,25 @@ class Things : public Thing {
 		Things() {}
 		Things( shared_ptr<Thing> thing ) { add( thing ) ; }
 
-		void clear() { things.clear() ; }
-		void add( shared_ptr<Thing> thing ) { things.push_back( thing ) ; }
+		void clear() { things_.clear() ; }
+		void add( shared_ptr<Thing> thing ) { things_.push_back( thing ) ; }
 
-		virtual bool hit( const Ray& ray, double tmin, double tmax, record& rec ) const override ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const override ;
 
 	private:
-		std::vector<shared_ptr<Thing>> things ;
+		std::vector<shared_ptr<Thing>> things_ ;
 } ;
 
-bool Things::hit( const Ray& ray, double tmin, double tmax, record& rec ) const {
-	record nrec ;
+bool Things::hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const {
+	Payload tmp_payload ;
 	bool shot = false ;
 	auto tact = tmax ;
 
-	for ( const auto& thing : things ) {
-		if ( thing->hit( ray, tmin, tact, nrec ) ) {
+	for ( const auto& thing : things_ ) {
+		if ( thing->hit( ray, tmin, tact, tmp_payload ) ) {
 			shot = true ;
-			tact = nrec.t ;
-			rec  = nrec ;
+			tact = tmp_payload.t ;
+			payload  = tmp_payload ;
 		}
 	}
 

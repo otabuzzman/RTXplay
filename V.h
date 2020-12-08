@@ -10,32 +10,32 @@ using std::sqrt ;
 
 class V {
 	public:
-		V() : m{ 0, 0, 0 } {}
-		V( double x, double y, double z ) : m{ x, y, z } {}
+		V() : v_{ 0, 0, 0 } {}
+		V( double x, double y, double z ) : v_{ x, y, z } {}
 
-		double x() const { return m[0] ; }
-		double y() const { return m[1] ; }
-		double z() const { return m[2] ; }
+		double x() const { return v_[0] ; }
+		double y() const { return v_[1] ; }
+		double z() const { return v_[2] ; }
 
-		V operator - () const                  { return V( -m[0], -m[1], -m[2] ) ; }
+		V operator - () const                  { return V( -v_[0], -v_[1], -v_[2] ) ; }
 
-		double operator [] ( int i ) const     { return m[i] ; }
-		double& operator [] ( int i )          { return m[i] ; }
+		double operator [] ( int i ) const     { return v_[i] ; }
+		double& operator [] ( int i )          { return v_[i] ; }
 
-		V& operator += ( const V& v )          { m[0] += v.m[0] ; m[1] += v.m[1] ; m[2] += v.m[2] ; return *this ; }
-		V& operator *= ( double t )            { m[0] *= t ; m[1] *= t ; m[2] *= t ; return *this ; }
+		V& operator += ( const V& v )          { v_[0] += v.v_[0] ; v_[1] += v.v_[1] ; v_[2] += v.v_[2] ; return *this ; }
+		V& operator *= ( double t )            { v_[0] *= t ; v_[1] *= t ; v_[2] *= t ; return *this ; }
 		V& operator /= ( double t )            { return *this *= 1/t ; }
 
 		double len() const                     { return sqrt( len2() ) ; }
-		double len2() const                    { return m[0]*m[0]+m[1]*m[1]+m[2]*m[2] ; }
+		double len2() const                    { return v_[0]*v_[0]+v_[1]*v_[1]+v_[2]*v_[2] ; }
 
-		bool isnear0() const                   { return ( fabs(m[0] )<1e-8 ) && ( fabs( m[1] )<1e-8 ) && ( fabs( m[2] )<1e-8 ) ; }
+		bool isnear0() const                   { return ( fabs(v_[0] )<1e-8 ) && ( fabs( v_[1] )<1e-8 ) && ( fabs( v_[2] )<1e-8 ) ; }
 
 		inline static V rnd()                  { return V( ::rnd(), ::rnd(), ::rnd() ) ; }
 		inline static V rnd( double min, double max ) { return V( ::rnd( min, max ), ::rnd( min, max ), ::rnd( min, max ) ) ; }
 
 	private:
-		double m[3]; 
+		double v_[3];
 } ;
 
 using P = V ; // point

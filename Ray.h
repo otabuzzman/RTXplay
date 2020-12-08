@@ -6,16 +6,16 @@
 class Ray {
 	public:
 		Ray() {}
-		Ray( const P& ori, const V& dir ) : o( ori ), d( dir ) {}
+		Ray( const P& ori, const V& dir ) : ori_( ori ), dir_( dir ) {}
 
-		P ori() const { return o ; }
-		V dir() const { return d ; }
+		P ori() const { return ori_ ; }
+		V dir() const { return dir_ ; }
 
-		P at( double t ) const { return o+t*d ; }
+		P at( double t ) const { return ori_+t*dir_ ; }
 
 	private:
-		P o ;
-		V d ;
+		P ori_ ;
+		V dir_ ;
 };
 
 #endif

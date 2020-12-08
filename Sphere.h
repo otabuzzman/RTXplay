@@ -6,24 +6,24 @@
 class Sphere : public Thing {
 	public:
 		Sphere() {}
-		Sphere( P center, double radius, shared_ptr<Material> material ) : cen( center ), rad( radius ), mat( material ) {}
+		Sphere( P center, double radius, shared_ptr<Optics> optics ) : center_( center ), radius_( radius ), optics_( optics ) {}
 
-		P      center() { return cen ; }
-		double radius() const { return rad ; }
+		P      center() { return center_ ; }
+		double radius() const { return radius_ ; }
 
-		virtual bool hit( const Ray& ray, double tmin, double tmax, record& rec ) const override ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const override ;
 
 	private:
-		P cen ;
-		double rad ;
-		shared_ptr<Material> mat ;
+		P center_ ;
+		double radius_ ;
+		shared_ptr<Optics> optics_ ;
 } ;
 
-bool Sphere::hit( const Ray& ray, double tmin, double tmax, record& rec ) const {
-	V o = ray.ori()-cen ;
+bool Sphere::hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const {
+	V o = ray.ori()-center_ ;
 	auto a = ray.dir().len2() ;    // simplified quadratic equation (see also sphere() in main.cpp)
 	auto b = dot( ray.dir(), o ) ;
-	auto c = o.len2()-rad*rad ;
+	auto c = o.len2()-radius_*radius_ ;
 	auto discriminant = b*b-a*c ;
 
 	if ( 0>discriminant )
@@ -39,11 +39,12 @@ bool Sphere::hit( const Ray& ray, double tmin, double tmax, record& rec ) const 
 			return false ;
 	}
 
-	rec.t = t ;
-	rec.p = ray.at( rec.t ) ;
-	V outward = ( rec.p-cen )/rad ;
-	rec.setnormal( ray, outward ) ;
-	rec.m = mat ;
+	payload.t = t ;
+	payload.p = ray.at( payload.t ) ;
+	V outward = ( payload.p-center_ )/radius_ ;
+	payload.facing = 0>dot( ray.dir(), outward ) ;
+	payload.normal = payload.facing ? outward : -outward ;
+	payload.optics = optics_ ;
 
 	return true ;
 }

@@ -3,24 +3,19 @@
 
 #include "Ray.h"
 
-class Material ;
+class Optics ;
 
-struct record {
+struct Payload {
 	P p ;
-	V normal ;
-	shared_ptr<Material> m ;
 	double t ;
+	V    normal ;
 	bool facing ;
-
-	inline void setnormal( const Ray& ray, const V& outward ) {
-		facing = 0>dot( ray.dir(), outward ) ;
-		normal = facing ? outward : -outward ;
-	}
+	shared_ptr<Optics> optics ;
 } ;
 
 class Thing {
 	public:
-		virtual bool hit( const Ray& ray, double tmin, double tmax, record& rec ) const = 0 ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const = 0 ;
 } ;
 
 #endif
