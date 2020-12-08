@@ -1,11 +1,12 @@
 #include <iostream>
+#include <string>
 
 #include "util.h"
 
 #include "Things.h"
 #include "Sphere.h"
 #include "Camera.h"
-#include "Material.h"
+#include "Optics.h"
 
 const std::string rgbPP3( C color ) {
 	char pp3[16] ;
@@ -54,9 +55,9 @@ double sphere( const P& center, double radius, const Ray& ray ) {
 }
 
 C trace( const Ray& ray, const Thing& scene ) {
-	record rec ;
-	if ( scene.hit( ray, 0, INF, rec ) )
-		return .5*( rec.normal+C( 1, 1, 1 ) ) ;
+	Payload payload ;
+	if ( scene.hit( ray, 0, kInfinty, payload ) )
+		return .5*( payload.normal+C( 1, 1, 1 ) ) ;
 	// else
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
@@ -65,11 +66,11 @@ C trace( const Ray& ray, const Thing& scene ) {
 }
 
 C trace( const Ray& ray, const Thing& scene, int depth ) {
-	record rec ; P s ;
-	if ( scene.hit( ray, .001, INF, rec ) ) {
+	Payload payload ;
+	if ( scene.hit( ray, .001, kInfinty, payload ) ) {
 		Ray sprayed ;
 		C attened ;
-		if ( depth>0 && rec.m->spray( ray, rec, attened, sprayed ) )
+		if ( depth>0 && payload.optics->spray( ray, payload, attened, sprayed ) )
 			return attened*trace( sprayed, scene, depth-1 ) ;
 		// else
 		return C( 0, 0, 0 ) ;
@@ -84,7 +85,7 @@ C trace( const Ray& ray, const Thing& scene, int depth ) {
 Things scene() {
 	Things s ;
 
-	s.add( make_shared<Sphere>( P( 0, -1000, 0 ), 1000., make_shared<Lambertian>( C( .5, .5, .5 ) ) ) ) ;
+	s.add( make_shared<Sphere>( P( 0, -1000, 0 ), 1000., make_shared<Diffuse>( C( .5, .5, .5 ) ) ) ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11; b++ ) {
@@ -93,21 +94,21 @@ Things scene() {
 			if ( ( center-P( 4, .2, 0 ) ).len()>.9 ) {
 				if ( select<.8 ) {
 					auto albedo = C::rnd()*C::rnd() ;
-					s.add( make_shared<Sphere>( center, .2, make_shared<Lambertian>( albedo ) ) ) ;
+					s.add( make_shared<Sphere>( center, .2, make_shared<Diffuse>( albedo ) ) ) ;
 				} else if ( select<.95 ) {
 					auto albedo = C::rnd( .5, 1. ) ;
 					auto fuzz = rnd( 0, .5 ) ;
-					s.add( make_shared<Sphere>( center, .2, make_shared<Metal>( albedo, fuzz ) ) ) ;
+					s.add( make_shared<Sphere>( center, .2, make_shared<Reflect>( albedo, fuzz ) ) ) ;
 				} else {
-					s.add( make_shared<Sphere>( center, .2, make_shared<Dielectric>( 1.5 ) ) ) ;
+					s.add( make_shared<Sphere>( center, .2, make_shared<Refract>( 1.5 ) ) ) ;
 				}
 			}
 		}
 	}
 
-	s.add( make_shared<Sphere>( P(  0, 1, 0 ), 1., make_shared<Dielectric>( 1.5 ) ) ) ;
-	s.add( make_shared<Sphere>( P( -4, 1, 0 ), 1., make_shared<Lambertian>( C( .4, .2, .1 ) ) ) ) ;
-	s.add( make_shared<Sphere>( P(  4, 1, 0 ), 1., make_shared<Metal>( C( .7, .6, .5 ), 0 ) ) ) ;
+	s.add( make_shared<Sphere>( P(  0, 1, 0 ), 1., make_shared<Refract>( 1.5 ) ) ) ;
+	s.add( make_shared<Sphere>( P( -4, 1, 0 ), 1., make_shared<Diffuse>( C( .4, .2, .1 ) ) ) ) ;
+	s.add( make_shared<Sphere>( P(  4, 1, 0 ), 1., make_shared<Reflect>( C( .7, .6, .5 ), 0 ) ) ) ;
 
 	return s ;
 }
@@ -115,7 +116,7 @@ Things scene() {
 int main() {
 	Things scene = ::scene() ;
 
-	double ratio = 3./2. ;
+	double aspect_ratio = 3./2. ;
 
 	P pos( 13, 2, 3 ) ;
 	P pov( 0, 0, 0 ) ;
@@ -123,12 +124,12 @@ int main() {
 	double aperture = .1 ;
 	double distance = 10. ;
 
-	Camera camera( pos, pov, up, 20., ratio, aperture, distance ) ;
+	Camera camera( pos, pov, up, 20., aspect_ratio, aperture, distance ) ;
 
-	const int w = 1200 ;                        // image width in pixels
-	const int h = static_cast<int>( w/ratio ) ; // image height in pixels
-	const int spp = 50 ;                        // samples per pixel
-	const int dmax = 50 ;                       // recursion depth
+	const int w = 1200 ;                               // image width in pixels
+	const int h = static_cast<int>( w/aspect_ratio ) ; // image height in pixels
+	const int spp = 50 ;                               // samples per pixel
+	const int depth = 50 ;                             // recursion depth
 
 	std::cout
 		<< "P3\n"	// magic PPM header
@@ -143,7 +144,7 @@ int main() {
 				auto t = ( j+rnd() )/( h-1 ) ;
 
 				Ray ray = camera.ray( s, t ) ;
-				color += trace( ray, scene, dmax ) ;
+				color += trace( ray, scene, depth ) ;
 			}
 			std::cout
 				<< rgbPP3( color, spp ) << '\n' ;
