@@ -37,23 +37,6 @@ const std::string rgbPP3( C color, int spp ) {
 	return std::string( pp3 ) ;
 }
 
-double sphere( const P& center, double radius, const Ray& ray ) {
-	V o = ray.ori()-center ;
-	// auto a = dot( ray.dir(), ray.dir() ) ;
-	auto a = ray.dir().len2() ;             // simplified: V dot V equals len(V)^2
-	// auto b = 2.*dot( ray.dir(), o ) ;
-	auto b = dot( ray.dir(), o ) ;          // simplified: b/2
-	// auto c = dot( o, o )-radius*radius ;
-	auto c = o.len2()-radius*radius ;       // simplified: V dot V equals len(V)^2
-	// auto discriminant = b*b-4*a*c ;
-	auto discriminant = b*b-a*c ;           // simplified: b/2
-
-	if ( 0>discriminant )
-		return -1. ;
-	// else
-	return ( -b-sqrt( discriminant ) )/a ;  // simplified: b/2
-}
-
 C trace( const Ray& ray, const Thing& scene ) {
 	Bucket bucket ;
 	if ( scene.hit( ray, 0, kInfinty, bucket ) )
