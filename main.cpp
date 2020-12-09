@@ -3,10 +3,10 @@
 
 #include "util.h"
 
-#include "Things.h"
-#include "Sphere.h"
-#include "Camera.h"
-#include "Optics.h"
+#include "things.h"
+#include "sphere.h"
+#include "camera.h"
+#include "optics.h"
 
 const std::string rgbPP3( C color ) {
 	char pp3[16] ;
@@ -55,9 +55,9 @@ double sphere( const P& center, double radius, const Ray& ray ) {
 }
 
 C trace( const Ray& ray, const Thing& scene ) {
-	Payload payload ;
-	if ( scene.hit( ray, 0, kInfinty, payload ) )
-		return .5*( payload.normal+C( 1, 1, 1 ) ) ;
+	Bucket bucket ;
+	if ( scene.hit( ray, 0, kInfinty, bucket ) )
+		return .5*( bucket.normal+C( 1, 1, 1 ) ) ;
 	// else
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
@@ -66,11 +66,11 @@ C trace( const Ray& ray, const Thing& scene ) {
 }
 
 C trace( const Ray& ray, const Thing& scene, int depth ) {
-	Payload payload ;
-	if ( scene.hit( ray, .001, kInfinty, payload ) ) {
+	Bucket bucket ;
+	if ( scene.hit( ray, .001, kInfinty, bucket ) ) {
 		Ray sprayed ;
 		C attened ;
-		if ( depth>0 && payload.optics->spray( ray, payload, attened, sprayed ) )
+		if ( depth>0 && bucket.optics->spray( ray, bucket, attened, sprayed ) )
 			return attened*trace( sprayed, scene, depth-1 ) ;
 		// else
 		return C( 0, 0, 0 ) ;

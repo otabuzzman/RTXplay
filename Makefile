@@ -11,13 +11,13 @@ EXE = main
 endif
 
 CLS = \
-	Camera.h \
-	Optics.h \
-	Ray.h \
-	Sphere.h \
-	Thing.h \
-	Things.h \
-	V.h \
+	camera.h \
+	optics.h \
+	ray.h \
+	sphere.h \
+	thing.h \
+	things.h \
+	v.h \
 	util.h \
 
 IMG = rtow.png

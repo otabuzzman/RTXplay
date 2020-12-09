@@ -1,11 +1,11 @@
 #ifndef THING_H
 #define THING_H
 
-#include "Ray.h"
+#include "ray.h"
 
 class Optics ;
 
-struct Payload {
+struct Bucket {
 	P p ;
 	double t ;
 	V    normal ;
@@ -15,7 +15,7 @@ struct Payload {
 
 class Thing {
 	public:
-		virtual bool hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const = 0 ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const = 0 ;
 } ;
 
 #endif

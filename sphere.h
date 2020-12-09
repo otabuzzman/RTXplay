@@ -1,7 +1,7 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
-#include "Thing.h"
+#include "thing.h"
 
 class Sphere : public Thing {
 	public:
@@ -11,7 +11,7 @@ class Sphere : public Thing {
 		P      center() { return center_ ; }
 		double radius() const { return radius_ ; }
 
-		virtual bool hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const override ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const override ;
 
 	private:
 		P center_ ;
@@ -19,7 +19,7 @@ class Sphere : public Thing {
 		shared_ptr<Optics> optics_ ;
 } ;
 
-bool Sphere::hit( const Ray& ray, double tmin, double tmax, Payload& payload ) const {
+bool Sphere::hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const {
 	V o = ray.ori()-center_ ;
 	auto a = ray.dir().len2() ;    // simplified quadratic equation (see also sphere() in main.cpp)
 	auto b = dot( ray.dir(), o ) ;
@@ -39,12 +39,12 @@ bool Sphere::hit( const Ray& ray, double tmin, double tmax, Payload& payload ) c
 			return false ;
 	}
 
-	payload.t = t ;
-	payload.p = ray.at( payload.t ) ;
-	V outward = ( payload.p-center_ )/radius_ ;
-	payload.facing = 0>dot( ray.dir(), outward ) ;
-	payload.normal = payload.facing ? outward : -outward ;
-	payload.optics = optics_ ;
+	bucket.t = t ;
+	bucket.p = ray.at( bucket.t ) ;
+	V outward = ( bucket.p-center_ )/radius_ ;
+	bucket.facing = 0>dot( ray.dir(), outward ) ;
+	bucket.normal = bucket.facing ? outward : -outward ;
+	bucket.optics = optics_ ;
 
 	return true ;
 }
