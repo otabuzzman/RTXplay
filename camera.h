@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "V.h"
+#include "v.h"
 
 class Camera {
 	public:
