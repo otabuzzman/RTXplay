@@ -1,6 +1,8 @@
+.vscode/
 *.docx
 *.exe
 *.o
+*.out
 *.png
 *.pptx
-.vscode/
+rtow
