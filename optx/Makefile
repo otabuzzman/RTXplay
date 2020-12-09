@@ -20,12 +20,18 @@ CLS = \
 	sphere.h \
 	thing.h \
 	things.h \
-	util.h \
 	v.h \
+	util.h \
 
 IMG = rtow.png
 
 .PHONY: all clean tidy
+
+.cu.ptx:
+	echo nvcc
+
+.ptx.c:
+	echo bin2c
 
 all: $(EXE) $(IMG)
 
