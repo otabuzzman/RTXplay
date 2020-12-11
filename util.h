@@ -8,7 +8,6 @@
 
 using std::shared_ptr ;
 using std::make_shared ;
-using std::sqrt ;
 
 const double kInfinty = std::numeric_limits<double>::infinity() ;
 const double kPi      = 3.141592653589793238 ;

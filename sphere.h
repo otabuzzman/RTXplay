@@ -6,9 +6,9 @@
 class Sphere : public Thing {
 	public:
 		Sphere() {}
-		Sphere( P center, double radius, shared_ptr<Optics> optics ) : center_( center ), radius_( radius ), optics_( optics ) {}
+		Sphere( const P center, double radius, shared_ptr<Optics> optics ) : center_( center ), radius_( radius ), optics_( optics ) {}
 
-		P      center() { return center_ ; }
+		P      center() const { return center_ ; }
 		double radius() const { return radius_ ; }
 
 		virtual bool hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const override ;

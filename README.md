@@ -8,7 +8,7 @@ RTOW
 
 Math
 - [Refreshment on quadratic equations](http://viclw17.github.io/2018/07/16/raytracing-ray-sphere-intersection/)
-- [Sphere creation algorithm](https://gamedev.stackexchange.com/questions/31308/algorithm-for-creating-spheres) based on icosahedron subdivision
+- Sample C++ implementation of [sphere creation algorithm](http://paulbourke.net/geometry/platonic/sphere.cpp) based on [icosahedron](https://rechneronline.de/pi/icosahedron.php) subdivision.
 
 Tools
 - Handy summary of [class and sequence diagram notation](http://umich.edu/~eecs381/handouts/UMLNotationSummary.pdf)
