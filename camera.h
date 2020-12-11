@@ -5,7 +5,7 @@
 
 class Camera {
 	public:
-		Camera( P pos, P pov, V up, double fov, double aspect_ratio, double aperture, double focus_distance ) {
+		Camera( const P pos, const P pov, const V up, double fov, double aspect_ratio, double aperture, double focus_distance ) {
 			auto viewh = 2.*tan( deg2rad( fov )/2 ) ;         // virtual viewport height
 			auto vieww = aspect_ratio*viewh ;                 // virtual viewport width
 			w_ = unitV( pos-pov ) ;

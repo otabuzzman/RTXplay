@@ -6,8 +6,6 @@
 
 #include "util.h"
 
-using std::sqrt ;
-
 class V {
 	public:
 		V() : v_{ 0, 0, 0 } {}

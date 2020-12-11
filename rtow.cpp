@@ -8,7 +8,7 @@
 #include "camera.h"
 #include "optics.h"
 
-const std::string rgbPP3( C color ) {
+const std::string rgbPP3( const C color ) {
 	char pp3[16] ;
 
 	sprintf( pp3, "%d %d %d",
@@ -17,10 +17,9 @@ const std::string rgbPP3( C color ) {
 		static_cast<int>( 255*color.z() ) ) ;
 
 	return std::string( pp3 ) ;
-
 }
 
-const std::string rgbPP3( C color, int spp ) {
+const std::string rgbPP3( const C color, int spp ) {
 	char pp3[16] ;
 	auto r = color.x() ;
 	auto g = color.y() ;
