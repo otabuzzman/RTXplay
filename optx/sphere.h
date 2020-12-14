@@ -17,7 +17,7 @@ class Sphere : public Triangles {
 		P     center_ ;
 		float radius_ ;
 
-		std::vector<float3> triangles_ ;
+		std::vector<V> triangles_ ;
 
 		void icosahedron( int number_of_subdivisions ) const {
 			// https://rechneronline.de/pi/icosahedron.php
@@ -76,9 +76,9 @@ class Sphere : public Triangles {
 				divide ( ca, bc,  c, pending_subdivisions-1 ) ;
 				divide ( ab, bc, ca, pending_subdivisions-1 ) ;
 			} else {
-				triangles_.add( make_float3( center_+radius_*A ) ;
-				triangles_.add( make_float3( center_+radius_*B ) ;
-				triangles_.add( make_float3( center_+radius_*C ) ;
+				triangles_.add( V( center_+radius_*A ) ;
+				triangles_.add( V( center_+radius_*B ) ;
+				triangles_.add( V( center_+radius_*C ) ;
 			}
 		}
 } ;
