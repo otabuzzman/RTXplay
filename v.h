@@ -59,7 +59,7 @@ V rndVoppraydir( const V& normal ) { auto p = rndVin1sphere() ; return dot( p, n
 V rndVin1disk() { while ( true ) { auto p = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ; if ( 1>p.len2() ) return p ; }
 }
 
-V reflect( const V& v, const V& n )             { return v-2*dot( v, n )*n ; }
+V reflect( const V& v, const V& n )              { return v-2*dot( v, n )*n ; }
 V refract( const V& v, const V& n, double qeta ) { auto tta = fmin( dot( -v, n ), 1. ) ; V perp =  qeta*( v+tta*n ) ; V parl = -sqrt( fabs( 1.-perp.len2() ) )*n ; return perp+parl ; }
 
 inline std::ostream& operator << ( std::ostream &out, const V &v ) { return out << v.x() << ' ' << v.y() << ' ' << v.z() ; }

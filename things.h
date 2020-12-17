@@ -29,7 +29,7 @@ bool Things::hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) con
 		if ( thing->hit( ray, tmin, tact, buffer ) ) {
 			shot = true ;
 			tact = buffer.t ;
-			bucket  = buffer ;
+			bucket = buffer ;
 		}
 	}
 

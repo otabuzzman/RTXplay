@@ -31,8 +31,11 @@ all: $(EXE) $(IMG)
 
 $(OBJ): $(CLS)
 
+.cpp.o:
+	g++ $$CPPFLAGS -c $<
+
 $(EXE): $(OBJ)
-	g++ -o $@ $<
+	g++ $$CPPFLAGS -o $@ $<
 
 
 
