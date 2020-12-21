@@ -11,7 +11,7 @@ class Sphere : public Thing {
 		P      center() const { return center_ ; }
 		double radius() const { return radius_ ; }
 
-		virtual bool hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const override ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Binding& binding ) const override ;
 
 	private:
 		P center_ ;
@@ -19,7 +19,7 @@ class Sphere : public Thing {
 		shared_ptr<Optics> optics_ ;
 } ;
 
-bool Sphere::hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const {
+bool Sphere::hit( const Ray& ray, double tmin, double tmax, Binding& binding ) const {
 	V o = ray.ori()-center_ ;
 	auto a = ray.dir().len2() ;    // simplified quadratic equation (see also sphere() in main.cpp)
 	auto b = dot( ray.dir(), o ) ;
@@ -39,12 +39,12 @@ bool Sphere::hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) con
 			return false ;
 	}
 
-	bucket.t = t ;
-	bucket.p = ray.at( bucket.t ) ;
-	V outward = ( bucket.p-center_ )/radius_ ;
-	bucket.facing = 0>dot( ray.dir(), outward ) ;
-	bucket.normal = bucket.facing ? outward : -outward ;
-	bucket.optics = optics_ ;
+	binding.t = t ;
+	binding.p = ray.at( binding.t ) ;
+	V outward = ( binding.p-center_ )/radius_ ;
+	binding.facing = 0>dot( ray.dir(), outward ) ;
+	binding.normal = binding.facing ? outward : -outward ;
+	binding.optics = optics_ ;
 
 	return true ;
 }

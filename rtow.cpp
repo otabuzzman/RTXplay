@@ -37,9 +37,9 @@ const std::string rgbPP3( const C color, int spp ) {
 }
 
 C trace( const Ray& ray, const Thing& scene ) {
-	Bucket bucket ;
-	if ( scene.hit( ray, 0, kInfinty, bucket ) )
-		return .5*( bucket.normal+C( 1, 1, 1 ) ) ;
+	Binding binding ;
+	if ( scene.hit( ray, 0, kInfinty, binding ) )
+		return .5*( binding.normal+C( 1, 1, 1 ) ) ;
 	// else
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
@@ -48,11 +48,11 @@ C trace( const Ray& ray, const Thing& scene ) {
 }
 
 C trace( const Ray& ray, const Thing& scene, int depth ) {
-	Bucket bucket ;
-	if ( scene.hit( ray, .001, kInfinty, bucket ) ) {
+	Binding binding ;
+	if ( scene.hit( ray, .001, kInfinty, binding ) ) {
 		Ray sprayed ;
 		C attened ;
-		if ( depth>0 && bucket.optics->spray( ray, bucket, attened, sprayed ) )
+		if ( depth>0 && binding.optics->spray( ray, binding, attened, sprayed ) )
 			return attened*trace( sprayed, scene, depth-1 ) ;
 		// else
 		return C( 0, 0, 0 ) ;

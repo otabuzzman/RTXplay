@@ -14,14 +14,14 @@ class Things : public Thing {
 		void clear() { things_.clear() ; }
 		void add( shared_ptr<Thing> thing ) { things_.push_back( thing ) ; }
 
-		virtual bool hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const override ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Binding& binding ) const override ;
 
 	private:
 		std::vector<shared_ptr<Thing>> things_ ;
 } ;
 
-bool Things::hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const {
-	Bucket buffer ;
+bool Things::hit( const Ray& ray, double tmin, double tmax, Binding& binding ) const {
+	Binding buffer ;
 	bool shot = false ;
 	auto tact = tmax ;
 
@@ -29,7 +29,7 @@ bool Things::hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) con
 		if ( thing->hit( ray, tmin, tact, buffer ) ) {
 			shot = true ;
 			tact = buffer.t ;
-			bucket = buffer ;
+			binding = buffer ;
 		}
 	}
 

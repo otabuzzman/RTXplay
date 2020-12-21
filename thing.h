@@ -5,7 +5,7 @@
 
 class Optics ;
 
-struct Bucket {
+struct Binding {
 	P p ;
 	double t ;
 	V    normal ;
@@ -15,7 +15,7 @@ struct Bucket {
 
 class Thing {
 	public:
-		virtual bool hit( const Ray& ray, double tmin, double tmax, Bucket& bucket ) const = 0 ;
+		virtual bool hit( const Ray& ray, double tmin, double tmax, Binding& binding ) const = 0 ;
 } ;
 
 #endif
