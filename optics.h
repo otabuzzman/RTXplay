@@ -3,23 +3,23 @@
 
 #include "ray.h"
 
-struct Bucket ;
+struct Binding ;
 
 class Optics {
 	public:
-		virtual bool spray( const Ray& ray, const Bucket& bucket, C& attened, Ray& sprayed ) const = 0 ;
+		virtual bool spray( const Ray& ray, const Binding& binding, C& attened, Ray& sprayed ) const = 0 ;
 } ;
 
 class Diffuse : public Optics {
 	public:
 		Diffuse( const C& albedo ) : albedo_( albedo ) {}
 
-		virtual bool spray( const Ray& ray, const Bucket& bucket, C& attened, Ray& sprayed ) const override {
-			auto d = bucket.normal + rndVon1sphere() ; 
+		virtual bool spray( const Ray& ray, const Binding& binding, C& attened, Ray& sprayed ) const override {
+			auto d = binding.normal + rndVon1sphere() ;
 			if ( d.isnear0() )
-				d = bucket.normal ;
+				d = binding.normal ;
 
-			sprayed = Ray( bucket.p, d ) ;
+			sprayed = Ray( binding.p, d ) ;
 			attened = albedo_ ;
 
 			return true ;
@@ -33,12 +33,12 @@ class Reflect : public Optics {
 	public:
 		Reflect( const C& albedo, double fuzz ) : albedo_( albedo ), fuzz_( fuzz ) {}
 
-		virtual bool spray( const Ray& ray, const Bucket& bucket, C& attened, Ray& sprayed ) const override {
-			V r = reflect( unitV( ray.dir() ), bucket.normal ) ;
-			sprayed = Ray( bucket.p, r+fuzz_*rndVin1sphere() ) ;
+		virtual bool spray( const Ray& ray, const Binding& binding, C& attened, Ray& sprayed ) const override {
+			V r = reflect( unitV( ray.dir() ), binding.normal ) ;
+			sprayed = Ray( binding.p, r+fuzz_*rndVin1sphere() ) ;
 			attened = albedo_ ;
 
-			return ( dot( sprayed.dir(), bucket.normal )>0 ) ;
+			return ( dot( sprayed.dir(), binding.normal )>0 ) ;
 		}
 
 	public:
@@ -50,21 +50,21 @@ class Refract : public Optics {
 	public:
 		Refract( double refraction_index ) : refraction_index_( refraction_index ) {}
 
-		virtual bool spray( const Ray& ray, const Bucket& bucket, C& attened, Ray& sprayed ) const override {
+		virtual bool spray( const Ray& ray, const Binding& binding, C& attened, Ray& sprayed ) const override {
 			attened = C( 1., 1., 1. ) ;
 			V d, u = unitV( ray.dir() ) ;
-			double ctta = fmin( dot( -u, bucket.normal ), 1. ) ;
+			double ctta = fmin( dot( -u, binding.normal ), 1. ) ;
 			double stta = sqrt( 1.-ctta*ctta ) ;
 
-			double refraction_ratio = bucket.facing ? 1./refraction_index_ : refraction_index_ ;
+			double refraction_ratio = binding.facing ? 1./refraction_index_ : refraction_index_ ;
 			bool cannot = refraction_ratio*stta>1. ;
 
 			if ( cannot || schlick( ctta, refraction_ratio )>rnd() )
-				d = reflect( u, bucket.normal ) ;
+				d = reflect( u, binding.normal ) ;
 			else
-				d = refract( u, bucket.normal, refraction_ratio ) ;
+				d = refract( u, binding.normal, refraction_ratio ) ;
 
-			sprayed = Ray( bucket.p, d ) ;
+			sprayed = Ray( binding.p, d ) ;
 			return true ;
 		}
 
