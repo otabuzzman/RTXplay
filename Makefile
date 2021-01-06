@@ -26,6 +26,7 @@ CLS = \
 IMG = rtow.png
 
 .PHONY: all clean tidy
+.SUFFIXES: .cxx .png
 
 all: $(EXE) $(IMG)
 
