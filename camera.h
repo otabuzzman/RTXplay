@@ -30,4 +30,4 @@ class Camera {
 		double lens_ ; // lens radius
 } ;
 
-#endif
+#endif // CAMERA_H

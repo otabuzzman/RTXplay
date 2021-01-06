@@ -75,4 +75,4 @@ class Refract : public Optics {
 		static double schlick( double ctta, double rrat ) { auto r0 = ( 1-rrat )/( 1+rrat ) ; r0 = r0*r0 ; return r0+( 1-r0 )*pow( ( 1-ctta ), 5 ) ; }
 } ;
 
-#endif
+#endif // OPTICS_H

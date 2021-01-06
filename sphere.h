@@ -49,4 +49,4 @@ bool Sphere::hit( const Ray& ray, double tmin, double tmax, Binding& binding ) c
 	return true ;
 }
 
-#endif
+#endif // SPHERE_H
