@@ -4,6 +4,9 @@ else
 	linos := 1
 endif
 
+empty =
+space = $(empty) $(empty)
+
 comma := ,
 
 ifdef winos
@@ -44,6 +47,7 @@ INC = \
 	-I/usr/local/optix/include \
 	-I/usr/local/optix/SDK \
 	-I/usr/local/optix/SDK/cuda \
+	-I/usr/local/optix/SDK/support \
 	-I/home/ec2-user/optix-samples \
 	-I/home/ec2-user/optix-samples/include \
 
@@ -55,6 +59,8 @@ INC = \
 
 .cpp.o:
 	nvcc -c $< -o $@ \
+		-DOPTIX_SAMPLE_DIR_DEFINE=../../../../home/ec2-user/lab/RTXplay/optx \
+		-DOPTIX_SAMPLE_NAME_DEFINE=../../../../home/ec2-user/lab/RTXplay/optx \
 		$(NVCCFLAGS) \
 		$(INC) \
 
@@ -72,15 +78,15 @@ $(EXE): $(OBJ)
 	g++ -o $@ $< \
 		-rdynamic \
 		-Wl,-rpath,/home/ec2-user/optix-samples/lib \
-		../lib/libimgui.a \
-		../lib/libsutil_7_sdk.so \
+		/home/ec2-user/optix-samples/lib/libimgui.a \
+		/home/ec2-user/optix-samples/lib/libsutil_7_sdk.so \
 		-lm \
 		/usr/local/cuda/lib64/libcudart_static.a \
 		-lpthread \
 		-lrt \
 		-ldl \
-		../lib/libglfw.so.3.2 \
-		../lib/libglad.so \
+		/home/ec2-user/optix-samples/lib/libglfw.so.3.2 \
+		/home/ec2-user/optix-samples/lib/libglad.so \
 		-lOpenGL \
 		-lGLX \
 		-lGLU \
