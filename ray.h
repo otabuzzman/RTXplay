@@ -18,4 +18,4 @@ class Ray {
 		V dir_ ;
 };
 
-#endif
+#endif // RAY_H

@@ -64,4 +64,4 @@ V refract( const V& v, const V& n, double qeta ) { auto tta = fmin( dot( -v, n )
 
 inline std::ostream& operator << ( std::ostream &out, const V &v ) { return out << v.x() << ' ' << v.y() << ' ' << v.z() ; }
 
-#endif
+#endif // V_H

@@ -36,4 +36,4 @@ bool Things::hit( const Ray& ray, double tmin, double tmax, Binding& binding ) c
 	return shot ;
 }
 
-#endif
+#endif // THINGS_H

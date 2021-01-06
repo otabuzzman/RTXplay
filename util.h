@@ -19,4 +19,4 @@ inline double rnd( double min, double max ) { return min+rnd()*( max-min ) ; }
 
 inline double clamp( double x, double min, double max ) { return min>x ? min : x>max ? max : x ; }
 
-#endif
+#endif // UTIL_H

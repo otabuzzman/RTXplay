@@ -1,4 +1,5 @@
 .vscode/
+tmp/
 *.docx
 *.exe
 *.gz
@@ -9,4 +10,3 @@
 *.tmp
 *.zip
 rtow
-NVIDIA-OptiX-SDK-7.2.0-linux64-x86_64.sh

@@ -5,7 +5,7 @@
 
 #include "v.h"
 
-class Sphere : public Triangles {
+class Sphere : public Thing {
 	public:
 		Sphere() {}
 		Sphere( const P center, float radius ) : center_( center ), radius_( radius ) { icosahedron( 4 ) }
