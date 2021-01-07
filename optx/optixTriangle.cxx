@@ -33,7 +33,6 @@
 
 #include <cuda_runtime.h>
 
-#include <sutil/CUDAOutputBuffer.h>
 #include <sutil/Exception.h>
 #include <sutil/sutil.h>
 
@@ -418,7 +417,13 @@ int main( int argc, char* argv[] )
             sbt.hitgroupRecordCount         = 1;
         }
 
-        sutil::CUDAOutputBuffer<uchar4> output_buffer( sutil::CUDAOutputBufferType::CUDA_DEVICE, width, height );
+        uchar4* m_device_pixels;
+        CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels ) ) );
+        CUDA_CHECK( cudaMalloc(
+                    reinterpret_cast<void**>( &m_device_pixels ),
+                    width*height*sizeof(uchar4)
+                    ) );
+
 
         //
         // launch
@@ -431,7 +436,7 @@ int main( int argc, char* argv[] )
             configureCamera( cam, width, height );
 
             Params params;
-            params.image        = output_buffer.map();
+            params.image        = m_device_pixels;
             params.image_width  = width;
             params.image_height = height;
             params.handle       = gas_handle;
@@ -448,16 +453,22 @@ int main( int argc, char* argv[] )
 
             OPTIX_CHECK( optixLaunch( pipeline, stream, d_param, sizeof( Params ), &sbt, width, height, /*depth=*/1 ) );
             CUDA_SYNC_CHECK();
-
-            output_buffer.unmap();
         }
 
         //
         // Display results
         //
         {
+            uchar4*  m_host_pixels = nullptr;
+            CUDA_CHECK( cudaMemcpy(
+                        static_cast<void*>( m_host_pixels ),
+                        m_device_pixels,
+                        width*height*sizeof(uchar4),
+                        cudaMemcpyDeviceToHost
+                        ) );
+
             sutil::ImageBuffer buffer;
-            buffer.data         = output_buffer.getHostPointer();
+            buffer.data         = m_host_pixels;
             buffer.width        = width;
             buffer.height       = height;
             buffer.pixel_format = sutil::BufferImageFormat::UNSIGNED_BYTE4;
@@ -475,6 +486,7 @@ int main( int argc, char* argv[] )
             CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) );
             CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) );
             CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_gas_output_buffer    ) ) );
+            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels ) ) );
 
             OPTIX_CHECK( optixPipelineDestroy( pipeline ) );
             OPTIX_CHECK( optixProgramGroupDestroy( hitgroup_prog_group ) );
