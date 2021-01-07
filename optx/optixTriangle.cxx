@@ -33,8 +33,6 @@
 
 #include <cuda_runtime.h>
 
-#include <sampleConfig.h>
-
 #include <sutil/CUDAOutputBuffer.h>
 #include <sutil/Exception.h>
 #include <sutil/sutil.h>

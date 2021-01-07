@@ -33,7 +33,7 @@ CLS = \
 
 IMG = optixTriangle.png
 
-KNL = \
+SHD = \
 	optixTriangle.cu \
 
 PTX = \
@@ -48,16 +48,14 @@ INC = \
 	-I/usr/local/optix/SDK \
 	-I/usr/local/optix/SDK/cuda \
 	-I/usr/local/optix/SDK/support \
-	-I/home/ec2-user/optix-samples \
-	-I/home/ec2-user/optix-samples/include \
 
 .PHONY: all clean tidy
-.SUFFIXES: .cu .png .ptx
+.SUFFIXES: .cxx .cu .png .ptx
 
 .c.o:
-	g++ -c $< -o $@
+	gcc -c $< -o $@
 
-.cpp.o:
+.cxx.o:
 	nvcc -c $< -o $@ \
 		-DOPTIX_SAMPLE_DIR_DEFINE=../../../../home/ec2-user/lab/RTXplay/optx \
 		-DOPTIX_SAMPLE_NAME_DEFINE=../../../../home/ec2-user/lab/RTXplay/optx \
@@ -78,18 +76,12 @@ $(EXE): $(OBJ)
 	g++ -o $@ $< \
 		-rdynamic \
 		-Wl,-rpath,/home/ec2-user/optix-samples/lib \
-		/home/ec2-user/optix-samples/lib/libimgui.a \
-		/home/ec2-user/optix-samples/lib/libsutil_7_sdk.so \
-		-lm \
-		/usr/local/cuda/lib64/libcudart_static.a \
+		-L/home/ec2-user/optix-samples/lib -lsutil_7_sdk -lglad \
+		-L/usr/local/cuda/lib64 -lcudart \
 		-lpthread \
 		-lrt \
 		-ldl \
-		/home/ec2-user/optix-samples/lib/libglfw.so.3.2 \
-		/home/ec2-user/optix-samples/lib/libglad.so \
-		-lOpenGL \
-		-lGLX \
-		-lGLU \
+		-lm \
 
 
 
