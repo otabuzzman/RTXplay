@@ -39,6 +39,7 @@
 #include "optixTriangle.h"
 
 #include <array>
+#include <vector>
 #include <iomanip>
 #include <iostream>
 #include <string>
@@ -418,12 +419,12 @@ int main( int argc, char* argv[] )
         }
 
         uchar4* m_device_pixels;
+        CUDA_CHECK( cudaSetDevice( 0 ) );
         CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels ) ) );
         CUDA_CHECK( cudaMalloc(
                     reinterpret_cast<void**>( &m_device_pixels ),
                     width*height*sizeof(uchar4)
                     ) );
-
 
         //
         // launch
@@ -453,22 +454,28 @@ int main( int argc, char* argv[] )
 
             OPTIX_CHECK( optixLaunch( pipeline, stream, d_param, sizeof( Params ), &sbt, width, height, /*depth=*/1 ) );
             CUDA_SYNC_CHECK();
+
+            CUDA_CHECK( cudaStreamSynchronize( 0u ) );
+
         }
 
         //
         // Display results
         //
         {
-            uchar4*  m_host_pixels = nullptr;
+            std::vector<uchar4>  m_host_pixels;
+            m_host_pixels.resize( width*height );
+            CUDA_CHECK( cudaSetDevice( 0 ) );
             CUDA_CHECK( cudaMemcpy(
-                        static_cast<void*>( m_host_pixels ),
+                        static_cast<void*>( m_host_pixels.data() ),
                         m_device_pixels,
                         width*height*sizeof(uchar4),
                         cudaMemcpyDeviceToHost
                         ) );
+            CUDA_CHECK( cudaStreamSynchronize( 0u ) );
 
             sutil::ImageBuffer buffer;
-            buffer.data         = m_host_pixels;
+            buffer.data         = m_host_pixels.data();
             buffer.width        = width;
             buffer.height       = height;
             buffer.pixel_format = sutil::BufferImageFormat::UNSIGNED_BYTE4;
@@ -486,7 +493,7 @@ int main( int argc, char* argv[] )
             CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) );
             CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) );
             CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_gas_output_buffer    ) ) );
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels ) ) );
+            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels        ) ) );
 
             OPTIX_CHECK( optixPipelineDestroy( pipeline ) );
             OPTIX_CHECK( optixProgramGroupDestroy( hitgroup_prog_group ) );
