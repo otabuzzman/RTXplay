@@ -71,58 +71,18 @@ void configureCamera( sutil::Camera& cam, const uint32_t width, const uint32_t h
 }
 
 
-void printUsageAndExit( const char* argv0 )
-{
-    std::cerr << "Usage  : " << argv0 << " [options]\n";
-    std::cerr << "Options: --file | -f <filename>      Specify file for image output\n";
-    std::cerr << "         --help | -h                 Print this usage message\n";
-    std::cerr << "         --dim=<width>x<height>      Set image dimensions; defaults to 512x384\n";
-    exit( 1 );
-}
-
-
 static void context_log_cb( unsigned int level, const char* tag, const char* message, void* /*cbdata */)
 {
     std::cerr << "[" << std::setw( 2 ) << level << "][" << std::setw( 12 ) << tag << "]: "
               << message << "\n";
 }
 
+extern "C" const char shader_optixTriangle[];
 
 int main( int argc, char* argv[] )
 {
-    std::string outfile;
     int         width  = 1024;
     int         height =  768;
-
-    for( int i = 1; i < argc; ++i )
-    {
-        const std::string arg( argv[i] );
-        if( arg == "--help" || arg == "-h" )
-        {
-            printUsageAndExit( argv[0] );
-        }
-        else if( arg == "--file" || arg == "-f" )
-        {
-            if( i < argc - 1 )
-            {
-                outfile = argv[++i];
-            }
-            else
-            {
-                printUsageAndExit( argv[0] );
-            }
-        }
-        else if( arg.substr( 0, 6 ) == "--dim=" )
-        {
-            const std::string dims_arg = arg.substr( 6 );
-            sutil::parseDimensions( dims_arg.c_str(), width, height );
-        }
-        else
-        {
-            std::cerr << "Unknown option '" << arg << "'\n";
-            printUsageAndExit( argv[0] );
-        }
-    }
 
     try
     {
@@ -254,15 +214,14 @@ int main( int argc, char* argv[] )
             pipeline_compile_options.pipelineLaunchParamsVariableName = "params";
             pipeline_compile_options.usesPrimitiveTypeFlags = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
 
-            const std::string ptx = sutil::getPtxString( OPTIX_SAMPLE_NAME, OPTIX_SAMPLE_DIR, "optixTriangle.cu" );
             size_t sizeof_log = sizeof( log );
 
             OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
                         context,
                         &module_compile_options,
                         &pipeline_compile_options,
-                        ptx.c_str(),
-                        ptx.size(),
+                        shader_optixTriangle.c_str(),
+                        shader_optixTriangle.size(),
                         log,
                         &sizeof_log,
                         &module

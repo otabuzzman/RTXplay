@@ -17,7 +17,7 @@ endif
 
 OBJ = \
 	optixTriangle.o \
-#	shader_optixTriangle.o \
+	shader_optixTriangle.o \
 
 HDR = \
 	sphere.h \
