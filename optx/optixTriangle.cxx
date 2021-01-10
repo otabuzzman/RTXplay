@@ -419,8 +419,6 @@ int main( int argc, char* argv[] )
         }
 
         uchar4* m_device_pixels;
-        CUDA_CHECK( cudaSetDevice( 0 ) );
-        CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels ) ) );
         CUDA_CHECK( cudaMalloc(
                     reinterpret_cast<void**>( &m_device_pixels ),
                     width*height*sizeof(uchar4)
@@ -455,8 +453,6 @@ int main( int argc, char* argv[] )
             OPTIX_CHECK( optixLaunch( pipeline, stream, d_param, sizeof( Params ), &sbt, width, height, /*depth=*/1 ) );
             CUDA_SYNC_CHECK();
 
-            CUDA_CHECK( cudaStreamSynchronize( 0u ) );
-
         }
 
         //
@@ -465,24 +461,27 @@ int main( int argc, char* argv[] )
         {
             std::vector<uchar4>  m_host_pixels;
             m_host_pixels.resize( width*height );
-            CUDA_CHECK( cudaSetDevice( 0 ) );
             CUDA_CHECK( cudaMemcpy(
                         static_cast<void*>( m_host_pixels.data() ),
                         m_device_pixels,
                         width*height*sizeof(uchar4),
                         cudaMemcpyDeviceToHost
                         ) );
-            CUDA_CHECK( cudaStreamSynchronize( 0u ) );
 
-            sutil::ImageBuffer buffer;
-            buffer.data         = m_host_pixels.data();
-            buffer.width        = width;
-            buffer.height       = height;
-            buffer.pixel_format = sutil::BufferImageFormat::UNSIGNED_BYTE4;
-            if( outfile.empty() )
-                sutil::displayBufferWindow( argv[0], buffer );
-            else
-                sutil::saveImage( outfile.c_str(), buffer, false );
+            std::cout
+                << "P3\n" // magic PPM header
+                << width << ' ' << height << '\n' << 255 << '\n';
+            for( int h = height - 1; h >= 0; --h )
+            {
+                for( int w = 0; w < width; ++w )
+                {
+                    auto p = m_host_pixels.data()[ width*h + w ];
+                    std::cout
+                        << static_cast<int>( p.x ) << ' '
+                        << static_cast<int>( p.y ) << ' '
+                        << static_cast<int>( p.z ) << '\n';
+                }
+            }
         }
 
         //
