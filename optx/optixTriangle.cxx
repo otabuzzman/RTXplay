@@ -26,26 +26,19 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <optix.h>
-#include <optix_function_table_definition.h>
-#include <optix_stack_size.h>
-#include <optix_stubs.h>
-
-#include <cuda_runtime.h>
-
-#include <sutil/Exception.h>
-#include <sutil/sutil.h>
-
-#include "optixTriangle.h"
-
 #include <array>
+#include <string>
 #include <vector>
 #include <iomanip>
-#include <iostream>
-#include <string>
 
+#include <optix.h>
+#include <optix_stubs.h>
+#include <optix_stack_size.h>
+
+#include <sutil/Exception.h>
 #include <sutil/Camera.h>
-#include <sutil/Trackball.h>
+
+#include "optixTriangle.h"
 
 
 
@@ -216,14 +209,14 @@ int main( int argc, char* argv[] )
 
             size_t sizeof_log = sizeof( log );
 
-            const std::string ptx_optixTriangle( reinterpret_cast< char const* >( shader_optixTriangle ) );
+            const std::string ptx( reinterpret_cast<char const*>( shader_optixTriangle ) );
 
             OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
                         context,
                         &module_compile_options,
                         &pipeline_compile_options,
-                        ptx_optixTriangle.c_str(),
-                        ptx_optixTriangle.size(),
+                        ptx.c_str(),
+                        ptx.size(),
                         log,
                         &sizeof_log,
                         &module

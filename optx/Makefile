@@ -46,7 +46,6 @@ INC = \
 	-I/usr/local/cuda/include \
 	-I/usr/local/optix/include \
 	-I/usr/local/optix/SDK \
-	-I/usr/local/optix/SDK/cuda \
 	-I/usr/local/optix/SDK/support \
 
 .PHONY: all clean tidy
@@ -57,8 +56,6 @@ INC = \
 
 .cxx.o:
 	nvcc -c $< -o $@ \
-		-DOPTIX_SAMPLE_DIR_DEFINE=../../../../home/ec2-user/lab/RTXplay/optx \
-		-DOPTIX_SAMPLE_NAME_DEFINE=../../../../home/ec2-user/lab/RTXplay/optx \
 		$(NVCCFLAGS) \
 		$(INC) \
 
@@ -73,8 +70,7 @@ INC = \
 all: $(EXE) $(IMG)
 
 $(EXE): $(OBJ)
-	g++ -o $@ $? \
-		-rdynamic \
+	g++ -o $@ $^ \
 		-Wl,-rpath,/home/ec2-user/optix-samples/lib \
 		-L/home/ec2-user/optix-samples/lib -lsutil_7_sdk -lglad \
 		-L/usr/local/cuda/lib64 -lcudart \
