@@ -34,7 +34,7 @@ CLS = \
 IMG = optixTriangle.png
 
 SHD = \
-	optixTriangle.cu \
+	shader_optixTriangle.cu \
 
 PTX = \
 	shader_optixTriangle.ptx \
@@ -73,7 +73,7 @@ INC = \
 all: $(EXE) $(IMG)
 
 $(EXE): $(OBJ)
-	g++ -o $@ $< \
+	g++ -o $@ $? \
 		-rdynamic \
 		-Wl,-rpath,/home/ec2-user/optix-samples/lib \
 		-L/home/ec2-user/optix-samples/lib -lsutil_7_sdk -lglad \
