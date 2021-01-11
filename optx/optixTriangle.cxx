@@ -77,7 +77,7 @@ static void context_log_cb( unsigned int level, const char* tag, const char* mes
               << message << "\n";
 }
 
-extern "C" const char shader_optixTriangle[];
+extern "C" const unsigned char shader_optixTriangle[];
 
 int main( int argc, char* argv[] )
 {
@@ -216,12 +216,14 @@ int main( int argc, char* argv[] )
 
             size_t sizeof_log = sizeof( log );
 
+            const std::string ptx_optixTriangle( reinterpret_cast< char const* >( shader_optixTriangle ) );
+
             OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
                         context,
                         &module_compile_options,
                         &pipeline_compile_options,
-                        shader_optixTriangle.c_str(),
-                        shader_optixTriangle.size(),
+                        ptx_optixTriangle.c_str(),
+                        ptx_optixTriangle.size(),
                         log,
                         &sizeof_log,
                         &module
