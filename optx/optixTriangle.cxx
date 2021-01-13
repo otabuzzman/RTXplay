@@ -36,11 +36,9 @@
 #include <optix_stack_size.h>
 
 #include <sutil/Exception.h>
-#include <sutil/Camera.h>
+#include <sutil/vec_math.h>
 
 #include "optixTriangle.h"
-
-
 
 template <typename T>
 struct SbtRecord
@@ -52,17 +50,6 @@ struct SbtRecord
 typedef SbtRecord<RayGenData>     RayGenSbtRecord;
 typedef SbtRecord<MissData>       MissSbtRecord;
 typedef SbtRecord<HitGroupData>   HitGroupSbtRecord;
-
-
-void configureCamera( sutil::Camera& cam, const uint32_t width, const uint32_t height )
-{
-    cam.setEye( {0.0f, 0.0f, 2.0f} );
-    cam.setLookat( {0.0f, 0.0f, 0.0f} );
-    cam.setUp( {0.0f, 1.0f, 3.0f} );
-    cam.setFovY( 45.0f );
-    cam.setAspectRatio( (float)width / (float)height );
-}
-
 
 static void context_log_cb( unsigned int level, const char* tag, const char* message, void* /*cbdata */)
 {
@@ -77,10 +64,18 @@ int main( int argc, char* argv[] )
     int         width  = 1024;
     int         height =  768;
 
+    //
+    // Camera
+    //
+    float3      m_eye    = {0.0f, 0.0f, 2.0f};
+    float3      m_lookat = {0.0f, 0.0f, 0.0f};
+    float3      m_up     = {0.0f, 1.0f, 3.0f};
+    float       m_fovY   = 45.0f;
+    float       m_aspectRatio = (float)width / (float)height;
+
     try
     {
         char log[2048]; // For error reporting from OptiX creation functions
-
 
         //
         // Initialize CUDA and create OptiX context
@@ -103,7 +98,6 @@ int main( int argc, char* argv[] )
             CUcontext cuCtx = 0;  // zero means take the current context
             OPTIX_CHECK( optixDeviceContextCreate( cuCtx, &options, &context ) );
         }
-
 
         //
         // accel handling
@@ -199,18 +193,12 @@ int main( int argc, char* argv[] )
             pipeline_compile_options.traversableGraphFlags = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS;
             pipeline_compile_options.numPayloadValues      = 3;
             pipeline_compile_options.numAttributeValues    = 3;
-#ifdef DEBUG // Enables debug exceptions during optix launches. This may incur significant performance cost and should only be done during development.
-            pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_DEBUG | OPTIX_EXCEPTION_FLAG_TRACE_DEPTH | OPTIX_EXCEPTION_FLAG_STACK_OVERFLOW;
-#else
             pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
-#endif
             pipeline_compile_options.pipelineLaunchParamsVariableName = "params";
             pipeline_compile_options.usesPrimitiveTypeFlags = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
-
             size_t sizeof_log = sizeof( log );
 
             const std::string ptx( reinterpret_cast<char const*>( shader_optixTriangle ) );
-
             OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
                         context,
                         &module_compile_options,
@@ -385,16 +373,26 @@ int main( int argc, char* argv[] )
             CUstream stream;
             CUDA_CHECK( cudaStreamCreate( &stream ) );
 
-            sutil::Camera cam;
-            configureCamera( cam, width, height );
-
             Params params;
             params.image        = m_device_pixels;
             params.image_width  = width;
             params.image_height = height;
             params.handle       = gas_handle;
-            params.cam_eye      = cam.eye();
-            cam.UVWFrame( params.cam_u, params.cam_v, params.cam_w );
+
+            //
+            // Camera
+            //
+            params.cam_eye      = m_eye;
+            float3 W = m_lookat - m_eye; // Do not normalize W -- it implies focal length
+            float wlen = length( W );
+            float3 U = normalize( cross( W, m_up ) );
+            float3 V = normalize( cross( U, W ) );
+
+            params.cam_w = W;
+            float vlen = wlen*tanf( 0.5f*m_fovY*M_PIf / 180.0f );
+            params.cam_v = V*vlen;
+            float ulen = vlen*m_aspectRatio;
+            params.cam_u = U*ulen;
 
             CUdeviceptr d_param;
             CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_param ), sizeof( Params ) ) );
@@ -406,7 +404,6 @@ int main( int argc, char* argv[] )
 
             OPTIX_CHECK( optixLaunch( pipeline, stream, d_param, sizeof( Params ), &sbt, width, height, /*depth=*/1 ) );
             CUDA_SYNC_CHECK();
-
         }
 
         //

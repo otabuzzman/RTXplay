@@ -15,4 +15,4 @@ inline float rnd( float min, float max ) { return min+rnd()*( max-min ) ; }
 
 inline float clamp( float x, float min, float max ) { return min>x ? min : x>max ? max : x ; }
 
-#endif
+#endif // UTIL_H

@@ -71,12 +71,8 @@ all: $(EXE) $(IMG)
 
 $(EXE): $(OBJ)
 	g++ -o $@ $^ \
-		-Wl,-rpath,/home/ec2-user/optix-samples/lib \
-		-L/home/ec2-user/optix-samples/lib -lsutil_7_sdk -lglad \
-		-L/usr/local/cuda/lib64 -lcudart \
-		-lpthread \
-		-lrt \
-		-ldl \
+		-L ~/optix-samples/lib -lsutil_7_sdk -lglad \
+		-L /usr/local/cuda/lib64 -lcudart -lpthread -lrt -ldl \
 		-lm \
 
 
