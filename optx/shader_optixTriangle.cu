@@ -27,16 +27,13 @@
 //
 
 #include <optix.h>
-
-#include "optixTriangle.h"
 #include <cuda/helpers.h>
 
 #include <sutil/vec_math.h>
 
-extern "C" {
-__constant__ Params params;
-}
+#include "optixTriangle.h"
 
+extern "C" __constant__ Params params;
 
 static __forceinline__ __device__ void setPayload( float3 p )
 {
@@ -44,7 +41,6 @@ static __forceinline__ __device__ void setPayload( float3 p )
     optixSetPayload_1( float_as_int( p.y ) );
     optixSetPayload_2( float_as_int( p.z ) );
 }
-
 
 static __forceinline__ __device__ void computeRay( uint3 idx, uint3 dim, float3& origin, float3& direction )
 {
@@ -59,7 +55,6 @@ static __forceinline__ __device__ void computeRay( uint3 idx, uint3 dim, float3&
     origin    = params.cam_eye;
     direction = normalize( d.x * U + d.y * V + W );
 }
-
 
 extern "C" __global__ void __raygen__rg()
 {
@@ -96,13 +91,11 @@ extern "C" __global__ void __raygen__rg()
     params.image[idx.y * params.image_width + idx.x] = make_color( result );
 }
 
-
 extern "C" __global__ void __miss__ms()
 {
     MissData* miss_data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() );
     setPayload(  miss_data->bg_color );
 }
-
 
 extern "C" __global__ void __closesthit__ch()
 {

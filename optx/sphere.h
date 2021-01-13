@@ -83,4 +83,4 @@ class Sphere : public Thing {
 		}
 } ;
 
-#endif
+#endif // SPHERE_H
