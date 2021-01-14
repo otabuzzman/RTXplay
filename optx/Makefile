@@ -40,7 +40,7 @@ PTX = \
 	shader_optixTriangle.ptx \
 
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG
-NVCCFLAGS = -std c++11 -ccbin /usr/bin/g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
+NVCCFLAGS = -rdc true -std c++11 -ccbin /usr/bin/g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
 
 INC = \
 	-I/usr/local/cuda/include \
