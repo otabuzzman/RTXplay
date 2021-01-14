@@ -366,6 +366,8 @@ int main( int argc, char* argv[] )
         }
 
         uchar4* m_device_pixels;
+        // README.md#Findings#1
+        // CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels ) ) );
         CUDA_CHECK( cudaMalloc(
                     reinterpret_cast<void**>( &m_device_pixels ),
                     width*height*sizeof(uchar4)

@@ -61,9 +61,8 @@ __forceinline__ __device__ uchar4 make_color( const float3& c )
     return make_uchar4( quantizeUnsigned8Bits( srgb.x ), quantizeUnsigned8Bits( srgb.y ), quantizeUnsigned8Bits( srgb.z ), 255u );
 }
 
-extern "C" {
-__constant__ Params params;
-}
+// README.md#Findings#2
+extern "C" { __constant__ Params params ; }
 
 static __forceinline__ __device__ void setPayload( float3 p )
 {
