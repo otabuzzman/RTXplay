@@ -27,13 +27,43 @@
 //
 
 #include <optix.h>
-#include <cuda/helpers.h>
 
-#include <sutil/vec_math.h>
+#include "v.h"
+#include "util.h"
 
 #include "optixTriangle.h"
 
-extern "C" __constant__ Params params;
+using V::operator+ ;
+using V::operator- ;
+using V::operator* ;
+
+__forceinline__ __device__ float3 toSRGB( const float3& c )
+{
+    float  invGamma = 1.0f / 2.4f;
+    float3 powed    = make_float3( powf( c.x, invGamma ), powf( c.y, invGamma ), powf( c.z, invGamma ) );
+    return make_float3(
+        c.x < 0.0031308f ? 12.92f * c.x : 1.055f * powed.x - 0.055f,
+        c.y < 0.0031308f ? 12.92f * c.y : 1.055f * powed.y - 0.055f,
+        c.z < 0.0031308f ? 12.92f * c.z : 1.055f * powed.z - 0.055f );
+}
+
+__forceinline__ __device__ unsigned char quantizeUnsigned8Bits( float x )
+{
+    x = util::clamp( x, 0.0f, 1.0f );
+    enum { N = (1 << 8) - 1, Np1 = (1 << 8) };
+    return (unsigned char)min((unsigned int)(x * (float)Np1), (unsigned int)N);
+}
+
+__forceinline__ __device__ uchar4 make_color( const float3& c )
+{
+    // first apply gamma, then convert to unsigned char
+    float3 srgb = toSRGB( util::clamp( c, 0.0f, 1.0f ) );
+    return make_uchar4( quantizeUnsigned8Bits( srgb.x ), quantizeUnsigned8Bits( srgb.y ), quantizeUnsigned8Bits( srgb.z ), 255u );
+}
+
+extern "C" {
+__constant__ Params params;
+}
 
 static __forceinline__ __device__ void setPayload( float3 p )
 {
@@ -47,13 +77,13 @@ static __forceinline__ __device__ void computeRay( uint3 idx, uint3 dim, float3&
     const float3 U = params.cam_u;
     const float3 V = params.cam_v;
     const float3 W = params.cam_w;
-    const float2 d = 2.0f * make_float2(
+    const float3 d = 2.0f * make_float3(
             static_cast<float>( idx.x ) / static_cast<float>( dim.x ),
-            static_cast<float>( idx.y ) / static_cast<float>( dim.y )
+            static_cast<float>( idx.y ) / static_cast<float>( dim.y ), 0 
             ) - 1.0f;
 
     origin    = params.cam_eye;
-    direction = normalize( d.x * U + d.y * V + W );
+    direction = V::unitV( d.x * U + d.y * V + W );
 }
 
 extern "C" __global__ void __raygen__rg()
@@ -103,5 +133,5 @@ extern "C" __global__ void __closesthit__ch()
     // attributes are provided by the OptiX API, indlucing barycentric coordinates.
     const float2 barycentrics = optixGetTriangleBarycentrics();
 
-    setPayload( make_float3( barycentrics, 1.0f ) );
+    setPayload( make_float3( barycentrics.x, barycentrics.y, 1.0f ) );
 }
