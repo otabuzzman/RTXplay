@@ -36,9 +36,14 @@
 #include <optix_stack_size.h>
 
 #include <sutil/Exception.h>
-#include <sutil/vec_math.h>
+
+#include "v.h"
+#include "util.h"
 
 #include "optixTriangle.h"
+
+using V::operator- ;
+using V::operator* ;
 
 template <typename T>
 struct SbtRecord
@@ -384,12 +389,12 @@ int main( int argc, char* argv[] )
             //
             params.cam_eye      = m_eye;
             float3 W = m_lookat - m_eye; // Do not normalize W -- it implies focal length
-            float wlen = length( W );
-            float3 U = normalize( cross( W, m_up ) );
-            float3 V = normalize( cross( U, W ) );
+            float wlen = V::len( W );
+            float3 U = V::unitV( V::cross( W, m_up ) );
+            float3 V = V::unitV( V::cross( U, W ) );
 
             params.cam_w = W;
-            float vlen = wlen*tanf( 0.5f*m_fovY*M_PIf / 180.0f );
+            float vlen = wlen*tanf( 0.5f*m_fovY*util::kPi / 180.0f );
             params.cam_v = V*vlen;
             float ulen = vlen*m_aspectRatio;
             params.cam_u = U*ulen;

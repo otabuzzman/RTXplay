@@ -1,18 +1,19 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <cmath>
-#include <cstdlib>
 #include <limits>
 
+#include <vector_functions.h>
+#include <vector_types.h>
+
+namespace util {
+
 const float kInfinty = std::numeric_limits<float>::infinity() ;
-const float kPi      = 3.14159265358f ;
+const float kPi      = 3.14159265358979323846f ;
 
-inline float deg2rad( float d ) { return d*kPi/180.f ; }
+__forceinline__ __device__ float  clamp( const float   x, const float min, const float max ) { return min>x ? min : x>max ? max : x ; }
+__forceinline__ __device__ float3 clamp( const float3& x, const float min, const float max ) { return make_float3( clamp( x.x, min, max ), clamp( x.y, min, max ), clamp( x.z, min, max ) ) ; }
 
-inline float rnd() { return rand()/( RAND_MAX+1.f ) ; }
-inline float rnd( float min, float max ) { return min+rnd()*( max-min ) ; }
-
-inline float clamp( float x, float min, float max ) { return min>x ? min : x>max ? max : x ; }
+}
 
 #endif // UTIL_H
