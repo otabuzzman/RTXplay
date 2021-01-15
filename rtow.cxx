@@ -98,20 +98,20 @@ Things scene() {
 int main() {
 	Things scene = ::scene() ;
 
-	double aspect_ratio = 3./2. ;
+	double aspratio = 3./2. ;
 
-	P pos( 13, 2, 3 ) ;
-	P pov( 0, 0, 0 ) ;
-	V up( 0, 1, 0 ) ;
+	P eye( 13, 2, 3 ) ;
+	P pat( 0, 0, 0 ) ;
+	V vup( 0, 1, 0 ) ;
 	double aperture = .1 ;
 	double distance = 10. ;
 
-	Camera camera( pos, pov, up, 20., aspect_ratio, aperture, distance ) ;
+	Camera camera( eye, pat, vup, 20., aspratio, aperture, distance ) ;
 
-	const int w = 1200 ;                               // image width in pixels
-	const int h = static_cast<int>( w/aspect_ratio ) ; // image height in pixels
-	const int spp = 50 ;                               // samples per pixel
-	const int depth = 50 ;                             // recursion depth
+	const int w = 1200 ;                           // image width in pixels
+	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
+	const int spp = 50 ;                           // samples per pixel
+	const int depth = 50 ;                         // recursion depth
 
 	std::cout
 		<< "P3\n"	// magic PPM header
