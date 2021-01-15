@@ -5,29 +5,32 @@
 
 class Camera {
 	public:
-		Camera( const P pos, const P pov, const V up, double fov, double aspect_ratio, double aperture, double focus_distance ) {
-			auto viewh = 2.*tan( deg2rad( fov )/2 ) ;         // virtual viewport height
-			auto vieww = aspect_ratio*viewh ;                 // virtual viewport width
-			w_ = unitV( pos-pov ) ;
-			u_ = unitV( cross( up, w_ ) ) ;
+		Camera( const P eye, const P pat, const V vup, double fov, double aspratio, double aperture, double distance ) {
+			w_ = unitV( eye-pat ) ;
+			u_ = unitV( cross( vup, w_ ) ) ;
 			v_ = cross( w_, u_ ) ;
 
-			orig_ = pos ;                                     // camera origin
-			hori_ = focus_distance*vieww*u_ ;
-			vert_ = focus_distance*viewh*v_ ;
-			bole_ = orig_-hori_/2-vert_/2-focus_distance*w_ ; // bottom left viewport corner
-			lens_ = aperture/2 ;                              // lens radius
+			auto viewh = 2.*tan( deg2rad( fov )/2. ) ; // virtual viewport height
+			auto vieww = aspratio*viewh ;              // virtual viewport width
+
+			eye_  = eye ;
+			lens_ = aperture/2. ;
+			dist_ = distance ;
+			vert_ = viewh*v_ ;
+			hori_ = vieww*u_ ;
+			bole_ = eye_-dist_*( hori_+vert_ )/2.-dist_*w_ ;
 		}
 
-		Ray ray( double s, double t ) const { V r = lens_*rndVin1disk() ; V o = r.x()*u_+r.y()*v_ ; return Ray( orig_+o, bole_+s*hori_+t*vert_-orig_-o ) ; }
+		Ray ray( double s, double t ) const { V r = lens_*rndVin1disk() ; V o = r.x()*u_+r.y()*v_ ; return Ray( eye_+o, bole_+dist_*( s*hori_+t*vert_ )-eye_-o ) ; }
 
 	private:
-		P orig_ ;
-		P bole_ ;
-		V hori_ ;
-		V vert_ ;
-		V u_, v_, w_ ;
+		V u_, v_, w_ ; // camera coordinate system
+		P eye_ ;       // camera origin
 		double lens_ ; // lens radius
+		double dist_ ; // focus distance
+		V vert_ ;      // virtual viewport height vector
+		V hori_ ;      // virtual viewport width vector
+		P bole_ ;      // bottom left viewport corner
 } ;
 
 #endif // CAMERA_H
