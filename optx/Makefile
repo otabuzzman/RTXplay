@@ -19,18 +19,6 @@ OBJ = \
 	optixTriangle.o \
 	shader_optixTriangle.o \
 
-HDR = \
-	sphere.h \
-	thing.h \
-	util.h \
-	v.h \
-
-CLS = \
-	sphere.cxx \
-	thing.cxx \
-	util.cxx \
-	v.cxx \
-
 IMG = optixTriangle.png
 
 SHD = \
