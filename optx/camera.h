@@ -12,7 +12,7 @@ class Camera {
 	public:
 		Camera( const float3&  eye, const float3&  pat, const float3&  vup, const float fov, const float aspratio ) ;
 
-		void set( Lpcamera& camera ) const ;
+		void set( LpCamera& camera ) const ;
 
 	private:
 		float3 eye_ ;
