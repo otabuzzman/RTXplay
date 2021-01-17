@@ -6,10 +6,13 @@
 
 #include "camera.h"
 
+using V::operator- ;
+using V::operator* ;
+
 Camera::Camera( const float3&  eye, const float3&  pat, const float3&  vup, const float fov, const float aspratio )
 	: eye_( eye ), pat_( pat ), vup_( vup ), fov_( fov ), aspratio_( aspratio ) {}
 
-Camera::set( OdpCamera& camera ) {
+void Camera::set( LpCamera& camera ) const {
 	camera.eye  = eye_ ;
 	float3 W    = pat_ - eye_; // Do not normalize W -- it implies focal length
 	float wlen  = V::len( W );
@@ -22,5 +25,3 @@ Camera::set( OdpCamera& camera ) {
 	float ulen  = vlen*aspratio_ ;
 	camera.u    = U*ulen ;
 }
-
-#endif // V_H
