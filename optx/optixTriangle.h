@@ -30,7 +30,7 @@ struct LpGeneral { // launch parameter
     uchar4*                image ;
     unsigned int           image_width ;
     unsigned int           image_height ;
-    OdpCamera              camera ;
+    LpCamera               camera ;
     OptixTraversableHandle handle ;
 } ;
 

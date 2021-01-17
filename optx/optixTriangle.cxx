@@ -37,6 +37,9 @@
 
 #include <sutil/Exception.h>
 
+#include <vector_functions.h>
+#include <vector_types.h>
+
 #include "v.h"
 #include "util.h"
 #include "camera.h"
@@ -387,7 +390,7 @@ int main( int argc, char* argv[] )
             lpGeneral.image_width  = width;
             lpGeneral.image_height = height;
 
-            camera.set( &lpGeneral.camera ) ;
+            camera.set( lpGeneral.camera ) ;
 
             lpGeneral.handle       = gas_handle;
 
