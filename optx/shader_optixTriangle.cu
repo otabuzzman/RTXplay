@@ -31,6 +31,8 @@
 #include "v.h"
 #include "util.h"
 
+#include "camera.h"
+
 #include "optixTriangle.h"
 
 using V::operator+ ;
@@ -47,7 +49,7 @@ __forceinline__ __device__ uchar4 sRGB( const float3& c )
 }
 
 // README.md#Findings#2
-extern "C" { __constant__ Params params ; }
+extern "C" { __constant__ LpGeneral lpGeneral ; }
 
 static __forceinline__ __device__ void setPayload( float3 p )
 {
@@ -58,15 +60,15 @@ static __forceinline__ __device__ void setPayload( float3 p )
 
 static __forceinline__ __device__ void computeRay( uint3 idx, uint3 dim, float3& origin, float3& direction )
 {
-    const float3 U = params.cam_u;
-    const float3 V = params.cam_v;
-    const float3 W = params.cam_w;
+    const float3 U = lpGeneral.camera.u ;
+    const float3 V = lpGeneral.camera.v ;
+    const float3 W = lpGeneral.camera.w ;
     const float3 d = 2.0f * make_float3(
             static_cast<float>( idx.x ) / static_cast<float>( dim.x ),
             static_cast<float>( idx.y ) / static_cast<float>( dim.y ), 0 
             ) - 1.0f;
 
-    origin    = params.cam_eye;
+    origin    = lpGeneral.camera.eye ;
     direction = V::unitV( d.x * U + d.y * V + W );
 }
 
@@ -84,7 +86,7 @@ extern "C" __global__ void __raygen__rg()
     // Trace the ray against our scene hierarchy
     unsigned int p0, p1, p2;
     optixTrace(
-            params.handle,
+            lpGeneral.handle,
             ray_origin,
             ray_direction,
             0.0f,                // Min intersection distance
@@ -102,7 +104,7 @@ extern "C" __global__ void __raygen__rg()
     result.z = int_as_float( p2 );
 
     // Record results in our output raster
-    params.image[idx.y * params.image_width + idx.x] = sRGB( result );
+    lpGeneral.image[idx.y * lpGeneral.image_width + idx.x] = sRGB( result );
 }
 
 extern "C" __global__ void __miss__ms()
