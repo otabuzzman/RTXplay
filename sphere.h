@@ -21,9 +21,9 @@ class Sphere : public Thing {
 
 bool Sphere::hit( const Ray& ray, double tmin, double tmax, Binding& binding ) const {
 	V o = ray.ori()-center_ ;
-	auto a = ray.dir().len2() ;    // simplified quadratic equation (see also sphere() in main.cpp)
+	auto a = ray.dir().dot() ;    // simplified quadratic equation (see also sphere() in main.cpp)
 	auto b = dot( ray.dir(), o ) ;
-	auto c = o.len2()-radius_*radius_ ;
+	auto c = o.dot()-radius_*radius_ ;
 	auto discriminant = b*b-a*c ;
 
 	if ( 0>discriminant )

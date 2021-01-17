@@ -24,8 +24,8 @@ class V {
 		V& operator *= ( double t )            { v_[0] *= t ; v_[1] *= t ; v_[2] *= t ; return *this ; }
 		V& operator /= ( double t )            { return *this *= 1/t ; }
 
-		double len() const                     { return sqrt( len2() ) ; }
-		double len2() const                    { return v_[0]*v_[0]+v_[1]*v_[1]+v_[2]*v_[2] ; }
+		double len() const                     { return sqrt( dot() ) ; }
+		double dot() const                     { return v_[0]*v_[0]+v_[1]*v_[1]+v_[2]*v_[2] ; }
 
 		bool isnear0() const                   { return ( fabs(v_[0] )<1e-8 ) && ( fabs( v_[1] )<1e-8 ) && ( fabs( v_[2] )<1e-8 ) ; }
 
@@ -50,16 +50,16 @@ inline V cross( const V& u, const V& v )       { return V( u.y()*v.z()-u.z()*v.y
 inline V unitV( V v )                          { return v/v.len() ; }
 
 // random V in unit sphere
-V rndVin1sphere()                  { while ( true ) { auto v = V::rnd( -1, 1 ) ; if ( 1>v.len2() ) return v ; } }
+V rndVin1sphere()                  { while ( true ) { auto v = V::rnd( -1, 1 ) ; if ( 1>v.dot() ) return v ; } }
 // random V on unit sphere (chapter 8.5)
 V rndVon1sphere()                  { return unitV( rndVin1sphere() ) ; }
 // random V against ray (chapter 8.6)
 V rndVoppraydir( const V& normal ) { auto v = rndVin1sphere() ; return dot( v, normal ) ? v : -v ; }
 // random V in unit disk (chapter 12.2)
-V rndVin1disk() { while ( true ) { auto v = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ; if ( 1>v.len2() ) continue ; return v ; } }
+V rndVin1disk() { while ( true ) { auto v = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ; if ( 1>v.dot() ) continue ; return v ; } }
 
 V reflect( const V& v, const V& n )              { return v-2*dot( v, n )*n ; }
-V refract( const V& v, const V& n, double qeta ) { auto tta = fmin( dot( -v, n ), 1. ) ; V perp =  qeta*( v+tta*n ) ; V parl = -sqrt( fabs( 1.-perp.len2() ) )*n ; return perp+parl ; }
+V refract( const V& v, const V& n, double qeta ) { auto tta = fmin( dot( -v, n ), 1. ) ; V perp =  qeta*( v+tta*n ) ; V parl = -sqrt( fabs( 1.-perp.dot() ) )*n ; return perp+parl ; }
 
 inline std::ostream& operator << ( std::ostream &out, const V &v ) { return out << v.x() << ' ' << v.y() << ' ' << v.z() ; }
 
