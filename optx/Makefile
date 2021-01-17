@@ -18,6 +18,7 @@ endif
 OBJ = \
 	optixTriangle.o \
 	shader_optixTriangle.o \
+	camera.o \
 
 IMG = optixTriangle.png
 

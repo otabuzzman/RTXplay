@@ -39,6 +39,7 @@
 
 #include "v.h"
 #include "util.h"
+#include "camera.h"
 
 #include "optixTriangle.h"
 
@@ -72,11 +73,11 @@ int main( int argc, char* argv[] )
     //
     // Camera
     //
-    float3      m_eye    = {0.0f, 0.0f, 2.0f};
-    float3      m_lookat = {0.0f, 0.0f, 0.0f};
-    float3      m_up     = {0.0f, 1.0f, 3.0f};
-    float       m_fovY   = 45.0f;
-    float       m_aspectRatio = (float)width / (float)height;
+    Camera camera(
+        {0.0f, 0.0f, 2.0f} /*eye*/,
+        {0.0f, 0.0f, 0.0f} /*pat*/,
+        {0.0f, 1.0f, 3.0f} /*vup*/,
+        45.f /*fov*/, (float) width/(float) height /*aspratio*/ ) ;
 
     try
     {
@@ -199,7 +200,7 @@ int main( int argc, char* argv[] )
             pipeline_compile_options.numPayloadValues      = 3;
             pipeline_compile_options.numAttributeValues    = 3;
             pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
-            pipeline_compile_options.pipelineLaunchParamsVariableName = "params";
+            pipeline_compile_options.pipelineLaunchParamsVariableName = "lpGeneral";
             pipeline_compile_options.usesPrimitiveTypeFlags = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
             size_t sizeof_log = sizeof( log );
 
@@ -380,36 +381,25 @@ int main( int argc, char* argv[] )
             CUstream stream;
             CUDA_CHECK( cudaStreamCreate( &stream ) );
 
-            Params params;
-            params.image        = m_device_pixels;
-            params.image_width  = width;
-            params.image_height = height;
-            params.handle       = gas_handle;
+            LpGeneral lpGeneral ; // launch parameter
 
-            //
-            // Camera
-            //
-            params.cam_eye      = m_eye;
-            float3 W = m_lookat - m_eye; // Do not normalize W -- it implies focal length
-            float wlen = V::len( W );
-            float3 U = V::unitV( V::cross( W, m_up ) );
-            float3 V = V::unitV( V::cross( U, W ) );
+            lpGeneral.image        = m_device_pixels;
+            lpGeneral.image_width  = width;
+            lpGeneral.image_height = height;
 
-            params.cam_w = W;
-            float vlen = wlen*tanf( 0.5f*m_fovY*util::kPi / 180.0f );
-            params.cam_v = V*vlen;
-            float ulen = vlen*m_aspectRatio;
-            params.cam_u = U*ulen;
+            camera.set( &lpGeneral.camera ) ;
 
-            CUdeviceptr d_param;
-            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_param ), sizeof( Params ) ) );
+            lpGeneral.handle       = gas_handle;
+
+            CUdeviceptr d_lpGeneral;
+            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lpGeneral ), sizeof( LpGeneral ) ) );
             CUDA_CHECK( cudaMemcpy(
-                        reinterpret_cast<void*>( d_param ),
-                        &params, sizeof( params ),
+                        reinterpret_cast<void*>( d_lpGeneral ),
+                        &lpGeneral, sizeof( lpGeneral ),
                         cudaMemcpyHostToDevice
                         ) );
 
-            OPTIX_CHECK( optixLaunch( pipeline, stream, d_param, sizeof( Params ), &sbt, width, height, /*depth=*/1 ) );
+            OPTIX_CHECK( optixLaunch( pipeline, stream, d_lpGeneral, sizeof( LpGeneral ), &sbt, width, height, /*depth=*/1 ) );
             CUDA_SYNC_CHECK();
         }
 

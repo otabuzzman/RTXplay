@@ -3,9 +3,6 @@
 
 #include <limits>
 
-#include <vector_functions.h>
-#include <vector_types.h>
-
 namespace util {
 
 const float kInfinty = std::numeric_limits<float>::infinity() ;
