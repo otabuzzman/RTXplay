@@ -126,9 +126,9 @@ int main( int argc, char* argv[] )
             // Triangle build input: simple list of three vertices
             const std::array<float3, 3> vertices =
             { {
-                  { -0.4f, -0.6f, 0.0f },
-                  {  0.7f, -0.6f, 0.0f },
-                  {  0.0f,  0.6f, 0.0f }
+                  { -0.3f, -0.5f, 0.0f },
+                  {  0.7f, -0.5f, 0.0f },
+                  {  0.2f,  0.5f, 0.0f }
             } };
 
             const size_t vertices_size = sizeof( float3 )*vertices.size();
