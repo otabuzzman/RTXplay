@@ -58,37 +58,28 @@ static __forceinline__ __device__ void setPayload( float3 p )
     optixSetPayload_2( float_as_int( p.z ) );
 }
 
-static __forceinline__ __device__ void computeRay( uint3 idx, uint3 dim, float3& origin, float3& direction )
-{
-    const float3 U = lpGeneral.camera.u ;
-    const float3 V = lpGeneral.camera.v ;
-    const float3 W = lpGeneral.camera.w ;
-    const float3 d = 2.0f * make_float3(
-            static_cast<float>( idx.x ) / static_cast<float>( dim.x ),
-            static_cast<float>( idx.y ) / static_cast<float>( dim.y ), 0 
-            ) - 1.0f;
-
-    origin    = lpGeneral.camera.eye ;
-    direction = V::unitV( d.x * U + d.y * V + W );
-}
-
 extern "C" __global__ void __raygen__rg()
 {
     // Lookup our location within the launch grid
     const uint3 idx = optixGetLaunchIndex();
     const uint3 dim = optixGetLaunchDimensions();
 
-    // Map our launch idx to a screen location and create a ray from the camera
-    // location through the screen
-    float3 ray_origin, ray_direction;
-    computeRay( idx, dim, ray_origin, ray_direction );
+    // transform x/y pixel ccord (range 0/0 to w/h)
+    // into s/t viewport coords (range -1/-1 to 1/1)
+    float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
+    float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
+
+    { // Camera::ray() code replacement
+        float3 ori = lpGeneral.camera.eye ;
+        float3 dir = lpGeneral.camera.dist*( s*lpGeneral.camera.wvec+t*lpGeneral.camera.hvec )-lpGeneral.camera.eye ;
+    }
 
     // Trace the ray against our scene hierarchy
     unsigned int p0, p1, p2;
     optixTrace(
             lpGeneral.handle,
-            ray_origin,
-            ray_direction,
+            ori,
+            dir,
             0.0f,                // Min intersection distance
             1e16f,               // Max intersection distance
             0.0f,                // rayTime -- used for motion blur

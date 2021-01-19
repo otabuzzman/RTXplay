@@ -77,10 +77,13 @@ int main( int argc, char* argv[] )
     // Camera
     //
     Camera camera(
-        {0.0f, 0.0f, 2.0f} /*eye*/,
-        {0.0f, 0.0f, 0.0f} /*pat*/,
-        {0.0f, 1.0f, 3.0f} /*vup*/,
-        45.f /*fov*/, (float) width/(float) height /*aspratio*/ ) ;
+        {.0f, .0f, 2.f} /*eye*/,
+        {.0f, .0f, .0f} /*pat*/,
+        {.0f, 1.f, 3.f} /*vup*/,
+        45.f /*fov*/,
+        (float) width/(float) height /*aspratio*/,
+        .1f /*aperture*/,
+        2.f /*distance*/ ) ;
 
     try
     {
@@ -123,9 +126,9 @@ int main( int argc, char* argv[] )
             // Triangle build input: simple list of three vertices
             const std::array<float3, 3> vertices =
             { {
-                  { -0.5f, -0.5f, 0.0f },
-                  {  0.5f, -0.5f, 0.0f },
-                  {  0.0f,  0.5f, 0.0f }
+                  { -0.4f, -0.6f, 0.0f },
+                  {  0.7f, -0.6f, 0.0f },
+                  {  0.0f,  0.6f, 0.0f }
             } };
 
             const size_t vertices_size = sizeof( float3 )*vertices.size();
