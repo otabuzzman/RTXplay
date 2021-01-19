@@ -122,8 +122,10 @@ int main() {
 		for ( int i = 0 ; i<w ; ++i ) {
 			C color( 0, 0, 0 ) ;
 			for ( int k = 0 ; k<spp ; ++k ) {
-				auto s = ( i+rnd() )/( w-1 ) ;
-				auto t = ( j+rnd() )/( h-1 ) ;
+				// transform x/y pixel ccord (range 0/0 to w/h)
+				// into s/t viewport coords (range -1/-1 to 1/1)
+				auto s = 2.*( i+rnd() )/( w-1 )-1. ;
+				auto t = 2.*( j+rnd() )/( h-1 )-1. ;
 
 				Ray ray = camera.ray( s, t ) ;
 				color += trace( ray, scene, depth ) ;
