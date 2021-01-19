@@ -69,10 +69,9 @@ extern "C" __global__ void __raygen__rg()
     float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
     float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
 
-    { // Camera::ray() code replacement
-        float3 ori = lpGeneral.camera.eye ;
-        float3 dir = lpGeneral.camera.dist*( s*lpGeneral.camera.wvec+t*lpGeneral.camera.hvec )-lpGeneral.camera.eye ;
-    }
+    // Camera::ray() code replacement
+    float3 ori = lpGeneral.camera.eye ;
+    float3 dir = lpGeneral.camera.dist*( s*lpGeneral.camera.wvec+t*lpGeneral.camera.hvec )-lpGeneral.camera.eye ;
 
     // Trace the ray against our scene hierarchy
     unsigned int p0, p1, p2;
