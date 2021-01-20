@@ -16,31 +16,31 @@ Sphere::Sphere( const float3& center, const float radius, const bool bbox )
 	icosahedron( 4, bbox ) ;
 }
 
-void Sphere::icosahedron( const int ndiv, const bool bbox ) const {
+void Sphere::icosahedron( const int ndiv, const bool bbox ) {
 	if ( bbox ) {
 		// icosahedron's bounding box vertices
-		vces_.add( { -radius,  radius, -radius } ) ;
-		vces_.add( {  radius,  radius, -radius } ) ;
-		vces_.add( {  radius, -radius, -radius } ) ;
-		vces_.add( { -radius, -radius, -radius } ) ;
-		vces_.add( { -radius,  radius,  radius } ) ;
-		vces_.add( {  radius,  radius,  radius } ) ;
-		vces_.add( {  radius, -radius,  radius } ) ;
-		vces_.add( { -radius, -radius,  radius } ) ;
+		vces_.push_back( { -radius_,  radius_, -radius_ } ) ;
+		vces_.push_back( {  radius_,  radius_, -radius_ } ) ;
+		vces_.push_back( {  radius_, -radius_, -radius_ } ) ;
+		vces_.push_back( { -radius_, -radius_, -radius_ } ) ;
+		vces_.push_back( { -radius_,  radius_,  radius_ } ) ;
+		vces_.push_back( {  radius_,  radius_,  radius_ } ) ;
+		vces_.push_back( {  radius_, -radius_,  radius_ } ) ;
+		vces_.push_back( { -radius_, -radius_,  radius_ } ) ;
 
 		// icosahedron's bounding box indices
-		ices_.add( { 0, 1, 2 } ) ;
-		ices_.add( { 2, 3, 0 } ) ;
-		ices_.add( { 4, 5, 6 } ) ;
-		ices_.add( { 6, 7, 4 } ) ;
-		ices_.add( { 0, 1, 5 } ) ;
-		ices_.add( { 5, 4, 0 } ) ;
-		ices_.add( { 7, 6, 2 } ) ;
-		ices_.add( { 2, 3, 7 } ) ;
-		ices_.add( { 0, 4, 7 } ) ;
-		ices_.add( { 7, 3, 0 } ) ;
-		ices_.add( { 5, 1, 2 } ) ;
-		ices_.add( { 2, 6, 5 } ) ;
+		ices_.push_back( { 0, 1, 2 } ) ;
+		ices_.push_back( { 2, 3, 0 } ) ;
+		ices_.push_back( { 4, 5, 6 } ) ;
+		ices_.push_back( { 6, 7, 4 } ) ;
+		ices_.push_back( { 0, 1, 5 } ) ;
+		ices_.push_back( { 5, 4, 0 } ) ;
+		ices_.push_back( { 7, 6, 2 } ) ;
+		ices_.push_back( { 2, 3, 7 } ) ;
+		ices_.push_back( { 0, 4, 7 } ) ;
+		ices_.push_back( { 7, 3, 0 } ) ;
+		ices_.push_back( { 5, 1, 2 } ) ;
+		ices_.push_back( { 2, 6, 5 } ) ;
 	} else {
 		// https://rechneronline.de/pi/icosahedron.php
 		// r = a/4*sqrt(10+2*sqrt(5)) | r = 1
@@ -88,7 +88,7 @@ void Sphere::icosahedron( const int ndiv, const bool bbox ) const {
 	}
 }
 
-void Sphere::divide( const float3& a, const float3& b, const float3& c, int ndiv ) const {
+void Sphere::divide( const float3& a, const float3& b, const float3& c, int ndiv ) {
 	if  ( ndiv>0 ) {
 		float3 ab = V::unitV( .5f*( a+b ) ) ;
 		float3 bc = V::unitV( .5f*( b+c ) ) ;
@@ -99,8 +99,8 @@ void Sphere::divide( const float3& a, const float3& b, const float3& c, int ndiv
 		divide ( ca, bc,  c, ndiv-1 ) ;
 		divide ( ab, bc, ca, ndiv-1 ) ;
 	} else {
-		vces_.add( center_+radius_*a ) ;
-		vces_.add( center_+radius_*b ) ;
-		vces_.add( center_+radius_*c ) ;
+		vces_.push_back( center_+radius_*a ) ;
+		vces_.push_back( center_+radius_*b ) ;
+		vces_.push_back( center_+radius_*c ) ;
 	}
 }
