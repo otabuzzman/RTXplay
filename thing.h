@@ -15,7 +15,7 @@ struct Binding {
 
 class Thing {
 	public:
-		virtual bool hit( const Ray& ray, double tmin, double tmax, Binding& binding ) const = 0 ;
+		virtual bool hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const = 0 ;
 } ;
 
 #endif // THING_H
