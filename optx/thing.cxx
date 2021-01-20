@@ -11,5 +11,3 @@ const std::vector<float3> Thing::vces() const {
 const std::vector<uint3>  Thing::ices() const {
 	return ices_ ;
 }
-
-#endif // THING_H
