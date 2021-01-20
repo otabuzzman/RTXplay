@@ -43,8 +43,6 @@
 #include "v.h"
 #include "util.h"
 #include "camera.h"
-#include "thing.h"
-#include "sphere.h"
 
 #include "optixTriangle.h"
 
@@ -140,9 +138,6 @@ int main( int argc, char* argv[] )
                  { 0, 1, 2 },
                  { 1, 2, 3 }
             } };
-
-            Sphere sphere ;
-            vertices = sphere.vces() ;
 
             const size_t vertices_size = sizeof( float3 )*vertices.size();
             CUdeviceptr d_vertices;
