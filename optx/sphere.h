@@ -1,13 +1,5 @@
-#include <vector.h>
-
-#include <vector_functions.h>
-#include <vector_types.h>
-
-#include "v.h"
-#include "util.h"
-
-#include "thing.h"
-#include "sphere.h"
+#ifndef SPHERE_H
+#define SPHERE_H
 
 class Sphere : public Thing {
 	public:
@@ -17,8 +9,8 @@ class Sphere : public Thing {
 		float3 center_ ;
 		float  radius_ ;
 
-		void icosahedron( const int ndiv ) const ;
-		void divide( const float3& a, const float3& b, const float3& c, const int ndiv ) const ;
+		void icosahedron( const int ndiv, const bool bbox ) ;
+		void divide( const float3& a, const float3& b, const float3& c, const int ndiv ) ;
 } ;
 
 #endif // SPHERE_H

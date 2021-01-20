@@ -6,7 +6,7 @@ class Thing {
 		const std::vector<float3> vces() const ;
 		const std::vector<uint3>  ices() const ;
 
-	private:
+	protected:
 		std::vector<float3> vces_ ;
 		std::vector<uint3>  ices_ ;
 } ;

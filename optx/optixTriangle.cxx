@@ -126,29 +126,23 @@ int main( int argc, char* argv[] )
             accel_options.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
             // Triangle build input: list of four vertices
-            const std::array<float3, 3> vertices =
 //            const std::array<float3, 4> vertices =
-            { {
-                  { -0.3f, -0.5f, 0.0f },
-                  {  0.7f, -0.5f, 0.0f },
-                  {  0.2f,  0.5f, 0.0f }
+//            { {
 //                  { -0.3f, -0.5f, 0.0f },
 //                  {  0.7f, -0.5f, 0.0f },
 //                  {  0.2f,  0.5f, 0.0f },
 //                  {  1.2f,  0.5f, 0.0f }
-            } };
+//            } };
 
-            // Triangle build input: list of two triangles made up of six indices
-            const std::array<uint3, 1> indices =
+//            // Triangle build input: list of two triangles made up of six indices
 //            const std::array<uint3, 2> indices =
-            { {
-                 { 0, 1, 2 }
+//            { {
 //                 { 0, 1, 2 },
 //                 { 1, 2, 3 }
-            } };
+//            } };
 
             Sphere sphere ;
-            vertices = sphere.vces ;
+            const std::vector<float3> vertices = sphere.vces() ;
 
             const size_t vertices_size = sizeof( float3 )*vertices.size();
             CUdeviceptr d_vertices;
