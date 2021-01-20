@@ -43,6 +43,8 @@
 #include "v.h"
 #include "util.h"
 #include "camera.h"
+#include "thing.h"
+#include "sphere.h"
 
 #include "optixTriangle.h"
 
@@ -124,20 +126,29 @@ int main( int argc, char* argv[] )
             accel_options.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
             // Triangle build input: list of four vertices
-            const std::array<float3, 4> vertices =
+            const std::array<float3, 3> vertices =
+//            const std::array<float3, 4> vertices =
             { {
                   { -0.3f, -0.5f, 0.0f },
                   {  0.7f, -0.5f, 0.0f },
-                  {  0.2f,  0.5f, 0.0f },
-                  {  1.2f,  0.5f, 0.0f }
+                  {  0.2f,  0.5f, 0.0f }
+//                  { -0.3f, -0.5f, 0.0f },
+//                  {  0.7f, -0.5f, 0.0f },
+//                  {  0.2f,  0.5f, 0.0f },
+//                  {  1.2f,  0.5f, 0.0f }
             } };
 
             // Triangle build input: list of two triangles made up of six indices
-            const std::array<uint3, 2> indices =
+            const std::array<uint3, 1> indices =
+//            const std::array<uint3, 2> indices =
             { {
-                 { 0, 1, 2 },
-                 { 1, 2, 3 }
+                 { 0, 1, 2 }
+//                 { 0, 1, 2 },
+//                 { 1, 2, 3 }
             } };
+
+            Sphere sphere ;
+            vertices = sphere.vces ;
 
             const size_t vertices_size = sizeof( float3 )*vertices.size();
             CUdeviceptr d_vertices;
@@ -149,15 +160,15 @@ int main( int argc, char* argv[] )
                         cudaMemcpyHostToDevice
                         ) );
 
-            const size_t indices_size = sizeof( uint3 )*indices.size();
-            CUdeviceptr d_indices;
-            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );
-            CUDA_CHECK( cudaMemcpy(
-                        reinterpret_cast<void*>( d_indices ),
-                        indices.data(),
-                        indices_size,
-                        cudaMemcpyHostToDevice
-                        ) );
+//            const size_t indices_size = sizeof( uint3 )*indices.size();
+//            CUdeviceptr d_indices;
+//            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );
+//            CUDA_CHECK( cudaMemcpy(
+//                        reinterpret_cast<void*>( d_indices ),
+//                        indices.data(),
+//                        indices_size,
+//                        cudaMemcpyHostToDevice
+//                        ) );
 
             // Our build input is a simple list of non-indexed triangle vertices
             const uint32_t triangle_input_flags[1] = { OPTIX_GEOMETRY_FLAG_NONE };
@@ -168,9 +179,9 @@ int main( int argc, char* argv[] )
             triangle_input.triangleArray.numVertices   = static_cast<uint32_t>( vertices.size() );
             triangle_input.triangleArray.vertexBuffers = &d_vertices;
 
-            triangle_input.triangleArray.indexFormat      = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-            triangle_input.triangleArray.numIndexTriplets = static_cast<uint32_t>( indices.size() );
-            triangle_input.triangleArray.indexBuffer      = d_indices;
+//            triangle_input.triangleArray.indexFormat      = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+//            triangle_input.triangleArray.numIndexTriplets = static_cast<uint32_t>( indices.size() );
+//            triangle_input.triangleArray.indexBuffer      = d_indices;
 
             triangle_input.triangleArray.flags         = triangle_input_flags;
             triangle_input.triangleArray.numSbtRecords = 1;
