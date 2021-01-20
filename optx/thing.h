@@ -1,21 +1,14 @@
 #ifndef THING_H
 #define THING_H
 
-#include "ray.h"
-
-class Optics ;
-
-struct Binding {
-	P p ;
-	float t ;
-	V    normal ;
-	bool facing ;
-	shared_ptr<Optics> optics ;
-} ;
-
 class Thing {
 	public:
-		virtual bool hit( const Ray& ray, float tmin, float tmax, Binding& binding ) const = 0 ;
+		const std::vector<float3> vces() const ;
+		const std::vector<uint3>  ices() const ;
+
+	private:
+		std::vector<float3> vces_ ;
+		std::vector<uint3>  ices_ ;
 } ;
 
 #endif // THING_H
