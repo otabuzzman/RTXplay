@@ -11,96 +11,84 @@
 using V::operator+ ;
 using V::operator* ;
 
-Sphere::Sphere( const float3& center, const float radius, const bool bbox )
-	: center_( center ), radius_( radius ) {
-	icosahedron( 4, bbox ) ;
+Sphere::Sphere( const float3& center, const float radius, const bool bbox, const uint ndiv )
+	: center_( center ), radius_( radius ), ndiv_( ndiv ) {
+	tetrahedron( bbox ) ;
 }
 
-void Sphere::icosahedron( const int ndiv, const bool bbox ) {
+void Sphere::tetrahedron( const bool bbox ) {
+	vces_.clear() ;
+	ices_.clear() ;
+
+	// https://rechneronline.de/pi/tetrahedron.php
+	// r = a/4*sqrt(6) | r = 1
+	// a = 4/sqrt(6)
+	// m = a/4*sqrt(2)
+	// precalculated value for unit tetrahedron
+	float m = .57735026919f ; // midsphere radius
+
 	if ( bbox ) {
-		// icosahedron's bounding box vertices
-		vces_.push_back( { -radius_,  radius_, -radius_ } ) ;
-		vces_.push_back( {  radius_,  radius_, -radius_ } ) ;
-		vces_.push_back( {  radius_, -radius_, -radius_ } ) ;
-		vces_.push_back( { -radius_, -radius_, -radius_ } ) ;
-		vces_.push_back( { -radius_,  radius_,  radius_ } ) ;
-		vces_.push_back( {  radius_,  radius_,  radius_ } ) ;
-		vces_.push_back( {  radius_, -radius_,  radius_ } ) ;
-		vces_.push_back( { -radius_, -radius_,  radius_ } ) ;
+		// tetrahedron's bounding box vertices
+		float3 v00 = { -m,  m, -m } ;
+		float3 v01 = {  m,  m, -m } ;
+		float3 v02 = {  m, -m, -m } ;
+		float3 v03 = { -m, -m, -m } ;
+		float3 v04 = { -m,  m,  m } ;
+		float3 v05 = {  m,  m,  m } ;
+		float3 v06 = {  m, -m,  m } ;
+		float3 v07 = { -m, -m,  m } ;
 
-		// icosahedron's bounding box indices
-		ices_.push_back( { 0, 1, 2 } ) ;
-		ices_.push_back( { 2, 3, 0 } ) ;
-		ices_.push_back( { 4, 5, 6 } ) ;
-		ices_.push_back( { 6, 7, 4 } ) ;
-		ices_.push_back( { 0, 1, 5 } ) ;
-		ices_.push_back( { 5, 4, 0 } ) ;
-		ices_.push_back( { 7, 6, 2 } ) ;
-		ices_.push_back( { 2, 3, 7 } ) ;
-		ices_.push_back( { 0, 4, 7 } ) ;
-		ices_.push_back( { 7, 3, 0 } ) ;
-		ices_.push_back( { 5, 1, 2 } ) ;
-		ices_.push_back( { 2, 6, 5 } ) ;
+		// tetrahedron's bounding box triangles
+		vtmp_.push_back( v00 ) ; vtmp_.push_back( v01 ) ; vtmp_.push_back( v02 ) ;
+		vtmp_.push_back( v02 ) ; vtmp_.push_back( v03 ) ; vtmp_.push_back( v00 ) ;
+		vtmp_.push_back( v04 ) ; vtmp_.push_back( v05 ) ; vtmp_.push_back( v06 ) ;
+		vtmp_.push_back( v06 ) ; vtmp_.push_back( v07 ) ; vtmp_.push_back( v04 ) ;
+		vtmp_.push_back( v00 ) ; vtmp_.push_back( v01 ) ; vtmp_.push_back( v05 ) ;
+		vtmp_.push_back( v05 ) ; vtmp_.push_back( v04 ) ; vtmp_.push_back( v00 ) ;
+		vtmp_.push_back( v07 ) ; vtmp_.push_back( v06 ) ; vtmp_.push_back( v02 ) ;
+		vtmp_.push_back( v02 ) ; vtmp_.push_back( v03 ) ; vtmp_.push_back( v07 ) ;
+		vtmp_.push_back( v00 ) ; vtmp_.push_back( v04 ) ; vtmp_.push_back( v07 ) ;
+		vtmp_.push_back( v07 ) ; vtmp_.push_back( v03 ) ; vtmp_.push_back( v00 ) ;
+		vtmp_.push_back( v05 ) ; vtmp_.push_back( v01 ) ; vtmp_.push_back( v02 ) ;
+		vtmp_.push_back( v02 ) ; vtmp_.push_back( v06 ) ; vtmp_.push_back( v05 ) ;
+
+		// convert to indexed vertices
+		reduce() ;
 	} else {
-		// https://rechneronline.de/pi/icosahedron.php
-		// r = a/4*sqrt(10+2*sqrt(5)) | r = 1
-		// a = 1/sqrt(10+2*sqrt(5))*4
-		// b = a/4*(1+sqrt(5))
-		// precalculated values for unit icosahedron
-		float a = 1.05146222424f/2.f ; // half edge length
-		float b = 0.52573111211f     ; // midsphere radius
+		// tetrahedron's vertices
+		float3 v00 = {  m,  m,  m } ;
+		float3 v01 = {  m, -m, -m } ;
+		float3 v02 = { -m, -m,  m } ;
+		float3 v03 = { -m,  m, -m } ;
 
-		// icosahedron's 12 vertices
-		float3 v00 = { 0.f,   b,  -a } ;
-		float3 v01 = {   b,   a, 0.f } ;
-		float3 v02 = {  -b,   a, 0.f } ;
-		float3 v03 = { 0.f,   b,   a } ;
-		float3 v04 = { 0.f,  -b,   a } ;
-		float3 v05 = {  -a, 0.f,   b } ;
-		float3 v06 = { 0.f,  -b,  -a } ;
-		float3 v07 = {   a, 0.f,  -b } ;
-		float3 v08 = {   a, 0.f,   b } ;
-		float3 v09 = {  -a, 0.f,  -b } ;
-		float3 v10 = {   b,  -a, 0.f } ;
-		float3 v11 = {  -b,  -a, 0.f } ;
+		// tetrahedron's triangles
+		pumpup( v00, v01, v02, ndiv_ ) ;
+		pumpup( v00, v02, v03, ndiv_ ) ;
+		pumpup( v00, v03, v01, ndiv_ ) ;
+		pumpup( v03, v02, v01, ndiv_ ) ;
 
-		// icosahedron's 20 triangles
-		divide( v00, v01, v02, ndiv ) ;
-		divide( v03, v02, v01, ndiv ) ;
-		divide( v03, v04, v05, ndiv ) ;
-		divide( v03, v08, v04, ndiv ) ;
-		divide( v00, v06, v07, ndiv ) ;
-		divide( v00, v09, v06, ndiv ) ;
-		divide( v04, v10, v11, ndiv ) ;
-		divide( v06, v11, v10, ndiv ) ;
-		divide( v02, v05, v09, ndiv ) ;
-		divide( v11, v09, v05, ndiv ) ;
-		divide( v01, v07, v08, ndiv ) ;
-		divide( v10, v08, v07, ndiv ) ;
-		divide( v03, v05, v02, ndiv ) ;
-		divide( v03, v01, v08, ndiv ) ;
-		divide( v00, v02, v09, ndiv ) ;
-		divide( v00, v07, v01, ndiv ) ;
-		divide( v06, v09, v11, ndiv ) ;
-		divide( v06, v10, v07, ndiv ) ;
-		divide( v04, v11, v05, ndiv ) ;
-		divide( v04, v08, v10, ndiv ) ;
+		reduce() ;
 	}
 }
 
-void Sphere::divide( const float3& a, const float3& b, const float3& c, int ndiv ) {
-	if  ( ndiv>0 ) {
+void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const int cdiv ) {
+	if  ( cdiv>0 ) {
 		float3 ab = V::unitV( .5f*( a+b ) ) ;
 		float3 bc = V::unitV( .5f*( b+c ) ) ;
 		float3 ca = V::unitV( .5f*( c+a ) ) ;
 
-		divide (  a, ab, ca, ndiv-1 ) ;
-		divide ( ab,  b, bc, ndiv-1 ) ;
-		divide ( ca, bc,  c, ndiv-1 ) ;
-		divide ( ab, bc, ca, ndiv-1 ) ;
+		pumpup(  a, ab, ca, cdiv-1 ) ;
+		pumpup( ab,  b, bc, cdiv-1 ) ;
+		pumpup( ca, bc,  c, cdiv-1 ) ;
+		pumpup( ab, bc, ca, cdiv-1 ) ;
 	} else {
-		vces_.push_back( center_+radius_*a ) ;
-		vces_.push_back( center_+radius_*b ) ;
-		vces_.push_back( center_+radius_*c ) ;
+		vtmp_.push_back( center_+radius_*a ) ;
+		vtmp_.push_back( center_+radius_*b ) ;
+		vtmp_.push_back( center_+radius_*c ) ;
 	}
+}
+
+void Sphere::reduce() { // (SO #14396788)
+	vces_ = vtmp_ ;
+	vtmp_.clear() ;
 }

@@ -7,8 +7,8 @@ class Thing {
 		const std::vector<uint3>  ices() const ;
 
 	protected:
-		std::vector<float3> vces_ ;
-		std::vector<uint3>  ices_ ;
+		std::vector<float3> vces_ ; // unique vertices
+		std::vector<uint3>  ices_ ; // indexed triangles
 } ;
 
 #endif // THING_H
