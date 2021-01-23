@@ -147,20 +147,20 @@ int main( int argc, char* argv[] )
             triangle_input.triangleArray.numVertices   = static_cast<uint32_t>( vertices.size() );
             triangle_input.triangleArray.vertexBuffers = &d_vertices;
 
-//           const std::vector<uint3> indices = sphere.ices() ;
-//           const size_t indices_size = sizeof( uint3 )*indices.size();
-//           CUdeviceptr d_indices;
-//           CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );
-//           CUDA_CHECK( cudaMemcpy(
-//                       reinterpret_cast<void*>( d_indices ),
-//                       indices.data(),
-//                       indices_size,
-//                       cudaMemcpyHostToDevice
-//                       ) );
+            const std::vector<uint3> indices = sphere.ices() ;
+            const size_t indices_size = sizeof( uint3 )*indices.size();
+            CUdeviceptr d_indices;
+            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );
+            CUDA_CHECK( cudaMemcpy(
+                        reinterpret_cast<void*>( d_indices ),
+                        indices.data(),
+                        indices_size,
+                        cudaMemcpyHostToDevice
+                        ) );
 
-//            triangle_input.triangleArray.indexFormat      = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-//            triangle_input.triangleArray.numIndexTriplets = static_cast<uint32_t>( indices.size() );
-//            triangle_input.triangleArray.indexBuffer      = d_indices;
+            triangle_input.triangleArray.indexFormat      = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
+            triangle_input.triangleArray.numIndexTriplets = static_cast<uint32_t>( indices.size() );
+            triangle_input.triangleArray.indexBuffer      = d_indices;
 
             triangle_input.triangleArray.flags         = triangle_input_flags;
             triangle_input.triangleArray.numSbtRecords = 1;
