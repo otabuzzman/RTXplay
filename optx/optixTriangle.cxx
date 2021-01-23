@@ -79,9 +79,9 @@ int main( int argc, char* argv[] )
     // Camera
     //
     Camera camera(
-        {.0f, .0f, 2.f} /*eye*/,
-        {.0f, .0f, .0f} /*pat*/,
-        {.0f, 1.f, 3.f} /*vup*/,
+        {13.f, 2.f, 3.f} /*eye*/,
+        { 0.f, 0.f, 0.f} /*pat*/,
+        { 0.f, 1.f, 0.f} /*vup*/,
         45.f /*fov*/,
         (float) width/(float) height /*aspratio*/,
         .1f /*aperture*/,
@@ -125,22 +125,6 @@ int main( int argc, char* argv[] )
             accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
             accel_options.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
-            // Triangle build input: list of four vertices
-//            const std::array<float3, 4> vertices =
-//            { {
-//                  { -0.3f, -0.5f, 0.0f },
-//                  {  0.7f, -0.5f, 0.0f },
-//                  {  0.2f,  0.5f, 0.0f },
-//                  {  1.2f,  0.5f, 0.0f }
-//            } };
-
-//            // Triangle build input: list of two triangles made up of six indices
-//            const std::array<uint3, 2> indices =
-//            { {
-//                 { 0, 1, 2 },
-//                 { 1, 2, 3 }
-//            } };
-
             Sphere sphere ;
             const std::vector<float3> vertices = sphere.vces() ;
 
@@ -154,16 +138,6 @@ int main( int argc, char* argv[] )
                         cudaMemcpyHostToDevice
                         ) );
 
-//            const size_t indices_size = sizeof( uint3 )*indices.size();
-//            CUdeviceptr d_indices;
-//            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );
-//            CUDA_CHECK( cudaMemcpy(
-//                        reinterpret_cast<void*>( d_indices ),
-//                        indices.data(),
-//                        indices_size,
-//                        cudaMemcpyHostToDevice
-//                        ) );
-
             // Our build input is a simple list of non-indexed triangle vertices
             const uint32_t triangle_input_flags[1] = { OPTIX_GEOMETRY_FLAG_NONE };
             OptixBuildInput triangle_input = {};
@@ -172,6 +146,17 @@ int main( int argc, char* argv[] )
             triangle_input.triangleArray.vertexFormat  = OPTIX_VERTEX_FORMAT_FLOAT3;
             triangle_input.triangleArray.numVertices   = static_cast<uint32_t>( vertices.size() );
             triangle_input.triangleArray.vertexBuffers = &d_vertices;
+
+//           const std::vector<uint3> indices = sphere.ices() ;
+//           const size_t indices_size = sizeof( uint3 )*indices.size();
+//           CUdeviceptr d_indices;
+//           CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );
+//           CUDA_CHECK( cudaMemcpy(
+//                       reinterpret_cast<void*>( d_indices ),
+//                       indices.data(),
+//                       indices_size,
+//                       cudaMemcpyHostToDevice
+//                       ) );
 
 //            triangle_input.triangleArray.indexFormat      = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
 //            triangle_input.triangleArray.numIndexTriplets = static_cast<uint32_t>( indices.size() );
@@ -493,4 +478,3 @@ int main( int argc, char* argv[] )
     }
     return 0;
 }
-
