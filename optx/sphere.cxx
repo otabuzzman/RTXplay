@@ -1,3 +1,4 @@
+#include <set>
 #include <vector>
 
 #include <vector_functions.h>
@@ -89,6 +90,42 @@ void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const in
 }
 
 void Sphere::reduce() { // (SO #14396788)
-	vces_ = vtmp_ ;
+	typedef std::pair<float3, uint> VIPair ;
+
+	struct VIComp {
+		bool operator () ( const VIPair& l, const VIPair& r ) const {
+			if ( l.first.x != r.first.x )
+				return l.first.x<r.first.x ;
+			if ( l.first.y != r.first.y )
+				return l.first.y<r.first.y ;
+			if ( l.first.z != r.first.z )
+				return l.first.z<r.first.z ;
+			return false;
+		}
+	} ;
+
+	std::set<VIPair, VIComp> irel ;
+	std::vector<uint> itmp ;
+	uint ice = 0 ;
+
+	for ( const float3& vce : vtmp_ ) {
+		std::set<VIPair>::iterator itor = irel.find( std::make_pair( vce, 0 ) ) ;
+
+		if ( itor == irel.end() ) {
+			irel.insert( std::make_pair( vce, ice ) ) ;
+			itmp.push_back( ice++ ) ;
+		} else
+			itmp.push_back( itor->second ) ;
+	}
+
+	vces_.resize( irel.size() ) ;
+
+	for ( std::set<VIPair>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ )
+		vces_[itor->second] = itor->first ;
+
+	for ( uint i = 0 ; itmp.size()>i ; i+=3 )
+		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
+
+	// vces_ = vtmp_ ;
 	vtmp_.clear() ;
 }
