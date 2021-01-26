@@ -40,7 +40,7 @@ C trace( const Ray& ray, const Thing& scene ) {
 	Binding binding ;
 	if ( scene.hit( ray, 0, kInfinty, binding ) )
 		return .5*( binding.normal+C( 1, 1, 1 ) ) ;
-	// else
+
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
 
@@ -54,10 +54,10 @@ C trace( const Ray& ray, const Thing& scene, int depth ) {
 		C attened ;
 		if ( depth>0 && binding.optics->spray( ray, binding, attened, sprayed ) )
 			return attened*trace( sprayed, scene, depth-1 ) ;
-		// else
+
 		return C( 0, 0, 0 ) ;
 	}
-	// else
+
 	V unit = unitV( ray.dir() ) ;
 	auto t = .5*( unit.y()+1. ) ;
 

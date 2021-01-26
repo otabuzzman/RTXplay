@@ -126,6 +126,5 @@ void Sphere::reduce() { // (SO #14396788)
 	for ( uint i = 0 ; itmp.size()>i ; i+=3 )
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
 
-	// vces_ = vtmp_ ;
 	vtmp_.clear() ;
 }

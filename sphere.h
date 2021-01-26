@@ -25,7 +25,7 @@ bool Sphere::hit( const Ray& ray, const double tmin, const double tmax, Binding&
 
 	if ( 0>discriminant )
 		return false ;
-	// else
+
 	auto x = sqrt( discriminant ) ;
 
 	// nearest t in range

@@ -18,6 +18,7 @@ Math
 Tools
 - Handy summary of [class and sequence diagram notation](http://umich.edu/~eecs381/handouts/UMLNotationSummary.pdf)
 - Web page on [running CMake](https://cmake.org/runningcmake/)
+- [SO answer](https://stackoverflow.com/questions/6127328/how-can-i-delete-all-git-branches-which-have-been-merged?answertab=active#tab-top) on removing merged branches
 
 AWS
 - Information on [G4 instances](https://aws.amazon.com/de/ec2/instance-types/g4/) (g4dn.xlarge)
@@ -27,6 +28,7 @@ AWS
 
 CUDA
 - How to [share C++ classes between host and and device](https://stackoverflow.com/questions/39006348/accessing-class-data-members-from-within-cuda-kernel-how-to-design-proper-host) (kernel code
+
 NVIDIA
 - [CUDA Toolkit Documentation](https://docs.nvidia.com/cuda/index.html)
 - [CUDA Toolkit Download](https://developer.nvidia.com/cuda-downloads)
