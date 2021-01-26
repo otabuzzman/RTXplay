@@ -13,10 +13,10 @@ struct float3 {
 	float x, y, z ;
 } ;
 
-typedef std::pair<float3, uint> VIPair ;
+typedef std::pair<float3, uint> VIRec ;
 
-struct VIComp {
-	bool operator () ( const VIPair& l, const VIPair& r ) const {
+struct VICmp {
+	bool operator () ( const VIRec& l, const VIRec& r ) const {
 		if ( l.first.x != r.first.x )
 			return l.first.x<r.first.x ;
 		if ( l.first.y != r.first.y )
@@ -28,7 +28,7 @@ struct VIComp {
 } ;
 
 std::vector<float3> vtmp_, vces_ ;
-std::set<VIPair, VIComp> irel ;
+std::set<VIRec, VICmp> irel ;
 std::vector<uint> itmp ;
 std::vector<uint3> ices_ ;
 
@@ -36,7 +36,7 @@ void reduce() {
 	uint ice = 0 ;
 
 	for ( const float3& vce : vtmp_ ) {
-		std::set<VIPair>::iterator itor = irel.find( std::make_pair( vce, 0 ) ) ;
+		std::set<VIRec>::iterator itor = irel.find( std::make_pair( vce, 0 ) ) ;
 
 		if ( itor == irel.end() ) {
 			irel.insert( std::make_pair( vce, ice ) ) ;
@@ -47,11 +47,13 @@ void reduce() {
 
 	vces_.resize( irel.size() ) ;
 
-	for ( std::set<VIPair>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ )
+	for ( std::set<VIRec>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ )
 		vces_[itor->second] = itor->first ;
 
-	for ( int i = 0 ; itmp.size()>i ; i+=3 )
+	for ( uint i = 0 ; itmp.size()>i ; i+=3 )
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
+
+	vtmp_.clear() ;
 }
 
 int main() {
@@ -68,22 +70,22 @@ int main() {
 	vtmp_.push_back( { 1.5f, 1.f, 0.f } ) ;
 	vtmp_.push_back( {  1.f, 0.f, 0.f } ) ;
 
-	reduce() ;
-
 	for ( int v = 0 ; vtmp_.size()>v ; v++ )
-		printf( "%1.1f %1.1f %1.1f\n", vtmp_[v].x, vtmp_[v].y, vtmp_[v].z ) ;
+		printf( "{ %1.1f, %1.1f, %1.1f }\n", vtmp_[v].x, vtmp_[v].y, vtmp_[v].z ) ;
 
 	printf( "\n" ) ;
 
-	for ( std::set<VIPair>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ ) {
+	reduce() ;
+
+	for ( std::set<VIRec>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ ) {
 		struct float3 v = itor->first ;
-		printf( "%1.1f %1.1f %1.1f | %d\n", v.x, v.y, v.z, itor->second) ;
+		printf( "{ %1.1f, %1.1f, %1.1f }, %d\n", v.x, v.y, v.z, itor->second) ;
 	}
 
 	printf( "\n" ) ;
 
 	for ( int v = 0 ; vces_.size()>v ; v++ )
-		printf( "%1.1f %1.1f %1.1f\n", vces_[v].x, vces_[v].y, vces_[v].z ) ;
+		printf( "{ %1.1f, %1.1f, %1.1f }\n", vces_[v].x, vces_[v].y, vces_[v].z ) ;
 
 	printf( "\n" ) ;
 
@@ -93,5 +95,5 @@ int main() {
 	printf( "\n" ) ;
 
 	for ( int i = 0 ; ices_.size()>i ; i++ )
-		printf( "%d %d %d\n", ices_[i].x, ices_[i].y, ices_[i].z ) ;
+		printf( "{ %d, %d, %d }\n", ices_[i].x, ices_[i].y, ices_[i].z ) ;
 }
