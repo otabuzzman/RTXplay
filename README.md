@@ -6,6 +6,37 @@ A lab for playing around with NVIDIA's realtime raytracing concept. The lab inte
 2. Curly braces around `params` declaration in `shader_optixTriangle.cu`. Removing braces [shall yield same scope](https://vladonsoftware.wordpress.com/2019/02/25/c-when-the-curly-braces-really-matter/) (section *What happened*) but produces warning. Avoid with NVCC option `-rdc true` to [force relocatable device code](https://forums.developer.nvidia.com/t/warning-extern-declaration-of-the-entity-xxxx-is-treated-as-a-static-definition/69887) generation.
 3. [Simple(r) implementation](https://zeux.io/2010/12/14/quantizing-floats/) to quantize `float` into `unsigned char`.
 
+### Git for short (copy&paste)
+
+#### Branching on new features
+
+1. Before start working on new feature
+```
+git checkout <branch>
+```
+2. While working on new feature
+```
+git add -A # every now and then
+```
+3. When work on new feature finished
+```
+git add -A
+git commit -m '...'
+git push -u origin <branch>
+```
+4. Merge new feature branch
+```
+git checkout main
+git merge <branch>
+git push -u origin <branch>
+```
+5. Merge new feature branch
+```
+# delete remote branch on Git site
+git branch -d <branch>  # local remove
+git remote prune origin # clean tracking
+```
+
 ### Links
 RTOW
 - The RTOW books on [GitHub](https://github.com/RayTracing/raytracing.github.io) and [Amazon](https://www.amazon.de/gp/product/B0785N5QTC/ref=series_rw_dp_sw)
