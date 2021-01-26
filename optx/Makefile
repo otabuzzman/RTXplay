@@ -29,14 +29,71 @@ SHD = \
 PTX = \
 	shader_optixTriangle.ptx \
 
+ifdef winos
+# install VS2017
+# install Cygwin
+# unpack CUDA Toolkit somewhere
+# unpack OptiX SDK somewhere
+# add nvcc.exe and cl.exe to PATH
+
+# known warnings:
+# C4061: unused enumerator
+# C4100: unreferenced parameter
+# C4245: <some type> unsigned int conversion
+# C4365: <some type> unsigned int conversion
+# C4514: unreferenced inline function deleted
+# C4571: catch semantic changed in VC 7.1
+# C4625: copy constructor defined deleted
+# C4626: assign constructor defined deleted
+# C4668: undefined macro
+# C4710: function not inline
+# C4711: function automatically inlined
+# C4774: VC header <xlocnum> warning
+# C4820: n bytes added
+# C4996: function or variable may be unsafe
+# C5026: shift constructor defined deleted
+# C5027: shift constructor defined deleted
+# C5039: risk of undefined behaviour on exception
+
+WARNINGS = \
+	/wd4061 \
+	/wd4100 \
+	/wd4245 \
+	/wd4365 \
+	/wd4514 \
+	/wd4571 \
+	/wd4625 \
+	/wd4626 \
+	/wd4668 \
+	/wd4710 \
+	/wd4711 \
+	/wd4774 \
+	/wd4820 \
+	/wd4996 \
+	/wd5026 \
+	/wd5027 \
+	/wd5039 \
+
+CXXFLAGS = /Wall $(WARNINGS) /O2 -DNOMINMAX -DNDEBUG
+NVCCFLAGS = -rdc true -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
+
+INC = \
+	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.1.1_456.81_win10/cuda_cudart/cudart/include) \
+	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64/include) \
+	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64/SDK) \
+	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64/SDK/support) \
+
+else
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG
-NVCCFLAGS = -rdc true -std c++11 -ccbin /usr/bin/g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
+NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
 
 INC = \
 	-I/usr/local/cuda/include \
 	-I/usr/local/optix/include \
 	-I/usr/local/optix/SDK \
 	-I/usr/local/optix/SDK/support \
+
+endif
 
 .PHONY: all clean tidy
 .SUFFIXES: .cxx .cu .png .ptx
@@ -77,6 +134,3 @@ tidy: clean
 
 $(IMG): $(EXE)
 	./$< | magick ppm:- $@
-ifdef winos
-	cmd /c $@
-endif
