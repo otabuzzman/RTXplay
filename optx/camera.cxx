@@ -6,23 +6,26 @@
 
 #include "camera.h"
 
+using V::operator+ ;
 using V::operator- ;
 using V::operator* ;
 
-Camera::Camera( const float3&  eye, const float3&  pat, const float3&  vup, const float fov, const float aspratio, const float aperture, const float distance )
-	: eye_( eye ), pat_( pat ), vup_( vup ), fov_( fov ), aspratio_( aspratio ), aperture_( aperture ), distance_( distance ) {}
+__host__ Camera( const float3&  eye, const float3&  pat, const float3&  vup, const float fov, const float aspratio, const float aperture, const float distance ) {
+	w_    = V::unitV( eye-pat ) ;
+	u_    = V::unitV( V::cross( w_, vup ) ) ;
+	v_    = V::cross( u_, w_ ) ;
 
-void Camera::set( LpCamera& camera ) const {
-	camera.w    = V::unitV( eye_-pat_ ) ;
-	camera.u    = V::unitV( V::cross( camera.w, vup_ ) ) ;
-	camera.v    = V::cross( camera.u, camera.w ) ;
+	float hlen  = 2.f*tanf( .5f*fov*util::kPi/180.f ) ;
+	float wlen  = hlen*aspratio ;
 
-	float hlen  = 2.f*tanf( .5f*fov_*util::kPi/180.f ) ;
-	float wlen  = hlen*aspratio_ ;
+	eye_  = eye ;
+	lens_ = aperture/2.f ;
+	dist_ = distance ;
+	hvec_ = hlen*v_ ;
+	wvec_ = wlen*u_ ;
+}
 
-	camera.eye  = eye_ ;
-	camera.lens = aperture_/2.f ;
-	camera.dist = distance_ ;
-	camera.hvec = hlen*camera.v ;
-	camera.wvec = wlen*camera.u ;
+__device__ void ray( const float s, const float t, float3& ori, float3& dir ) const {
+	ori = eye_ ;
+	dir = dist_*( s*wvec_+t*hvec_ )-eye_ ;
 }

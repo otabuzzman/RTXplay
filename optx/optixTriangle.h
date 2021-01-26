@@ -30,15 +30,15 @@ struct LpGeneral { // launch parameter
     uchar4*                image ;
     unsigned int           image_width ;
     unsigned int           image_height ;
-    LpCamera               camera ;
     OptixTraversableHandle handle ;
 } ;
 
 
 struct RayGenData
 {
-    // No data needed
-};
+	// allocate memory to hold Camera class instance
+    unsigned char /*byte*/ camera[sizeof( Camera )] ;
+} ;
 
 
 struct MissData

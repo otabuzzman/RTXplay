@@ -69,9 +69,12 @@ extern "C" __global__ void __raygen__rg()
     float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
     float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
 
-    // Camera::ray() code replacement
-    float3 ori = lpGeneral.camera.eye ;
-    float3 dir = lpGeneral.camera.dist*( s*lpGeneral.camera.wvec+t*lpGeneral.camera.hvec )-lpGeneral.camera.eye ;
+    // get Camera class instance from SBT
+    RayGenData* rg_data  = reinterpret_cast<RayGenData*>( optixGetSbtDataPointer() ) ;
+    Camera* camera = reinterpret_cast<Camera*>( rg_data ) ;
+
+    float3 ori, dir ;
+    camera->ray( s, t, ori, dir ) ;
 
     // Trace the ray against our scene hierarchy
     unsigned int p0, p1, p2;
@@ -99,8 +102,8 @@ extern "C" __global__ void __raygen__rg()
 
 extern "C" __global__ void __miss__ms()
 {
-    MissData* miss_data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() );
-    setPayload(  miss_data->bg_color );
+    MissData* ms_data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() );
+    setPayload(  ms_data->bg_color );
 }
 
 extern "C" __global__ void __closesthit__ch()

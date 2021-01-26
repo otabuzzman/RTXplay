@@ -18,7 +18,6 @@ endif
 OBJ = \
 	optixTriangle.o \
 	shader_optixTriangle.o \
-	camera.o \
 	sphere.o \
 	thing.o \
 

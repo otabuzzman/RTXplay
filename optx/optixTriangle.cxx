@@ -344,6 +344,7 @@ int main( int argc, char* argv[] )
             const size_t raygen_record_size = sizeof( RayGenSbtRecord );
             CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &raygen_record ), raygen_record_size ) );
             RayGenSbtRecord rg_sbt;
+            memcpy( &rg_sbt.data, &camera, sizeof( Camera ) ) ;
             OPTIX_CHECK( optixSbtRecordPackHeader( raygen_prog_group, &rg_sbt ) );
             CUDA_CHECK( cudaMemcpy(
                         reinterpret_cast<void*>( raygen_record ),
@@ -406,8 +407,6 @@ int main( int argc, char* argv[] )
             lpGeneral.image        = m_device_pixels;
             lpGeneral.image_width  = width;
             lpGeneral.image_height = height;
-
-            camera.set( lpGeneral.camera ) ;
 
             lpGeneral.handle       = gas_handle;
 
