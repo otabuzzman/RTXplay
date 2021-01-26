@@ -3,7 +3,7 @@
 
 class Sphere : public Thing {
 	public:
-		Sphere( const float3& center = { 0.f, 0.f, 0.f }, const float radius = 1.f, const bool bbox = false, const uint ndiv = 6 ) ;
+		Sphere( const float3& center = { 0.f, 0.f, 0.f }, const float radius = 1.f, const bool bbox = false, const unsigned int ndiv = 6 ) ;
 
 	private:
 		float3 center_ ;
@@ -14,7 +14,7 @@ class Sphere : public Thing {
 		std::vector<float3> vtmp_ ;
 
 		void tetrahedron( const bool bbox ) ;
-		void pumpup( const float3& a, const float3& b, const float3& c, const int ndiv ) ;
+		void pumpup( const float3& a, const float3& b, const float3& c, const unsigned int ndiv ) ;
 		void reduce() ;
 } ;
 

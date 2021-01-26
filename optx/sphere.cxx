@@ -12,7 +12,7 @@
 using V::operator+ ;
 using V::operator* ;
 
-Sphere::Sphere( const float3& center, const float radius, const bool bbox, const uint ndiv )
+Sphere::Sphere( const float3& center, const float radius, const bool bbox, const unsigned int ndiv )
 	: center_( center ), radius_( radius ), ndiv_( ndiv ) {
 	tetrahedron( bbox ) ;
 }
@@ -72,7 +72,7 @@ void Sphere::tetrahedron( const bool bbox ) {
 	}
 }
 
-void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const int cdiv ) {
+void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const unsigned int cdiv ) {
 	if  ( cdiv>0 ) {
 		float3 ab = V::unitV( .5f*( a+b ) ) ;
 		float3 bc = V::unitV( .5f*( b+c ) ) ;
@@ -90,7 +90,7 @@ void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const in
 }
 
 void Sphere::reduce() { // (SO #14396788)
-	typedef std::pair<float3, uint> VIRec ;
+	typedef std::pair<float3, unsigned int> VIRec ;
 
 	struct VICmp {
 		bool operator () ( const VIRec& l, const VIRec& r ) const {
@@ -105,8 +105,8 @@ void Sphere::reduce() { // (SO #14396788)
 	} ;
 
 	std::set<VIRec, VICmp> irel ;
-	std::vector<uint> itmp ;
-	uint ice = 0 ;
+	std::vector<unsigned int> itmp ;
+	unsigned int ice = 0 ;
 
 	for ( const float3& vce : vtmp_ ) {
 		std::set<VIRec>::iterator itor = irel.find( std::make_pair( vce, 0 ) ) ;
@@ -123,7 +123,7 @@ void Sphere::reduce() { // (SO #14396788)
 	for ( std::set<VIRec>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ )
 		vces_[itor->second] = itor->first ;
 
-	for ( uint i = 0 ; itmp.size()>i ; i+=3 )
+	for ( unsigned int i = 0 ; itmp.size()>i ; i+=3 )
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
 
 	vtmp_.clear() ;

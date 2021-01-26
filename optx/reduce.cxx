@@ -3,17 +3,15 @@
 
 #include <iostream>
 
-typedef unsigned int uint ;
-
 struct uint3 {
-	uint x, y, z ;
+	unsigned int x, y, z ;
 } ;
 
 struct float3 {
 	float x, y, z ;
 } ;
 
-typedef std::pair<float3, uint> VIRec ;
+typedef std::pair<float3, unsigned int> VIRec ;
 
 struct VICmp {
 	bool operator () ( const VIRec& l, const VIRec& r ) const {
@@ -29,11 +27,11 @@ struct VICmp {
 
 std::vector<float3> vtmp_, vces_ ;
 std::set<VIRec, VICmp> irel ;
-std::vector<uint> itmp ;
+std::vector<unsigned int> itmp ;
 std::vector<uint3> ices_ ;
 
-void reduce() {
-	uint ice = 0 ;
+void reduce() { // (SO #14396788)
+	unsigned int ice = 0 ;
 
 	for ( const float3& vce : vtmp_ ) {
 		std::set<VIRec>::iterator itor = irel.find( std::make_pair( vce, 0 ) ) ;
@@ -50,7 +48,7 @@ void reduce() {
 	for ( std::set<VIRec>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ )
 		vces_[itor->second] = itor->first ;
 
-	for ( uint i = 0 ; itmp.size()>i ; i+=3 )
+	for ( unsigned int i = 0 ; itmp.size()>i ; i+=3 )
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
 
 	vtmp_.clear() ;
