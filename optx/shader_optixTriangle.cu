@@ -42,13 +42,11 @@ using V::operator* ;
 __forceinline__ __device__ uchar4 sRGB( const float3& c )
 {
     return make_uchar4(
-        // README.md#Findings#3
         (unsigned char) ( util::clamp( c.x, .0f, 1.f )*255.f+.5f ),
         (unsigned char) ( util::clamp( c.y, .0f, 1.f )*255.f+.5f ),
         (unsigned char) ( util::clamp( c.z, .0f, 1.f )*255.f+.5f ), 255u ) ;
 }
 
-// README.md#Findings#2
 extern "C" { __constant__ LpGeneral lpGeneral ; }
 
 static __forceinline__ __device__ void setPayload( float3 p )
@@ -79,7 +77,7 @@ extern "C" __global__ void __raygen__rg()
     // Trace the ray against our scene hierarchy
     unsigned int p0, p1, p2;
     optixTrace(
-            lpGeneral.handle,
+            lpGeneral.gas_handle,
             ori,
             dir,
             0.0f,                // Min intersection distance
@@ -97,7 +95,7 @@ extern "C" __global__ void __raygen__rg()
     result.z = int_as_float( p2 );
 
     // Record results in our output raster
-    lpGeneral.image[idx.y * lpGeneral.image_width + idx.x] = sRGB( result );
+    lpGeneral.image[idx.y * lpGeneral.image_w + idx.x] = sRGB( result );
 }
 
 extern "C" __global__ void __miss__ms()

@@ -62,62 +62,64 @@ typedef SbtRecord<RayGenData>     RayGenSbtRecord;
 typedef SbtRecord<MissData>       MissSbtRecord;
 typedef SbtRecord<HitGroupData>   HitGroupSbtRecord;
 
-static void context_log_cb( unsigned int level, const char* tag, const char* message, void* /*cbdata */)
-{
-    std::cerr << "[" << std::setw( 2 ) << level << "][" << std::setw( 12 ) << tag << "]: "
-              << message << "\n";
+static void optx_log_stderr( unsigned int level, const char* tag, const char* message, void* /*cbdata*/ ) {
+	std::cerr
+		<< "OptiX API message : "
+		<< std::setw(  2 ) << level << " : "
+		<< std::setw( 12 ) << tag   << " : "
+		<< message << "\n";
 }
 
-extern "C" const unsigned char shader_optixTriangle[];
+extern "C" const unsigned char shader_optixTriangle[] ;
 
-int main( int argc, char* argv[] )
+int main()
 {
-    int         width  = 1024;
-    int         height =  768;
+	float aspratio = 3.f/2.f ;
 
-    //
-    // Camera
-    //
-    Camera camera(
-        {13.f, 2.f, 3.f} /*eye*/,
-        { 0.f, 0.f, 0.f} /*pat*/,
-        { 0.f, 1.f, 0.f} /*vup*/,
-        45.f /*fov*/,
-        (float) width/(float) height /*aspratio*/,
-        .1f /*aperture*/,
-        2.f /*distance*/ ) ;
+	Camera camera(
+		{13.f, 2.f, 3.f} /*eye*/,
+		{ 0.f, 0.f, 0.f} /*pat*/,
+		{ 0.f, 1.f, 0.f} /*vup*/,
+		45.f /*fov*/,
+		aspratio,
+		.1f /*aperture*/,
+		2.f /*distance*/ ) ;
 
-    try
-    {
-        char log[2048]; // For error reporting from OptiX creation functions
+	const int w = 1200 ;                           // image width in pixels
+	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
 
-        //
-        // Initialize CUDA and create OptiX context
-        //
-        OptixDeviceContext context = nullptr;
-        {
-            // Initialize CUDA
-            CUDA_CHECK( cudaFree( 0 ) );
 
-            // Initialize the OptiX API, loading all API entry points
-            OPTIX_CHECK( optixInit() );
 
-            // Specify context options
-            OptixDeviceContextOptions options = {};
-            options.logCallbackFunction       = &context_log_cb;
-            options.logCallbackLevel          = 4;
+	try {
+		// OptiX API log buffer and size varibale names must not change:
+		// both hard-coded in OPTIX_CHECK_LOG macro (sutil/Exception.h).
+		char   log[2048] ;
+		size_t sizeof_log = sizeof( log ) ;
 
-            // Associate a CUDA context (and therefore a specific GPU) with this
-            // device context
-            CUcontext cuCtx = 0;  // zero means take the current context
-            OPTIX_CHECK( optixDeviceContextCreate( cuCtx, &options, &context ) );
-        }
+
+
+		// initialize
+		OptixDeviceContext optx_context = nullptr;
+		{
+			CUDA_CHECK( cudaFree( 0 ) ) ;
+			OPTIX_CHECK( optixInit() ) ;
+
+			OptixDeviceContextOptions optx_options = {} ;
+			optx_options.logCallbackFunction       = &optx_log_stderr ;
+			optx_options.logCallbackLevel          = 4 ;
+
+			// use current (0) CUDA context
+			CUcontext cuda_context = 0 ;
+			OPTIX_CHECK( optixDeviceContextCreate( cuda_context, &optx_options, &optx_context ) ) ;
+		}
+
+
 
         //
         // accel handling
         //
         OptixTraversableHandle gas_handle;
-        CUdeviceptr            d_gas_output_buffer;
+        CUdeviceptr            d_gas_outbuf;
         {
             // Use default options for simplicity.  In a real use case we would want to
             // enable compaction, etc
@@ -167,31 +169,31 @@ int main( int argc, char* argv[] )
 
             OptixAccelBufferSizes gas_buffer_sizes;
             OPTIX_CHECK( optixAccelComputeMemoryUsage(
-                        context,
+                        optx_context,
                         &accel_options,
                         &triangle_input,
                         1, // Number of build inputs
                         &gas_buffer_sizes
                         ) );
-            CUdeviceptr d_temp_buffer_gas;
+            CUdeviceptr d_gas_tmpbuf;
             CUDA_CHECK( cudaMalloc(
-                        reinterpret_cast<void**>( &d_temp_buffer_gas ),
+                        reinterpret_cast<void**>( &d_gas_tmpbuf ),
                         gas_buffer_sizes.tempSizeInBytes
                         ) );
             CUDA_CHECK( cudaMalloc(
-                        reinterpret_cast<void**>( &d_gas_output_buffer ),
+                        reinterpret_cast<void**>( &d_gas_outbuf ),
                         gas_buffer_sizes.outputSizeInBytes
                         ) );
 
             OPTIX_CHECK( optixAccelBuild(
-                        context,
+                        optx_context,
                         0,                  // CUDA stream
                         &accel_options,
                         &triangle_input,
                         1,                  // num build inputs
-                        d_temp_buffer_gas,
+                        d_gas_tmpbuf,
                         gas_buffer_sizes.tempSizeInBytes,
-                        d_gas_output_buffer,
+                        d_gas_outbuf,
                         gas_buffer_sizes.outputSizeInBytes,
                         &gas_handle,
                         nullptr,            // emitted property list
@@ -200,14 +202,14 @@ int main( int argc, char* argv[] )
 
             // We can now free the scratch space buffer used during build and the vertex
             // inputs, since they are not needed by our trivial shading method
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_temp_buffer_gas ) ) );
+            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_gas_tmpbuf ) ) );
             CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_vertices        ) ) );
         }
 
         //
-        // Create module
+        // Create optx_module
         //
-        OptixModule module = nullptr;
+        OptixModule optx_module = nullptr;
         OptixPipelineCompileOptions pipeline_compile_options = {};
         {
             OptixModuleCompileOptions module_compile_options = {};
@@ -222,18 +224,17 @@ int main( int argc, char* argv[] )
             pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_NONE;
             pipeline_compile_options.pipelineLaunchParamsVariableName = "lpGeneral";
             pipeline_compile_options.usesPrimitiveTypeFlags = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE;
-            size_t sizeof_log = sizeof( log );
 
             const std::string ptx( reinterpret_cast<char const*>( shader_optixTriangle ) );
             OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
-                        context,
+                        optx_context,
                         &module_compile_options,
                         &pipeline_compile_options,
                         ptx.c_str(),
                         ptx.size(),
                         log,
                         &sizeof_log,
-                        &module
+                        &optx_module
                         ) );
         }
 
@@ -248,11 +249,10 @@ int main( int argc, char* argv[] )
 
             OptixProgramGroupDesc raygen_prog_group_desc    = {}; //
             raygen_prog_group_desc.kind                     = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-            raygen_prog_group_desc.raygen.module            = module;
+            raygen_prog_group_desc.raygen.module            = optx_module;
             raygen_prog_group_desc.raygen.entryFunctionName = "__raygen__rg";
-            size_t sizeof_log = sizeof( log );
             OPTIX_CHECK_LOG( optixProgramGroupCreate(
-                        context,
+                        optx_context,
                         &raygen_prog_group_desc,
                         1,   // num program groups
                         &program_group_options,
@@ -263,11 +263,10 @@ int main( int argc, char* argv[] )
 
             OptixProgramGroupDesc miss_prog_group_desc  = {};
             miss_prog_group_desc.kind                   = OPTIX_PROGRAM_GROUP_KIND_MISS;
-            miss_prog_group_desc.miss.module            = module;
+            miss_prog_group_desc.miss.module            = optx_module;
             miss_prog_group_desc.miss.entryFunctionName = "__miss__ms";
-            sizeof_log = sizeof( log );
             OPTIX_CHECK_LOG( optixProgramGroupCreate(
-                        context,
+                        optx_context,
                         &miss_prog_group_desc,
                         1,   // num program groups
                         &program_group_options,
@@ -278,11 +277,10 @@ int main( int argc, char* argv[] )
 
             OptixProgramGroupDesc hitgroup_prog_group_desc = {};
             hitgroup_prog_group_desc.kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-            hitgroup_prog_group_desc.hitgroup.moduleCH            = module;
+            hitgroup_prog_group_desc.hitgroup.moduleCH            = optx_module;
             hitgroup_prog_group_desc.hitgroup.entryFunctionNameCH = "__closesthit__ch";
-            sizeof_log = sizeof( log );
             OPTIX_CHECK_LOG( optixProgramGroupCreate(
-                        context,
+                        optx_context,
                         &hitgroup_prog_group_desc,
                         1,   // num program groups
                         &program_group_options,
@@ -293,9 +291,9 @@ int main( int argc, char* argv[] )
         }
 
         //
-        // Link pipeline
+        // Link optx_pipeline
         //
-        OptixPipeline pipeline = nullptr;
+        OptixPipeline optx_pipeline = nullptr;
         {
             const uint32_t    max_trace_depth  = 1;
             OptixProgramGroup program_groups[] = { raygen_prog_group, miss_prog_group, hitgroup_prog_group };
@@ -303,16 +301,15 @@ int main( int argc, char* argv[] )
             OptixPipelineLinkOptions pipeline_link_options = {};
             pipeline_link_options.maxTraceDepth          = max_trace_depth;
             pipeline_link_options.debugLevel             = OPTIX_COMPILE_DEBUG_LEVEL_FULL;
-            size_t sizeof_log = sizeof( log );
             OPTIX_CHECK_LOG( optixPipelineCreate(
-                        context,
+                        optx_context,
                         &pipeline_compile_options,
                         &pipeline_link_options,
                         program_groups,
                         sizeof( program_groups ) / sizeof( program_groups[0] ),
                         log,
                         &sizeof_log,
-                        &pipeline
+                        &optx_pipeline
                         ) );
 
             OptixStackSizes stack_sizes = {};
@@ -329,7 +326,7 @@ int main( int argc, char* argv[] )
                                                      0,  // maxDCDEpth
                                                      &direct_callable_stack_size_from_traversal,
                                                      &direct_callable_stack_size_from_state, &continuation_stack_size ) );
-            OPTIX_CHECK( optixPipelineSetStackSize( pipeline, direct_callable_stack_size_from_traversal,
+            OPTIX_CHECK( optixPipelineSetStackSize( optx_pipeline, direct_callable_stack_size_from_traversal,
                                                     direct_callable_stack_size_from_state, continuation_stack_size,
                                                     1  // maxTraversableDepth
                                                     ) );
@@ -387,93 +384,90 @@ int main( int argc, char* argv[] )
             sbt.hitgroupRecordCount         = 1;
         }
 
-        uchar4* m_device_pixels;
-        // README.md#Findings#1
-        // CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels ) ) );
-        CUDA_CHECK( cudaMalloc(
-                    reinterpret_cast<void**>( &m_device_pixels ),
-                    width*height*sizeof(uchar4)
-                    ) );
 
-        //
-        // launch
-        //
-        {
-            CUstream stream;
-            CUDA_CHECK( cudaStreamCreate( &stream ) );
 
-            LpGeneral lpGeneral ; // launch parameter
+		// launch
+		uchar4* d_image ;
+		CUDA_CHECK( cudaMalloc(
+					reinterpret_cast<void**>( &d_image ),
+					w*h*sizeof( uchar4 )
+					) ) ;
 
-            lpGeneral.image        = m_device_pixels;
-            lpGeneral.image_width  = width;
-            lpGeneral.image_height = height;
+		{
+			CUstream cuda_stream ;
+			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-            lpGeneral.handle       = gas_handle;
+			LpGeneral lpGeneral ; // launch parameter
 
-            CUdeviceptr d_lpGeneral;
-            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lpGeneral ), sizeof( LpGeneral ) ) );
-            CUDA_CHECK( cudaMemcpy(
-                        reinterpret_cast<void*>( d_lpGeneral ),
-                        &lpGeneral, sizeof( lpGeneral ),
-                        cudaMemcpyHostToDevice
-                        ) );
+			lpGeneral.image       = d_image ;
+			lpGeneral.image_w     = w ;
+			lpGeneral.image_h     = h ;
 
-            OPTIX_CHECK( optixLaunch( pipeline, stream, d_lpGeneral, sizeof( LpGeneral ), &sbt, width, height, /*depth=*/1 ) );
-            CUDA_SYNC_CHECK();
-        }
+			lpGeneral.gas_handle  = gas_handle ;
 
-        //
-        // Display results
-        //
-        {
-            std::vector<uchar4>  m_host_pixels;
-            m_host_pixels.resize( width*height );
-            CUDA_CHECK( cudaMemcpy(
-                        static_cast<void*>( m_host_pixels.data() ),
-                        m_device_pixels,
-                        width*height*sizeof(uchar4),
-                        cudaMemcpyDeviceToHost
-                        ) );
+			CUdeviceptr d_lpGeneral ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lpGeneral ), sizeof( LpGeneral ) ) ) ;
+			CUDA_CHECK( cudaMemcpy(
+						reinterpret_cast<void*>( d_lpGeneral ),
+						&lpGeneral, sizeof( lpGeneral ),
+						cudaMemcpyHostToDevice
+						) ) ;
 
-            std::cout
-                << "P3\n" // magic PPM header
-                << width << ' ' << height << '\n' << 255 << '\n';
-            for( int h = height - 1; h >= 0; --h )
-            {
-                for( int w = 0; w < width; ++w )
-                {
-                    auto p = m_host_pixels.data()[ width*h + w ];
-                    std::cout
-                        << static_cast<int>( p.x ) << ' '
-                        << static_cast<int>( p.y ) << ' '
-                        << static_cast<int>( p.z ) << '\n';
-                }
-            }
-        }
+			OPTIX_CHECK( optixLaunch( optx_pipeline, cuda_stream, d_lpGeneral, sizeof( LpGeneral ), &sbt, w, h, /*depth=*/1 ) ) ;
+			CUDA_SYNC_CHECK() ;
+		}
 
-        //
-        // Cleanup
-        //
-        {
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.raygenRecord       ) ) );
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) );
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) );
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_gas_output_buffer    ) ) );
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( m_device_pixels        ) ) );
 
-            OPTIX_CHECK( optixPipelineDestroy( pipeline ) );
-            OPTIX_CHECK( optixProgramGroupDestroy( hitgroup_prog_group ) );
-            OPTIX_CHECK( optixProgramGroupDestroy( miss_prog_group ) );
-            OPTIX_CHECK( optixProgramGroupDestroy( raygen_prog_group ) );
-            OPTIX_CHECK( optixModuleDestroy( module ) );
 
-            OPTIX_CHECK( optixDeviceContextDestroy( context ) );
-        }
-    }
-    catch( std::exception& e )
-    {
-        std::cerr << "Caught exception: " << e.what() << "\n";
-        return 1;
-    }
-    return 0;
+		// output image
+		{
+			std::vector<uchar4>  h_image ;
+			h_image.resize( w*h ) ;
+			CUDA_CHECK( cudaMemcpy(
+						static_cast<void*>( h_image.data() ),
+						d_image,
+						w*h*sizeof( uchar4 ),
+						cudaMemcpyDeviceToHost
+						) ) ;
+
+			std::cout
+				<< "P3\n" // magic PPM header
+				<< w << ' ' << h << '\n' << 255 << '\n' ;
+
+			for ( int y = h-1 ; y>=0 ; --y ) {
+				for ( int x = 0 ; x<w ; ++x ) {
+					auto p = h_image.data()[x*y+x] ;
+					std::cout
+						<< static_cast<int>( p.x ) << ' '
+						<< static_cast<int>( p.y ) << ' '
+						<< static_cast<int>( p.z ) << '\n' ;
+				}
+			}
+		}
+
+
+
+		// cleanup
+		{
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.raygenRecord       ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_gas_outbuf           ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_image                ) ) ) ;
+
+			OPTIX_CHECK( optixPipelineDestroy    ( optx_pipeline       ) ) ;
+			OPTIX_CHECK( optixProgramGroupDestroy( hitgroup_prog_group ) ) ;
+			OPTIX_CHECK( optixProgramGroupDestroy( miss_prog_group     ) ) ;
+			OPTIX_CHECK( optixProgramGroupDestroy( raygen_prog_group   ) ) ;
+			OPTIX_CHECK( optixModuleDestroy      ( optx_module         ) ) ;
+
+			OPTIX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
+		}
+	} catch( std::exception& e ) {
+		std::cerr << "exception: " << e.what() << "\n" ;
+
+		return 1 ;
+	}
+
+	return 0 ;
 }

@@ -30,34 +30,33 @@ PTX = \
 	shader_optixTriangle.ptx \
 
 ifdef winos
-# install VS2017
-# install Cygwin
+# prerequisites:
+# install VS2017 (Community)
+# install Cygwin (gcc, g++, make, ...)
 # unpack CUDA Toolkit somewhere
 # unpack OptiX SDK somewhere
 # add nvcc.exe and cl.exe to PATH
 
-# known warnings:
+# ignored warnings (known):
 # C4061: unused enumerator
-# C4100: unreferenced parameter
 # C4245: <some type> unsigned int conversion
 # C4365: <some type> unsigned int conversion
 # C4514: unreferenced inline function deleted
 # C4571: catch semantic changed in VC 7.1
-# C4625: copy constructor defined deleted
-# C4626: assign constructor defined deleted
+# C4625: copy constructor defined as deleted
+# C4626: assign constructor defined as deleted
 # C4668: undefined macro
 # C4710: function not inline
 # C4711: function automatically inlined
 # C4774: VC header <xlocnum> warning
 # C4820: n bytes added
 # C4996: function or variable may be unsafe
-# C5026: shift constructor defined deleted
-# C5027: shift constructor defined deleted
+# C5026: shift constructor defined as deleted
+# C5027: shift constructor defined as deleted
 # C5039: risk of undefined behaviour on exception
 
-WARNINGS = \
+IGNORED_WARNINGS = \
 	/wd4061 \
-	/wd4100 \
 	/wd4245 \
 	/wd4365 \
 	/wd4514 \
@@ -74,7 +73,7 @@ WARNINGS = \
 	/wd5027 \
 	/wd5039 \
 
-CXXFLAGS = /Wall $(WARNINGS) /O2 -DNOMINMAX -DNDEBUG
+CXXFLAGS = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG
 NVCCFLAGS = -rdc true -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
 
 INC = \

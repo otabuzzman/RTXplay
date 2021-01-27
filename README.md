@@ -12,7 +12,7 @@ A lab for playing around with NVIDIA's realtime raytracing concept. The lab inte
 
 1. Before start working on new feature
 ```
-git checkout <branch>
+git checkout -b <branch>
 ```
 2. While working on new feature
 ```
