@@ -39,69 +39,58 @@ using V::operator+ ;
 using V::operator- ;
 using V::operator* ;
 
-__forceinline__ __device__ uchar4 sRGB( const float3& c )
-{
-    return make_uchar4(
-        (unsigned char) ( util::clamp( c.x, .0f, 1.f )*255.f+.5f ),
-        (unsigned char) ( util::clamp( c.y, .0f, 1.f )*255.f+.5f ),
-        (unsigned char) ( util::clamp( c.z, .0f, 1.f )*255.f+.5f ), 255u ) ;
-}
-
 extern "C" { __constant__ LpGeneral lpGeneral ; }
 
-static __forceinline__ __device__ void setPayload( float3 p )
-{
-    optixSetPayload_0( float_as_int( p.x ) );
-    optixSetPayload_1( float_as_int( p.y ) );
-    optixSetPayload_2( float_as_int( p.z ) );
+static __forceinline__ __device__ uchar4 sRGB( const float3& color ) {
+	return make_uchar4(
+		(unsigned char) ( util::clamp( color.x, .0f, 1.f )*255.f+.5f ),
+		(unsigned char) ( util::clamp( color.y, .0f, 1.f )*255.f+.5f ),
+		(unsigned char) ( util::clamp( color.z, .0f, 1.f )*255.f+.5f ), 255u ) ;
 }
 
-extern "C" __global__ void __raygen__rg()
-{
-    // Lookup our location within the launch grid
-    const uint3 idx = optixGetLaunchIndex();
-    const uint3 dim = optixGetLaunchDimensions();
+extern "C" __global__ void __raygen__rg() {
+	const uint3 idx = optixGetLaunchIndex() ;
+	const uint3 dim = optixGetLaunchDimensions() ;
 
-    // transform x/y pixel ccord (range 0/0 to w/h)
-    // into s/t viewport coords (range -1/-1 to 1/1)
-    float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
-    float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
+	// transform x/y pixel ccord (range 0/0 to w/h)
+	// into s/t viewport coords (range -1/-1 to 1/1)
+	float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
+	float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
 
-    // get Camera class instance from SBT
-    RayGenData* rg_data  = reinterpret_cast<RayGenData*>( optixGetSbtDataPointer() ) ;
-    Camera* camera = reinterpret_cast<Camera*>( rg_data ) ;
+	// get Camera class instance from SBT
+	RayGenData* rg_data  = reinterpret_cast<RayGenData*>( optixGetSbtDataPointer() ) ;
+	Camera* camera = reinterpret_cast<Camera*>( rg_data ) ;
 
-    float3 ori, dir ;
-    camera->ray( s, t, ori, dir ) ;
+	float3 ori, dir ;
+	camera->ray( s, t, ori, dir ) ;
 
-    // Trace the ray against our scene hierarchy
-    unsigned int p0, p1, p2;
-    optixTrace(
-            lpGeneral.gas_handle,
-            ori,
-            dir,
-            0.0f,                // Min intersection distance
-            1e16f,               // Max intersection distance
-            0.0f,                // rayTime -- used for motion blur
-            OptixVisibilityMask( 255 ), // Specify always visible
-            OPTIX_RAY_FLAG_NONE,
-            0,                   // SBT offset   -- See SBT discussion
-            1,                   // SBT stride   -- See SBT discussion
-            0,                   // missSBTIndex -- See SBT discussion
-            p0, p1, p2 );
-    float3 result;
-    result.x = int_as_float( p0 );
-    result.y = int_as_float( p1 );
-    result.z = int_as_float( p2 );
+	// Trace the ray against our scene hierarchy
+	unsigned int r, g, b ;
+	optixTrace(
+			lpGeneral.gas_handle,
+			ori,
+			dir,
+			0.0f,                // Min intersection distance
+			1e16f,               // Max intersection distance
+			0.0f,                // rayTime -- used for motion blur
+			OptixVisibilityMask( 255 ), // Specify always visible
+			OPTIX_RAY_FLAG_NONE,
+			0,                   // SBT offset   -- See SBT discussion
+			1,                   // SBT stride   -- See SBT discussion
+			0,                   // missSBTIndex -- See SBT discussion
+			r, g, b ) ;
+	float3 color ;
+	color.x = int_as_float( r ) ;
+	color.y = int_as_float( g ) ;
+	color.z = int_as_float( b ) ;
 
-    // Record results in our output raster
-    lpGeneral.image[idx.y * lpGeneral.image_w + idx.x] = sRGB( result );
+	lpGeneral.image[lpGeneral.image_w*idx.y+idx.x] = sRGB( color ) ;
 }
 
 extern "C" __global__ void __miss__ms()
 {
     MissData* ms_data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() );
-    setPayload(  ms_data->bg_color );
+    util::optxSetPayload(  ms_data->bg_color );
 }
 
 extern "C" __global__ void __closesthit__ch()
@@ -110,5 +99,5 @@ extern "C" __global__ void __closesthit__ch()
     // attributes are provided by the OptiX API, indlucing barycentric coordinates.
     const float2 barycentrics = optixGetTriangleBarycentrics();
 
-    setPayload( make_float3( barycentrics.x, barycentrics.y, 1.0f ) );
+    util::optxSetPayload( make_float3( barycentrics.x, barycentrics.y, 1.0f ) );
 }
