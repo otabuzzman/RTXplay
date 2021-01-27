@@ -8,7 +8,7 @@
 #include "camera.h"
 #include "optics.h"
 
-const std::string rgbPP3( const C color ) {
+const std::string sRGB( const C color ) {
 	char pp3[16] ;
 
 	sprintf( pp3, "%d %d %d",
@@ -19,7 +19,7 @@ const std::string rgbPP3( const C color ) {
 	return std::string( pp3 ) ;
 }
 
-const std::string rgbPP3( const C color, int spp ) {
+const std::string sRGB( const C color, int spp ) {
 	char pp3[16] ;
 	auto r = color.x() ;
 	auto g = color.y() ;
@@ -131,7 +131,7 @@ int main() {
 				color += trace( ray, scene, depth ) ;
 			}
 			std::cout
-				<< rgbPP3( color, spp ) << '\n' ;
+				<< sRGB( color, spp ) << '\n' ;
 		}
 	}
 }
