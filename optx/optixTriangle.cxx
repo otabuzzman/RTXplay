@@ -436,7 +436,7 @@ int main()
 
 			for ( int y = h-1 ; y>=0 ; --y ) {
 				for ( int x = 0 ; x<w ; ++x ) {
-					auto p = h_image.data()[x*y+x] ;
+					auto p = h_image.data()[w*y+x] ;
 					std::cout
 						<< static_cast<int>( p.x ) << ' '
 						<< static_cast<int>( p.y ) << ' '
