@@ -90,10 +90,10 @@ void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const un
 }
 
 void Sphere::reduce() { // (SO #14396788)
-	typedef std::pair<float3, unsigned int> VIRec ;
+	typedef std::pair<float3, unsigned int> VRec ;
 
-	struct VICmp {
-		bool operator () ( const VIRec& l, const VIRec& r ) const {
+	struct VCmp {
+		bool operator () ( const VRec& l, const VRec& r ) const {
 			if ( l.first.x != r.first.x )
 				return l.first.x<r.first.x ;
 			if ( l.first.y != r.first.y )
@@ -104,24 +104,24 @@ void Sphere::reduce() { // (SO #14396788)
 		}
 	} ;
 
-	std::set<VIRec, VICmp> irel ;
+	std::set<VRec, VCmp> irel ;
 	std::vector<unsigned int> itmp ;
 	unsigned int ice = 0 ;
 
 	for ( const float3& vce : vtmp_ ) {
-		std::set<VIRec>::iterator itor = irel.find( std::make_pair( vce, 0 ) ) ;
+		std::set<VRec>::iterator vrec = irel.find( std::make_pair( vce, 0 ) ) ;
 
-		if ( itor == irel.end() ) {
+		if ( vrec == irel.end() ) {
 			irel.insert( std::make_pair( vce, ice ) ) ;
 			itmp.push_back( ice++ ) ;
 		} else
-			itmp.push_back( itor->second ) ;
+			itmp.push_back( vrec->second ) ;
 	}
 
 	vces_.resize( irel.size() ) ;
 
-	for ( std::set<VIRec>::iterator itor = irel.begin() ; itor != irel.end() ; itor++ )
-		vces_[itor->second] = itor->first ;
+	for ( std::set<VRec>::iterator vrec = irel.begin() ; vrec != irel.end() ; vrec++ )
+		vces_[vrec->second] = vrec->first ;
 
 	for ( unsigned int i = 0 ; itmp.size()>i ; i+=3 )
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;

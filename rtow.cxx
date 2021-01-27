@@ -117,15 +117,15 @@ int main() {
 		<< "P3\n"	// magic PPM header
 		<< w << ' ' << h << '\n' << 255 << '\n' ;
 
-	for ( int j = h-1 ; j>=0 ; --j ) {
-		std::cerr << "\r" << j << ' ' << std::flush ;
-		for ( int i = 0 ; i<w ; ++i ) {
+	for ( int y = h-1 ; y>=0 ; --y ) {
+		std::cerr << "\r" << y << ' ' << std::flush ;
+		for ( int x = 0 ; x<w ; ++x ) {
 			C color( 0, 0, 0 ) ;
 			for ( int k = 0 ; k<spp ; ++k ) {
 				// transform x/y pixel ccord (range 0/0 to w/h)
 				// into s/t viewport coords (range -1/-1 to 1/1)
-				auto s = 2.*( i+rnd() )/( w-1 )-1. ;
-				auto t = 2.*( j+rnd() )/( h-1 )-1. ;
+				auto s = 2.*( x+rnd() )/( w-1 )-1. ;
+				auto t = 2.*( y+rnd() )/( h-1 )-1. ;
 
 				Ray ray = camera.ray( s, t ) ;
 				color += trace( ray, scene, depth ) ;

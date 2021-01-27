@@ -27,10 +27,11 @@
 //
 
 struct LpGeneral { // launch parameter
-    uchar4*                image ;
-    unsigned int           image_width ;
-    unsigned int           image_height ;
-    OptixTraversableHandle handle ;
+	uchar4*                image ;
+	unsigned int           image_w ;
+	unsigned int           image_h ;
+
+	OptixTraversableHandle gas_handle ;
 } ;
 
 
