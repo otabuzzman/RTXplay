@@ -18,19 +18,24 @@ git checkout -b <branch>
 ```
 git add -A # every now and then
 ```
-3. When work on new feature finished
+3. After working on new feature
 ```
 git add -A
-git commit -m '...'
+git commit -m <comment>
 git push -u origin <branch>
 ```
-4. Merge new feature branch
+4. Check new feature branch
+```
+git clone https://github.com/otabuzzman/RTXplay.git
+git checkout <branch>
+```
+5. Merge new feature branch
 ```
 git checkout main
 git merge <branch>
-git push -u origin <branch>
+git push -u origin main
 ```
-5. Merge new feature branch
+6. Merge new feature branch
 ```
 # delete remote branch on Git site
 git branch -d <branch>  # local remove
