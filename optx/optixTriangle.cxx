@@ -207,7 +207,7 @@ int main()
         }
 
         //
-        // Create optx_module
+        // Create module
         //
         OptixModule optx_module = nullptr;
         OptixPipelineCompileOptions pipeline_compile_options = {};
