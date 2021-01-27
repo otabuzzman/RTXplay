@@ -40,11 +40,11 @@
 #include <vector_functions.h>
 #include <vector_types.h>
 
-#include "v.h"
 #include "util.h"
-#include "camera.h"
-#include "thing.h"
+#include "v.h"
+#include "things.h"
 #include "sphere.h"
+#include "camera.h"
 
 #include "optixTriangle.h"
 
@@ -72,8 +72,40 @@ static void optx_log_stderr( unsigned int level, const char* tag, const char* me
 
 extern "C" const unsigned char shader_optixTriangle[] ;
 
-int main()
-{
+Things scene() {
+	Things s ;
+
+	s.push_back( make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f ) ) ;
+
+	for ( int a = -11 ; a<11 ; a++ ) {
+		for ( int b = -11 ; b<11; b++ ) {
+			auto select = util::rnd() ;
+			float3 center = make_float3( a+.9f*util::rnd(), .2f, b+.9f*util::rnd() ) ;
+			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
+				if ( select<.8f ) {
+					auto albedo = V::rnd()*V::rnd() ;
+					s.push_back( make_shared<Sphere>( center, .2f ) ) ;
+				} else if ( select<.95f ) {
+					auto albedo = V::rnd( .5f, 1.f ) ;
+					auto fuzz = util::rnd( 0.f, .5f ) ;
+					s.push_back( make_shared<Sphere>( center, .2f ) ) ;
+				} else {
+					s.push_back( make_shared<Sphere>( center, .2f ) ) ;
+				}
+			}
+		}
+	}
+
+	s.push_back( make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f ) ) ;
+	s.push_back( make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f ) ) ;
+	s.push_back( make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f ) ) ;
+
+	return s ;
+}
+
+int main() {
+	Things scene = ::scene() ;
+
 	float aspratio = 3.f/2.f ;
 
 	Camera camera(
@@ -127,9 +159,7 @@ int main()
             accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
             accel_options.operation  = OPTIX_BUILD_OPERATION_BUILD;
 
-            Sphere sphere ;
-            const std::vector<float3> vertices = sphere.vces() ;
-
+            const std::vector<float3> vertices = scene[0]->vces() ;
             const size_t vertices_size = sizeof( float3 )*vertices.size();
             CUdeviceptr d_vertices;
             CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_vertices ), vertices_size ) );
@@ -149,7 +179,7 @@ int main()
             triangle_input.triangleArray.numVertices   = static_cast<uint32_t>( vertices.size() );
             triangle_input.triangleArray.vertexBuffers = &d_vertices;
 
-            const std::vector<uint3> indices = sphere.ices() ;
+            const std::vector<uint3> indices = scene[0]->ices() ;
             const size_t indices_size = sizeof( uint3 )*indices.size();
             CUdeviceptr d_indices;
             CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );

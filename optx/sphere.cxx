@@ -4,6 +4,7 @@
 #include <vector_functions.h>
 #include <vector_types.h>
 
+#include "util.h"
 #include "v.h"
 
 #include "thing.h"

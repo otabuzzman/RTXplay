@@ -30,6 +30,9 @@ __forceinline__ __host__ __device__ float  len  ( const float3& v )             
 __forceinline__ __host__ __device__ float3 cross( const float3& a, const float3& b ) { return make_float3( a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x ) ; }
 __forceinline__ __host__ __device__ float3 unitV( const float3& v )                  { return 1.f/len( v )*v ; }
 
+__forceinline__ __host__ __device__ float3 rnd()                                   { return make_float3( util::rnd(), util::rnd(), util::rnd() ) ; }
+__forceinline__ __host__ __device__ float3 rnd( const float min, const float max ) { return make_float3( util::rnd( min, max ), util::rnd( min, max ), util::rnd( min, max ) ) ; }
+
 }
 
 #endif // V_H
