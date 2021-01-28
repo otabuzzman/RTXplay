@@ -31,7 +31,7 @@ struct LpGeneral { // launch parameter
 	unsigned int           image_w ;
 	unsigned int           image_h ;
 
-	OptixTraversableHandle gas_handle ;
+	OptixTraversableHandle as_handle ;
 } ;
 
 
