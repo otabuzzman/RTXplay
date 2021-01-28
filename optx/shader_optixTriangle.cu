@@ -58,26 +58,26 @@ extern "C" __global__ void __raygen__rg() {
 	float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
 
 	// get Camera class instance from SBT
-	RayGenData* rg_data  = reinterpret_cast<RayGenData*>( optixGetSbtDataPointer() ) ;
-	Camera* camera = reinterpret_cast<Camera*>( rg_data ) ;
+	RayGenData* data  = reinterpret_cast<RayGenData*>( optixGetSbtDataPointer() ) ;
+	Camera* camera = reinterpret_cast<Camera*>( data ) ;
 
 	float3 ori, dir ;
 	camera->ray( s, t, ori, dir ) ;
 
-	// Trace the ray against our scene hierarchy
+	// trace into scene
 	unsigned int r, g, b ;
 	optixTrace(
 			lpGeneral.as_handle,
 			ori,
 			dir,
-			0.0f,                // Min intersection distance
-			1e16f,               // Max intersection distance
-			0.0f,                // rayTime -- used for motion blur
+			0.f,                        // Min intersection distance
+			1e16f,                      // Max intersection distance
+			0.f,                        // rayTime -- used for motion blur
 			OptixVisibilityMask( 255 ), // Specify always visible
 			OPTIX_RAY_FLAG_NONE,
-			0,                   // SBT offset   -- See SBT discussion
-			1,                   // SBT stride   -- See SBT discussion
-			0,                   // missSBTIndex -- See SBT discussion
+			0,                          // SBT offset   -- See SBT discussion
+			1,                          // SBT stride   -- See SBT discussion
+			0,                          // missSBTIndex -- See SBT discussion
 			r, g, b ) ;
 	float3 color ;
 	color.x = int_as_float( r ) ;
@@ -87,10 +87,9 @@ extern "C" __global__ void __raygen__rg() {
 	lpGeneral.image[lpGeneral.image_w*idx.y+idx.x] = sRGB( color ) ;
 }
 
-extern "C" __global__ void __miss__ms()
-{
-    MissData* ms_data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() );
-    util::optxSetPayload(  ms_data->bg_color );
+extern "C" __global__ void __miss__ms() {
+	MissData* data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() ) ;
+	util::optxSetPayload(  data->color ) ;
 }
 
 extern "C" __global__ void __closesthit__ch()
