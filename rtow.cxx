@@ -96,7 +96,7 @@ Things scene() {
 }
 
 int main() {
-	Things scene = ::scene() ;
+	Things things = ::scene() ;
 
 	double aspratio = 3./2. ;
 
@@ -128,7 +128,7 @@ int main() {
 				auto t = 2.*( y+rnd() )/( h-1 )-1. ;
 
 				Ray ray = camera.ray( s, t ) ;
-				color += trace( ray, scene, depth ) ;
+				color += trace( ray, things, depth ) ;
 			}
 			std::cout
 				<< sRGB( color, spp ) << '\n' ;
