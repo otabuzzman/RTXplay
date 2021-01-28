@@ -63,7 +63,7 @@ typedef SbtRecord<HitGroupData>   HitGroupSbtRecord;
 
 extern "C" const unsigned char shader_optixTriangle[] ;
 
-Things scene() {
+const Things scene() {
 	Things s ;
 
 	s.push_back( make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f ) ) ;
@@ -165,7 +165,7 @@ int main() {
 					) ) ;
 				// copy this thing's indices to GPU
 				const std::vector<uint3> ices = things[i]->ices() ;
-				const size_t ices_size = sizeof( float3 )*ices.size() ;
+				const size_t ices_size = sizeof( uint3 )*ices.size() ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_ices[i] ), ices_size ) ) ;
 				CUDA_CHECK( cudaMemcpy(
 					reinterpret_cast<void*>( d_ices[i] ),
@@ -194,7 +194,7 @@ int main() {
 				obi_thing.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
 				obi_thing.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
 
-				obi_things.push_back( obi_thing ) ;
+				obi_things[i] = obi_thing ;
 			}
 
 			OptixAccelBuildOptions oas_options = {} ;
@@ -407,6 +407,7 @@ int main() {
                         raygen_record_size,
                         cudaMemcpyHostToDevice
                         ) );
+            sbt.raygenRecord = raygen_record;
 
             CUdeviceptr miss_record;
             size_t      miss_record_size = sizeof( MissSbtRecord );
@@ -420,26 +421,31 @@ int main() {
                         miss_record_size,
                         cudaMemcpyHostToDevice
                         ) );
+            sbt.missRecordBase          = miss_record;
+            sbt.missRecordStrideInBytes = sizeof( MissSbtRecord );
+            sbt.missRecordCount         = 1;
 
-            CUdeviceptr hitgroup_record;
-            size_t      hitgroup_record_size = sizeof( HitGroupSbtRecord );
-            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &hitgroup_record ), hitgroup_record_size ) );
-            HitGroupSbtRecord hg_sbt;
-            OPTIX_CHECK( optixSbtRecordPackHeader( hitgroup_prog_group, &hg_sbt ) );
-            CUDA_CHECK( cudaMemcpy(
-                        reinterpret_cast<void*>( hitgroup_record ),
-                        &hg_sbt,
-                        hitgroup_record_size,
-                        cudaMemcpyHostToDevice
-                        ) );
+			std::vector<HitGroupSbtRecord> hitgroup_records ;
+			hitgroup_records.resize( things.size() ) ;
 
-            sbt.raygenRecord                = raygen_record;
-            sbt.missRecordBase              = miss_record;
-            sbt.missRecordStrideInBytes     = sizeof( MissSbtRecord );
-            sbt.missRecordCount             = 1;
-            sbt.hitgroupRecordBase          = hitgroup_record;
-            sbt.hitgroupRecordStrideInBytes = sizeof( HitGroupSbtRecord );
-            sbt.hitgroupRecordCount         = 1;
+			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
+				HitGroupSbtRecord hg_sbt ;
+				OPTIX_CHECK( optixSbtRecordPackHeader( hitgroup_prog_group, &hg_sbt ) ) ;
+				hitgroup_records.push_back( hg_sbt ) ;
+			}
+
+			CUdeviceptr d_hitgroup_records ;
+			size_t hitgroup_records_size = sizeof( HitGroupSbtRecord )*hitgroup_records.size() ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_hitgroup_records ), hitgroup_records_size ) ) ;
+			CUDA_CHECK( cudaMemcpy(
+						reinterpret_cast<void*>( d_hitgroup_records ),
+						hitgroup_records.data(),
+						hitgroup_records_size,
+						cudaMemcpyHostToDevice
+						) ) ;
+			sbt.hitgroupRecordBase          = d_hitgroup_records ;
+			sbt.hitgroupRecordStrideInBytes = sizeof( HitGroupSbtRecord ) ;
+			sbt.hitgroupRecordCount         = static_cast<unsigned int>( hitgroup_records.size() ) ;
         }
 
 

@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <cstdlib>
 #include <limits>
 
 namespace util {
