@@ -36,7 +36,7 @@ const std::string sRGB( const C color, int spp ) {
 	return std::string( pp3 ) ;
 }
 
-C trace( const Ray& ray, const Thing& scene ) {
+const C trace( const Ray& ray, const Thing& scene ) {
 	Binding binding ;
 	if ( scene.hit( ray, 0, kInfinty, binding ) )
 		return .5*( binding.normal+C( 1, 1, 1 ) ) ;
@@ -47,7 +47,7 @@ C trace( const Ray& ray, const Thing& scene ) {
 	return ( 1.-t )*C( 1., 1., 1. )+t*C( .5, .7, 1. ) ;
 }
 
-C trace( const Ray& ray, const Thing& scene, int depth ) {
+const C trace( const Ray& ray, const Thing& scene, int depth ) {
 	Binding binding ;
 	if ( scene.hit( ray, .001, kInfinty, binding ) ) {
 		Ray sprayed ;
@@ -64,7 +64,7 @@ C trace( const Ray& ray, const Thing& scene, int depth ) {
 	return ( 1.-t )*C( 1., 1., 1. )+t*C( .5, .7, 1. ) ;
 }
 
-Things scene() {
+const Things scene() {
 	Things s ;
 
 	s.add( make_shared<Sphere>( P( 0, -1000, 0 ), 1000., make_shared<Diffuse>( C( .5, .5, .5 ) ) ) ) ;
