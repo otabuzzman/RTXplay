@@ -67,7 +67,7 @@ extern "C" __global__ void __raygen__rg() {
 	// Trace the ray against our scene hierarchy
 	unsigned int r, g, b ;
 	optixTrace(
-			lpGeneral.gas_handle,
+			lpGeneral.as_handle,
 			ori,
 			dir,
 			0.0f,                // Min intersection distance

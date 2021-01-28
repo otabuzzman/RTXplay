@@ -29,7 +29,6 @@
 #include <array>
 #include <string>
 #include <vector>
-#include <iomanip>
 
 #include <optix.h>
 #include <optix_stubs.h>
@@ -61,14 +60,6 @@ struct SbtRecord
 typedef SbtRecord<RayGenData>     RayGenSbtRecord;
 typedef SbtRecord<MissData>       MissSbtRecord;
 typedef SbtRecord<HitGroupData>   HitGroupSbtRecord;
-
-static void optx_log_stderr( unsigned int level, const char* tag, const char* message, void* /*cbdata*/ ) {
-	std::cerr
-		<< "OptiX API message : "
-		<< std::setw(  2 ) << level << " : "
-		<< std::setw( 12 ) << tag   << " : "
-		<< message << "\n";
-}
 
 extern "C" const unsigned char shader_optixTriangle[] ;
 
@@ -104,7 +95,7 @@ Things scene() {
 }
 
 int main() {
-	Things scene = ::scene() ;
+	Things things = scene() ;
 
 	float aspratio = 3.f/2.f ;
 
@@ -114,8 +105,8 @@ int main() {
 		{ 0.f, 1.f, 0.f} /*vup*/,
 		45.f /*fov*/,
 		aspratio,
-		.1f /*aperture*/,
-		2.f /*distance*/ ) ;
+		.1f  /*aperture*/,
+		10.f /*distance*/ ) ;
 
 	const int w = 1200 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
@@ -137,7 +128,7 @@ int main() {
 			OPTIX_CHECK( optixInit() ) ;
 
 			OptixDeviceContextOptions optx_options = {} ;
-			optx_options.logCallbackFunction       = &optx_log_stderr ;
+			optx_options.logCallbackFunction       = &util::optxLogStderr ;
 			optx_options.logCallbackLevel          = 4 ;
 
 			// use current (0) CUDA context
@@ -147,94 +138,131 @@ int main() {
 
 
 
-        //
-        // accel handling
-        //
-        OptixTraversableHandle gas_handle;
-        CUdeviceptr            d_gas_outbuf;
-        {
-            // Use default options for simplicity.  In a real use case we would want to
-            // enable compaction, etc
-            OptixAccelBuildOptions accel_options = {};
-            accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
-            accel_options.operation  = OPTIX_BUILD_OPERATION_BUILD;
+		// build accelleration structure
+		OptixTraversableHandle as_handle ;
+		CUdeviceptr            d_as_outbuf ;
+//		CUdeviceptr            d_as_zipbuf ;
+		{
+			std::vector<OptixBuildInput> obi_things ;
+			obi_things.resize( things.size() ) ;
 
-            const std::vector<float3> vertices = scene[0]->vces() ;
-            const size_t vertices_size = sizeof( float3 )*vertices.size();
-            CUdeviceptr d_vertices;
-            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_vertices ), vertices_size ) );
-            CUDA_CHECK( cudaMemcpy(
-                        reinterpret_cast<void*>( d_vertices ),
-                        vertices.data(),
-                        vertices_size,
-                        cudaMemcpyHostToDevice
-                        ) );
+			std::vector<CUdeviceptr> d_vces ;
+			d_vces.resize( things.size() ) ;
 
-            // Our build input is a simple list of non-indexed triangle vertices
-            const uint32_t triangle_input_flags[1] = { OPTIX_GEOMETRY_FLAG_NONE };
-            OptixBuildInput triangle_input = {};
-            triangle_input.type                        = OPTIX_BUILD_INPUT_TYPE_TRIANGLES;
+			std::vector<CUdeviceptr> d_ices ;
+			d_ices.resize( things.size() ) ;
 
-            triangle_input.triangleArray.vertexFormat  = OPTIX_VERTEX_FORMAT_FLOAT3;
-            triangle_input.triangleArray.numVertices   = static_cast<uint32_t>( vertices.size() );
-            triangle_input.triangleArray.vertexBuffers = &d_vertices;
+			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
+				// copy this thing's vertices to GPU
+				const std::vector<float3> vces = things[i]->vces() ;
+				const size_t vces_size = sizeof( float3 )*vces.size() ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_vces[i] ), vces_size ) ) ;
+				CUDA_CHECK( cudaMemcpy(
+					reinterpret_cast<void*>( d_vces[i] ),
+					vces.data(),
+					vces_size,
+					cudaMemcpyHostToDevice
+					) ) ;
+				// copy this thing's indices to GPU
+				const std::vector<uint3> ices = things[i]->ices() ;
+				const size_t ices_size = sizeof( float3 )*ices.size() ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_ices[i] ), ices_size ) ) ;
+				CUDA_CHECK( cudaMemcpy(
+					reinterpret_cast<void*>( d_ices[i] ),
+					ices.data(),
+					ices_size,
+					cudaMemcpyHostToDevice
+					) ) ;
+				// setup this thing's build input structure
+				OptixBuildInput obi_thing = {} ;
+				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
-            const std::vector<uint3> indices = scene[0]->ices() ;
-            const size_t indices_size = sizeof( uint3 )*indices.size();
-            CUdeviceptr d_indices;
-            CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_indices ), indices_size ) );
-            CUDA_CHECK( cudaMemcpy(
-                        reinterpret_cast<void*>( d_indices ),
-                        indices.data(),
-                        indices_size,
-                        cudaMemcpyHostToDevice
-                        ) );
+				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
+//				obi_thing.triangleArray.vertexStrideInBytes         = sizeof( float3 ) ;
+				obi_thing.triangleArray.numVertices                 = static_cast<unsigned int>( vces.size() ) ;
+				obi_thing.triangleArray.vertexBuffers               = &d_vces[i] ;
 
-            triangle_input.triangleArray.indexFormat      = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
-            triangle_input.triangleArray.numIndexTriplets = static_cast<uint32_t>( indices.size() );
-            triangle_input.triangleArray.indexBuffer      = d_indices;
+				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
+//				obi_thing.triangleArray.indexStrideInBytes          = sizeof( uint3 ) ;
+				obi_thing.triangleArray.numIndexTriplets            = static_cast<unsigned int>( ices.size() ) ;
+				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
-            triangle_input.triangleArray.flags         = triangle_input_flags;
-            triangle_input.triangleArray.numSbtRecords = 1;
+				const unsigned int obiThingSbtFlags[1]              = { OPTIX_GEOMETRY_FLAG_NONE } ;
+				obi_thing.triangleArray.flags                       = obiThingSbtFlags ;
+				obi_thing.triangleArray.numSbtRecords               = 1 ;
+				obi_thing.triangleArray.sbtIndexOffsetBuffer        = 0 ;
+				obi_thing.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
+				obi_thing.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
 
-            OptixAccelBufferSizes gas_buffer_sizes;
-            OPTIX_CHECK( optixAccelComputeMemoryUsage(
-                        optx_context,
-                        &accel_options,
-                        &triangle_input,
-                        1, // Number of build inputs
-                        &gas_buffer_sizes
-                        ) );
-            CUdeviceptr d_gas_tmpbuf;
-            CUDA_CHECK( cudaMalloc(
-                        reinterpret_cast<void**>( &d_gas_tmpbuf ),
-                        gas_buffer_sizes.tempSizeInBytes
-                        ) );
-            CUDA_CHECK( cudaMalloc(
-                        reinterpret_cast<void**>( &d_gas_outbuf ),
-                        gas_buffer_sizes.outputSizeInBytes
-                        ) );
+				obi_things.push_back( obi_thing ) ;
+			}
 
-            OPTIX_CHECK( optixAccelBuild(
-                        optx_context,
-                        0,                  // CUDA stream
-                        &accel_options,
-                        &triangle_input,
-                        1,                  // num build inputs
-                        d_gas_tmpbuf,
-                        gas_buffer_sizes.tempSizeInBytes,
-                        d_gas_outbuf,
-                        gas_buffer_sizes.outputSizeInBytes,
-                        &gas_handle,
-                        nullptr,            // emitted property list
-                        0                   // num emitted properties
-                        ) );
+			OptixAccelBuildOptions oas_options = {} ;
+			oas_options.buildFlags             = OPTIX_BUILD_FLAG_NONE ;
+			oas_options.operation              = OPTIX_BUILD_OPERATION_BUILD ;
 
-            // We can now free the scratch space buffer used during build and the vertex
-            // inputs, since they are not needed by our trivial shading method
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_gas_tmpbuf ) ) );
-            CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_vertices        ) ) );
-        }
+			OptixAccelBufferSizes as_buffer_sizes ;
+			OPTIX_CHECK( optixAccelComputeMemoryUsage(
+						optx_context,
+						&oas_options,
+						obi_things.data(),
+						static_cast<unsigned int>( obi_things.size() ),
+						&as_buffer_sizes
+						) ) ;
+
+			// optional AS buffer compaction I.
+//			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf_size ), sizeof( unsigned long long ) ) ) ;
+//			CUDABuffer d_as_zipbuf_size ;
+
+			// request optixAccelBuild to return compacted buffer size
+//			OptixAccelEmitDesc oas_request;
+//			oas_request.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE ;
+//			oas_request.result = d_as_zipbuf_size ;
+
+			CUdeviceptr d_as_tmpbuf ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_tmpbuf ), as_buffer_sizes.tempSizeInBytes ) ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_outbuf ), as_buffer_sizes.outputSizeInBytes ) ) ;
+
+			OPTIX_CHECK( optixAccelBuild(
+						optx_context,
+						0,
+						&oas_options,
+						obi_things.data(),
+						static_cast<unsigned int>( obi_things.size() ),
+						d_as_tmpbuf,
+						as_buffer_sizes.tempSizeInBytes,
+						d_as_outbuf,
+						as_buffer_sizes.outputSizeInBytes,
+						&as_handle,
+						nullptr, 0
+//						&oas_request, 1
+						) ) ;
+
+			// optional AS buffer compaction II.
+//			unsigned long long as_zipbuf_size ;
+//			CUDA_CHECK( cudaMemcpy(
+//						static_cast<void*>( &as_zipbuf_size ),
+//						d_as_zipbuf_size,
+//						sizeof( unsigned long long ),
+//						cudaMemcpyDeviceToHost
+//						) ) ;
+
+//			CUdeviceptr d_as_zipbuf ;
+//			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf ), as_zipbuf_size ) ) ;
+//			OPTIX_CHECK(optixAccelCompact(
+//						optixContext,
+//						0,
+//						as_handle,
+//						d_as_zipbuf,
+//						d_as_zipbuf_size,
+//						&as_handle) ) ;
+
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
+//			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf ) ) ) ;
+//			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf_size ) ) ) ;
+			for ( const CUdeviceptr p : d_vces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
+			for ( const CUdeviceptr p : d_ices ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
+		}
 
         //
         // Create module
@@ -433,7 +461,7 @@ int main() {
 			lpGeneral.image_w     = w ;
 			lpGeneral.image_h     = h ;
 
-			lpGeneral.gas_handle  = gas_handle ;
+			lpGeneral.as_handle  = as_handle ;
 
 			CUdeviceptr d_lpGeneral ;
 			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lpGeneral ), sizeof( LpGeneral ) ) ) ;
@@ -482,7 +510,7 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.raygenRecord       ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_gas_outbuf           ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf           ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_image                ) ) ) ;
 
 			OPTIX_CHECK( optixPipelineDestroy    ( optx_pipeline       ) ) ;
