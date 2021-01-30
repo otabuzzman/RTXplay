@@ -39,7 +39,7 @@ using V::operator+ ;
 using V::operator- ;
 using V::operator* ;
 
-extern "C" { __constant__ LpGeneral lpGeneral ; }
+extern "C" { __constant__ LpGeneral lp_general ; }
 
 static __forceinline__ __device__ uchar4 sRGB( const float3& color ) {
 	return make_uchar4(
@@ -48,7 +48,7 @@ static __forceinline__ __device__ uchar4 sRGB( const float3& color ) {
 		(unsigned char) ( util::clamp( color.z, .0f, 1.f )*255.f+.5f ), 255u ) ;
 }
 
-extern "C" __global__ void __raygen__rg() {
+extern "C" __global__ void __raygen__camera() {
 	const uint3 idx = optixGetLaunchIndex() ;
 	const uint3 dim = optixGetLaunchDimensions() ;
 
@@ -67,7 +67,7 @@ extern "C" __global__ void __raygen__rg() {
 	// trace into scene
 	unsigned int r, g, b ;
 	optixTrace(
-			lpGeneral.as_handle,
+			lp_general.as_handle,
 			ori,
 			dir,
 			0.f,                        // Min intersection distance
@@ -84,19 +84,24 @@ extern "C" __global__ void __raygen__rg() {
 	color.y = int_as_float( g ) ;
 	color.z = int_as_float( b ) ;
 
-	lpGeneral.image[lpGeneral.image_w*idx.y+idx.x] = sRGB( color ) ;
+	lp_general.image[lp_general.image_w*idx.y+idx.x] = sRGB( color ) ;
 }
 
-extern "C" __global__ void __miss__ms() {
+extern "C" __global__ void __miss__ambient() {
 	MissData* data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() ) ;
 	util::optxSetPayload(  data->color ) ;
 }
 
-extern "C" __global__ void __closesthit__ch()
-{
+extern "C" __global__ void __closesthit__diffuse() {
     // When built-in triangle intersection is used, a number of fundamental
     // attributes are provided by the OptiX API, indlucing barycentric coordinates.
     const float2 barycentrics = optixGetTriangleBarycentrics();
 
     util::optxSetPayload( make_float3( barycentrics.x, barycentrics.y, 1.0f ) );
+}
+
+extern "C" __global__ void __closesthit__reflect() {
+}
+
+extern "C" __global__ void __closesthit__refract() {
 }

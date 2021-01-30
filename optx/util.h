@@ -15,9 +15,9 @@ __forceinline__ __host__ __device__ float rnd( const float min, const float max 
 }
 
 #ifdef __CUDACC__
-#include "util_device.h"
+#include "util_gpu.h"
 #else
-#include "util_host.h"
+#include "util_cpu.h"
 #endif
 
 #endif // UTIL_H
