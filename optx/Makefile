@@ -17,17 +17,17 @@ endif
 
 OBJ = \
 	optixTriangle.o \
-	shader_optixTriangle.o \
+	shader_all.o \
 	sphere.o \
 	thing.o \
 
 IMG = optixTriangle.png
 
 SHD = \
-	shader_optixTriangle.cu \
+	shader_all.cu \
 
 PTX = \
-	shader_optixTriangle.ptx \
+	shader_all.ptx \
 
 ifdef winos
 # prerequisites:
