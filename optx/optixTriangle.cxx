@@ -379,7 +379,7 @@ int main() {
 				program_group_ambient,
 				program_group_optics[0],
 				program_group_optics[1],
-				program_group_optics[3] } ;
+				program_group_optics[2] } ;
 
 			OptixPipelineLinkOptions pipeline_ld_options = {} ;
 			pipeline_ld_options.maxTraceDepth            = max_trace_depth ;
@@ -394,10 +394,6 @@ int main() {
 						&sizeof_log,
 						&pipeline
 						) ) ;
-
-			OptixStackSizes stack_sizes = {} ;
-			for ( auto& program_group : program_groups )
-				OPTIX_CHECK( optixUtilAccumulateStackSizes( program_group, &stack_sizes ) ) ;
 
 			OPTIX_CHECK( optixPipelineSetStackSize(
 						pipeline,
