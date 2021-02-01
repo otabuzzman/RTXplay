@@ -1,8 +1,11 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "v.h"
+#include <cmath>
+
+#include "ray.h"
 #include "util.h"
+#include "v.h"
 
 class Camera {
 	public:
@@ -11,8 +14,8 @@ class Camera {
 			u_ = unitV( cross( vup, w_ ) ) ;
 			v_ = cross( w_, u_ ) ;
 
-			auto hlen = 2.*tan( .5f*fov*kPi/180.f ) ; // virtual viewport height
-			auto wlen = aspratio*hlen ;                // virtual viewport width
+			auto hlen = 2.*tan( .5*fov*kPi/180. ) ; // virtual viewport height
+			auto wlen = aspratio*hlen ;             // virtual viewport width
 
 			eye_  = eye ;
 			lens_ = aperture/2. ;
