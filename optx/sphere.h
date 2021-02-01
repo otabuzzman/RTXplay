@@ -1,6 +1,11 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include <vector_functions.h>
+#include <vector_types.h>
+
+#include "thing.h"
+
 class Sphere : public Thing {
 	public:
 		Sphere( const float3& center = { 0.f, 0.f, 0.f }, const float radius = 1.f, const bool bbox = false, const unsigned int ndiv = 6 ) ;

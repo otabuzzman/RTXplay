@@ -3,6 +3,11 @@
 
 #include <cmath>
 
+#include <vector_functions.h>
+#include <vector_types.h>
+
+#include "util.h"
+
 namespace V {
 
 __forceinline__ __host__ __device__ float3 operator +  ( const float a,   const float3& b ) { return make_float3( a+b.x, a+b.y, a+b.z ) ; }

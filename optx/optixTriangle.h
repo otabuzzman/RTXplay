@@ -26,6 +26,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
+#ifndef OPTIXTRIANGLE_H
+#define OPTIXTRIANGLE_H
+
+#include "camera.h"
+
 struct LpGeneral { // launch parameter
 	uchar4*                image ;
 	unsigned int           image_w ;
@@ -48,3 +53,5 @@ struct MissData
 struct HitGrpData
 {
 } ;
+
+#endif // OPTIXTRIANGLE_H

@@ -1,11 +1,13 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <cmath>
+
 #include <vector_functions.h>
 #include <vector_types.h>
 
-#include "v.h"
 #include "util.h"
+#include "v.h"
 
 using V::operator+ ;
 using V::operator- ;
