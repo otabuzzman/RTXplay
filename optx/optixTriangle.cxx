@@ -39,11 +39,11 @@
 #include <vector_functions.h>
 #include <vector_types.h>
 
+#include "camera.h"
+#include "sphere.h"
+#include "things.h"
 #include "util.h"
 #include "v.h"
-#include "things.h"
-#include "sphere.h"
-#include "camera.h"
 
 #include "optixTriangle.h"
 
@@ -51,11 +51,11 @@ using V::operator- ;
 using V::operator* ;
 
 template <typename T>
-struct SbtRecord
-{
-    __align__( OPTIX_SBT_RECORD_ALIGNMENT ) char header[OPTIX_SBT_RECORD_HEADER_SIZE];
-    T data;
-};
+struct SbtRecord {
+	__align__( OPTIX_SBT_RECORD_ALIGNMENT ) char header[OPTIX_SBT_RECORD_HEADER_SIZE] ;
+
+	T data;
+} ;
 
 typedef SbtRecord<RayGenData> SbtRecordRayGen ;
 typedef SbtRecord<MissData>   SbtRecordMiss ;
@@ -66,7 +66,7 @@ extern "C" const char shader_all[] ;
 const Things scene() {
 	Things s ;
 
-	s.push_back( make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f ) ) ;
+	s.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f ) ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11; b++ ) {
@@ -75,21 +75,21 @@ const Things scene() {
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 				if ( select<.8f ) {
 					auto albedo = V::rnd()*V::rnd() ;
-					s.push_back( make_shared<Sphere>( center, .2f ) ) ;
+					s.push_back( std::make_shared<Sphere>( center, .2f ) ) ;
 				} else if ( select<.95f ) {
 					auto albedo = V::rnd( .5f, 1.f ) ;
 					auto fuzz = util::rnd( 0.f, .5f ) ;
-					s.push_back( make_shared<Sphere>( center, .2f ) ) ;
+					s.push_back( std::make_shared<Sphere>( center, .2f ) ) ;
 				} else {
-					s.push_back( make_shared<Sphere>( center, .2f ) ) ;
+					s.push_back( std::make_shared<Sphere>( center, .2f ) ) ;
 				}
 			}
 		}
 	}
 
-	s.push_back( make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f ) ) ;
-	s.push_back( make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f ) ) ;
-	s.push_back( make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f ) ) ;
+	s.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f ) ) ;
+	s.push_back( std::make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f ) ) ;
+	s.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f ) ) ;
 
 	return s ;
 }
@@ -306,7 +306,7 @@ int main() {
 
 
 		// create program groups
-		OptixProgramGroup program_group_camera    = nullptr ; //
+		OptixProgramGroup program_group_camera    = nullptr ;
 		OptixProgramGroup program_group_ambient   = nullptr ;
 		OptixProgramGroup program_group_optics[3] = {} ;
 		{
@@ -487,14 +487,14 @@ int main() {
 
 
 
-		// launch
+		// launch pipeline
 		uchar4* d_image ;
-		CUDA_CHECK( cudaMalloc(
-					reinterpret_cast<void**>( &d_image ),
-					w*h*sizeof( uchar4 )
-					) ) ;
-
 		{
+			CUDA_CHECK( cudaMalloc(
+						reinterpret_cast<void**>( &d_image ),
+						w*h*sizeof( uchar4 )
+						) ) ;
+
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
@@ -529,10 +529,10 @@ int main() {
 
 		// output image
 		{
-			std::vector<uchar4>  h_image ;
-			h_image.resize( w*h ) ;
+			std::vector<uchar4>  image ;
+			image.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
-						static_cast<void*>( h_image.data() ),
+						static_cast<void*>( image.data() ),
 						d_image,
 						w*h*sizeof( uchar4 ),
 						cudaMemcpyDeviceToHost
@@ -544,7 +544,7 @@ int main() {
 
 			for ( int y = h-1 ; y>=0 ; --y ) {
 				for ( int x = 0 ; x<w ; ++x ) {
-					auto p = h_image.data()[w*y+x] ;
+					auto p = image.data()[w*y+x] ;
 					std::cout
 						<< static_cast<int>( p.x ) << ' '
 						<< static_cast<int>( p.y ) << ' '
