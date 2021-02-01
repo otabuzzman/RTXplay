@@ -1,7 +1,11 @@
 #ifndef THING_H
 #define THING_H
 
+#include <memory>
+
+#include "optics.h"
 #include "ray.h"
+#include "v.h"
 
 class Optics ;
 
@@ -10,7 +14,7 @@ struct Binding {
 	double t ;
 	V    normal ;
 	bool facing ;
-	shared_ptr<Optics> optics ;
+	std::shared_ptr<Optics> optics ;
 } ;
 
 class Thing {

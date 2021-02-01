@@ -1,24 +1,30 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+#include <cmath>
+#include <memory>
+
+#include "optics.h"
+#include "ray.h"
 #include "thing.h"
+#include "v.h"
 
 class Sphere : public Thing {
 	public:
 		Sphere() {}
-		Sphere( const P& center, const double radius, shared_ptr<Optics> optics ) : center_( center ), radius_( radius ), optics_( optics ) {}
+		Sphere( const P& center, const double radius, std::shared_ptr<Optics> optics ) : center_( center ), radius_( radius ), optics_( optics ) {}
 
 		virtual bool hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const override ;
 
 	private:
 		P center_ ;
 		double radius_ ;
-		shared_ptr<Optics> optics_ ;
+		std::shared_ptr<Optics> optics_ ;
 } ;
 
 bool Sphere::hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const {
 	V o = ray.ori()-center_ ;
-	auto a = ray.dir().dot() ;    // simplified quadratic equation (see also sphere() in main.cpp)
+	auto a = ray.dir().dot() ; // simplified quadratic equation (see also sphere() in main.cpp)
 	auto b = dot( ray.dir(), o ) ;
 	auto c = o.dot()-radius_*radius_ ;
 	auto discriminant = b*b-a*c ;

@@ -1,12 +1,15 @@
+#include <cmath>
 #include <iostream>
 #include <string>
 
-#include "util.h"
-
-#include "things.h"
-#include "sphere.h"
 #include "camera.h"
 #include "optics.h"
+#include "ray.h"
+#include "sphere.h"
+#include "thing.h"
+#include "things.h"
+#include "util.h"
+#include "v.h"
 
 const std::string sRGB( const C color ) {
 	char pp3[16] ;
@@ -67,7 +70,7 @@ const C trace( const Ray& ray, const Thing& scene, int depth ) {
 const Things scene() {
 	Things s ;
 
-	s.add( make_shared<Sphere>( P( 0, -1000, 0 ), 1000., make_shared<Diffuse>( C( .5, .5, .5 ) ) ) ) ;
+	s.add( std::make_shared<Sphere>( P( 0, -1000, 0 ), 1000., std::make_shared<Diffuse>( C( .5, .5, .5 ) ) ) ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11; b++ ) {
@@ -76,21 +79,21 @@ const Things scene() {
 			if ( ( center-P( 4, .2, 0 ) ).len()>.9 ) {
 				if ( select<.8 ) {
 					auto albedo = C::rnd()*C::rnd() ;
-					s.add( make_shared<Sphere>( center, .2, make_shared<Diffuse>( albedo ) ) ) ;
+					s.add( std::make_shared<Sphere>( center, .2, std::make_shared<Diffuse>( albedo ) ) ) ;
 				} else if ( select<.95 ) {
 					auto albedo = C::rnd( .5, 1. ) ;
 					auto fuzz = rnd( 0, .5 ) ;
-					s.add( make_shared<Sphere>( center, .2, make_shared<Reflect>( albedo, fuzz ) ) ) ;
+					s.add( std::make_shared<Sphere>( center, .2, std::make_shared<Reflect>( albedo, fuzz ) ) ) ;
 				} else {
-					s.add( make_shared<Sphere>( center, .2, make_shared<Refract>( 1.5 ) ) ) ;
+					s.add( std::make_shared<Sphere>( center, .2, std::make_shared<Refract>( 1.5 ) ) ) ;
 				}
 			}
 		}
 	}
 
-	s.add( make_shared<Sphere>( P(  0, 1, 0 ), 1., make_shared<Refract>( 1.5 ) ) ) ;
-	s.add( make_shared<Sphere>( P( -4, 1, 0 ), 1., make_shared<Diffuse>( C( .4, .2, .1 ) ) ) ) ;
-	s.add( make_shared<Sphere>( P(  4, 1, 0 ), 1., make_shared<Reflect>( C( .7, .6, .5 ), 0 ) ) ) ;
+	s.add( std::make_shared<Sphere>( P(  0, 1, 0 ), 1., std::make_shared<Refract>( 1.5 ) ) ) ;
+	s.add( std::make_shared<Sphere>( P( -4, 1, 0 ), 1., std::make_shared<Diffuse>( C( .4, .2, .1 ) ) ) ) ;
+	s.add( std::make_shared<Sphere>( P(  4, 1, 0 ), 1., std::make_shared<Reflect>( C( .7, .6, .5 ), 0 ) ) ) ;
 
 	return s ;
 }
