@@ -29,6 +29,8 @@ SHD = \
 PTX = \
 	shader_all.ptx \
 
+OPTIX_CACHE_PATH = ./OptixCache_$$USER
+
 ifdef winos
 # prerequisites:
 # install VS2017 (Community)
@@ -128,8 +130,9 @@ clean:
 
 tidy: clean
 	rm -f $(EXE) $(IMG)
+	rm -f $(OPTIX_CACHE_PATH)
 
 
 
 $(IMG): $(EXE)
-	./$< | magick ppm:- $@
+	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< | magick ppm:- $@
