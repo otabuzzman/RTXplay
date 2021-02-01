@@ -1,7 +1,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <cstdlib>
 #include <limits>
 
 namespace util {
@@ -21,3 +20,4 @@ __forceinline__ __host__ __device__ float rnd( const float min, const float max 
 #endif
 
 #endif // UTIL_H
+

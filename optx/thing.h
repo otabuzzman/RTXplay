@@ -1,6 +1,11 @@
 #ifndef THING_H
 #define THING_H
 
+#include <vector>
+
+#include <vector_functions.h>
+#include <vector_types.h>
+
 class Thing {
 	public:
 		const std::vector<float3> vces() const ;
