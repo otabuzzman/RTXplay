@@ -28,10 +28,9 @@
 
 #include <optix.h>
 
+#include "camera.h"
 #include "util.h"
 #include "v.h"
-
-#include "camera.h"
 
 #include "optixTriangle.h"
 
