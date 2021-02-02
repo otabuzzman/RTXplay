@@ -51,13 +51,13 @@ extern "C" __global__ void __raygen__camera() {
 	const uint3 idx = optixGetLaunchIndex() ;
 	const uint3 dim = optixGetLaunchDimensions() ;
 
-	// transform x/y pixel ccord (range 0/0 to w/h)
+	// transform x/y pixel coords (range 0/0 to w/h)
 	// into s/t viewport coords (range -1/-1 to 1/1)
 	float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
 	float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
 
 	// get Camera class instance from SBT
-	RayGenData* data  = reinterpret_cast<RayGenData*>( optixGetSbtDataPointer() ) ;
+	CameraData* data  = reinterpret_cast<CameraData*>( optixGetSbtDataPointer() ) ;
 	Camera* camera = reinterpret_cast<Camera*>( data ) ;
 
 	float3 ori, dir ;
@@ -77,11 +77,13 @@ extern "C" __global__ void __raygen__camera() {
 			0,                          // SBT offset   -- See SBT discussion
 			1,                          // SBT stride   -- See SBT discussion
 			0,                          // missSBTIndex -- See SBT discussion
-			r, g, b ) ;
-	float3 color ;
-	color.x = int_as_float( r ) ;
-	color.y = int_as_float( g ) ;
-	color.z = int_as_float( b ) ;
+			r, g, b
+			) ;
+	float3 color = make_float3(
+			int_as_float( r ),
+			int_as_float( r ),
+			int_as_float( r )
+			) ;
 
 	lp_general.image[lp_general.image_w*idx.y+idx.x] = sRGB( color ) ;
 }
