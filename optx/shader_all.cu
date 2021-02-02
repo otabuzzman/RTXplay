@@ -53,14 +53,14 @@ extern "C" __global__ void __raygen__camera() {
 
 	// transform x/y pixel coords (range 0/0 to w/h)
 	// into s/t viewport coords (range -1/-1 to 1/1)
-	float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
-	float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
+	const float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
+	const float t = 2.f*static_cast<float>( idx.y )/static_cast<float>( dim.y )-1.f ;
 
 	// get Camera class instance from SBT
-	CameraData* data  = reinterpret_cast<CameraData*>( optixGetSbtDataPointer() ) ;
+	const Camera* camera  = reinterpret_cast<Camera*>( optixGetSbtDataPointer() ) ;
 
 	float3 ori, dir ;
-	data->camera.ray( s, t, ori, dir ) ;
+	camera->ray( s, t, ori, dir ) ;
 
 	// trace into scene
 	unsigned int r, g, b ;
@@ -88,16 +88,18 @@ extern "C" __global__ void __raygen__camera() {
 }
 
 extern "C" __global__ void __miss__ambient() {
-	MissData* data  = reinterpret_cast<MissData*>( optixGetSbtDataPointer() ) ;
-	util::optxSetPayload(  data->color ) ;
+	const float3* color  = reinterpret_cast<float3*>( optixGetSbtDataPointer() ) ;
+
+	util::optxSetPayload( color ) ;
 }
 
 extern "C" __global__ void __closesthit__diffuse() {
     // When built-in triangle intersection is used, a number of fundamental
     // attributes are provided by the OptiX API, indlucing barycentric coordinates.
     const float2 barycentrics = optixGetTriangleBarycentrics();
+    const float3 color = { barycentrics.x, barycentrics.y, 1.0f };
 
-    util::optxSetPayload( make_float3( barycentrics.x, barycentrics.y, 1.0f ) );
+    util::optxSetPayload( &color );
 }
 
 extern "C" __global__ void __closesthit__reflect() {
