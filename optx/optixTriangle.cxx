@@ -100,7 +100,7 @@ int main() {
 	float aspratio = 3.f/2.f ;
 
 	SbtRecordCamera sbt_record_camera ;
-	static_cast<CameraData>( sbt_record_camera.data ).camera.set(
+	sbt_record_camera.data.camera.set(
 		{13.f, 2.f, 3.f} /*eye*/,
 		{ 0.f, 0.f, 0.f} /*pat*/,
 		{ 0.f, 1.f, 0.f} /*vup*/,
