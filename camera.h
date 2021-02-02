@@ -11,7 +11,7 @@ class Camera {
 			v_ = cross( w_, u_ ) ;
 
 			auto hlen = 2.*tan( .5*fov*kPi/180. ) ; // virtual viewport height
-			auto wlen = aspratio*hlen ;             // virtual viewport width
+			auto wlen = hlen*aspratio ;             // virtual viewport width
 
 			eye_  = eye ;
 			lens_ = aperture/2. ;
