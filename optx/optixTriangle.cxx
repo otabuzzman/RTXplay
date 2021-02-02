@@ -103,7 +103,7 @@ int main() {
 		{13.f, 2.f, 3.f} /*eye*/,
 		{ 0.f, 0.f, 0.f} /*pat*/,
 		{ 0.f, 1.f, 0.f} /*vup*/,
-		45.f /*fov*/,
+		20.f /*fov*/,
 		aspratio,
 		.1f  /*aperture*/,
 		10.f /*distance*/ ) ;

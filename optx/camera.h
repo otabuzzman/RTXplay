@@ -17,8 +17,8 @@ class Camera {
 	public:
 		__host__ Camera( const float3&  eye, const float3&  pat, const float3&  vup, const float fov, const float aspratio, const float aperture, const float distance ) {
 			w_    = V::unitV( eye-pat ) ;
-			u_    = V::unitV( V::cross( w_, vup ) ) ;
-			v_    = V::cross( u_, w_ ) ;
+			u_    = V::unitV( V::cross( vup, w_ ) ) ;
+			v_    = V::cross( w_, u_ ) ;
 
 			float hlen  = 2.f*tanf( .5f*fov*util::kPi/180.f ) ;
 			float wlen  = hlen*aspratio ;
@@ -36,9 +36,7 @@ class Camera {
 		}
 
 	private:
-		float3 u_ ;
-		float3 v_ ;
-		float3 w_ ;
+		float3 u_, v_, w_ ;
 		float3 eye_ ;
 		float  lens_ ;
 		float  dist_ ;
