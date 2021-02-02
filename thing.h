@@ -3,9 +3,7 @@
 
 #include <memory>
 
-#include "optics.h"
 #include "ray.h"
-#include "v.h"
 
 class Optics ;
 

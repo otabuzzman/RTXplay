@@ -1,13 +1,7 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
-#include <cmath>
-#include <memory>
-
-#include "optics.h"
-#include "ray.h"
 #include "thing.h"
-#include "v.h"
 
 class Sphere : public Thing {
 	public:

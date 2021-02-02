@@ -1,13 +1,7 @@
 #ifndef OPTICS_H
 #define OPTICS_H
 
-#include <cmath>
-
-#include "ray.h"
 #include "thing.h"
-#include "v.h"
-
-struct Binding ;
 
 class Optics {
 	public:

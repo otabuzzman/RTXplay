@@ -1,7 +1,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <cmath>
 #include <cstdlib>
 #include <limits>
 
