@@ -113,7 +113,7 @@ int main() {
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
 
 	SbtRecordMS sbt_record_ambient ;
-	sbt_record_ambient.data = { .3f, .1f, .2f } ;
+	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
 
 	try {
 		// OptiX API log buffer and size varibale names must not change:

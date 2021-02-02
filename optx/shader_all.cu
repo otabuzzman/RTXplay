@@ -88,9 +88,17 @@ extern "C" __global__ void __raygen__camera() {
 }
 
 extern "C" __global__ void __miss__ambient() {
-	const float3* color  = reinterpret_cast<float3*>( optixGetSbtDataPointer() ) ;
+	// get ambient color from MS program group's SBT record
+	const float3 ambient = *reinterpret_cast<float3*>( optixGetSbtDataPointer() ) ;
 
-	util::optxSetPayload( color ) ;
+	// get this ray's direction from OptiX and normalize
+	const float3 unit    = V::unitV( optixGetWorldRayDirection() ) ;
+
+	const float t        = .5f*( unit.y+1.f ) ;
+	const float3 white   = { 1.f, 1.f, 1.f } ;
+	const float3 color   = ( 1.f-t )*white+t*ambient ;
+
+	util::optxSetPayload( &color ) ;
 }
 
 extern "C" __global__ void __closesthit__diffuse() {
