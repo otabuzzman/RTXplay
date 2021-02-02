@@ -9,7 +9,6 @@
 
 #include <sutil/Exception.h>
 
-#include "camera.h"
 #include "util_cpu.h"
 
 namespace util {
