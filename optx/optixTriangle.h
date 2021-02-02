@@ -39,15 +39,6 @@ struct LpGeneral { // launch parameter
 	OptixTraversableHandle as_handle ;
 } ;
 
-struct CameraData {
-	Camera camera ;
-} ;
-
-struct MissData
-{
-	float3 color ;
-} ;
-
 struct HitGrpData
 {
 } ;
