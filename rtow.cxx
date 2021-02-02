@@ -1,15 +1,7 @@
-#include <cmath>
-#include <iostream>
-#include <string>
-
 #include "camera.h"
 #include "optics.h"
-#include "ray.h"
 #include "sphere.h"
-#include "thing.h"
 #include "things.h"
-#include "util.h"
-#include "v.h"
 
 const std::string sRGB( const C color ) {
 	char pp3[16] ;

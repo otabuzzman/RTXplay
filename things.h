@@ -1,10 +1,8 @@
 #ifndef THINGS_H
 #define THINGS_H
 
-#include <memory>
 #include <vector>
 
-#include "ray.h"
 #include "thing.h"
 
 class Things : public Thing {

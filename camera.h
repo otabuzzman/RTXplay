@@ -1,11 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <cmath>
-
 #include "ray.h"
-#include "util.h"
-#include "v.h"
 
 class Camera {
 	public:
