@@ -156,7 +156,7 @@ void optxBuildAccelerationStructure( const Things& things ) noexcept( false ) {
 	// retrieve acceleration structure compaction buffer size from GPU memory
 //	unsigned long long as_zipbuf_size ;
 //	CUDA_CHECK( cudaMemcpy(
-//				static_cast<void*>( &as_zipbuf_size ),
+//				reinterpret_cast<void*>( &as_zipbuf_size ),
 //				d_as_zipbuf_size,
 //				sizeof( unsigned long long ),
 //				cudaMemcpyDeviceToHost

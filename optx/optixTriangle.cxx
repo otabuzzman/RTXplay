@@ -57,7 +57,7 @@ struct SbtRecord {
 	T data;
 } ;
 
-typedef SbtRecord<RayGenData> SbtRecordRayGen ;
+typedef SbtRecord<CameraData> SbtRecordCamera ; // SBT record used by Ray Generation program group
 typedef SbtRecord<MissData>   SbtRecordMiss ;
 typedef SbtRecord<HitGrpData> SbtRecordHitGrp ;
 
@@ -99,7 +99,8 @@ int main() {
 
 	float aspratio = 3.f/2.f ;
 
-	Camera camera(
+	SbtRecordCamera sbt_record_camera ;
+	static_cast<CameraData>( sbt_record_camera.data ).camera.set(
 		{13.f, 2.f, 3.f} /*eye*/,
 		{ 0.f, 0.f, 0.f} /*pat*/,
 		{ 0.f, 1.f, 0.f} /*vup*/,
@@ -246,7 +247,7 @@ int main() {
 			// retrieve acceleration structure compaction buffer size from GPU memory
 //			unsigned long long as_zipbuf_size ;
 //			CUDA_CHECK( cudaMemcpy(
-//						static_cast<void*>( &as_zipbuf_size ),
+//						reinterpret_cast<void*>( &as_zipbuf_size ),
 //						d_as_zipbuf_size,
 //						sizeof( unsigned long long ),
 //						cudaMemcpyDeviceToHost
@@ -409,24 +410,19 @@ int main() {
 		// build shader binding table
 		OptixShaderBindingTable sbt = {} ;
 		{
-			// SBT Record for Ray Generation program group
-			SbtRecordRayGen sbt_record_raygen ;
-			// setup SBT record data
-			memcpy( &sbt_record_raygen.data, &camera, sizeof( Camera ) ) ;
-			// setup SBT record header
-			OPTIX_CHECK( optixSbtRecordPackHeader( program_group_camera, &sbt_record_raygen ) ) ;
+			OPTIX_CHECK( optixSbtRecordPackHeader( program_group_camera, &sbt_record_camera ) ) ;
 			// copy SBT record to GPU
-			CUdeviceptr  d_sbt_record_raygen ;
-			const size_t sbt_record_raygen_size = sizeof( SbtRecordRayGen ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_raygen ), sbt_record_raygen_size ) ) ;
+			CUdeviceptr  d_sbt_record_camera ;
+			const size_t sbt_record_camera_size = sizeof( SbtRecordCamera ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_camera ), sbt_record_camera_size ) ) ;
 			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( d_sbt_record_raygen ),
-						&sbt_record_raygen,
-						sbt_record_raygen_size,
+						reinterpret_cast<void*>( d_sbt_record_camera ),
+						&sbt_record_camera,
+						sbt_record_camera_size,
 						cudaMemcpyHostToDevice
 						) ) ;
 			// set SBT Ray Generation section to point at record
-			sbt.raygenRecord = d_sbt_record_raygen ;
+			sbt.raygenRecord = d_sbt_record_camera ;
 
 
 
@@ -532,7 +528,7 @@ int main() {
 			std::vector<uchar4>  image ;
 			image.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
-						static_cast<void*>( image.data() ),
+						reinterpret_cast<void*>( image.data() ),
 						d_image,
 						w*h*sizeof( uchar4 ),
 						cudaMemcpyDeviceToHost
