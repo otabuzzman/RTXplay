@@ -101,7 +101,8 @@ int main() {
 	double aperture = .1 ;
 	double distance = 10. ;
 
-	Camera camera( eye, pat, vup, 20., aspratio, aperture, distance ) ;
+	Camera camera ;
+	camera.set( eye, pat, vup, 20., aspratio, aperture, distance ) ;
 
 	const int w = 1200 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels

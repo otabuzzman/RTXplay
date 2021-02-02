@@ -5,7 +5,9 @@
 
 class Camera {
 	public:
-		Camera( const P& eye, const P& pat, const V& vup, const double fov, const double aspratio, const double aperture, const double distance ) {
+		Camera() {} ;
+
+		void set( const P& eye, const P& pat, const V& vup, const double fov, const double aspratio, const double aperture, const double distance ) {
 			w_ = unitV( eye-pat ) ;
 			u_ = unitV( cross( vup, w_ ) ) ;
 			v_ = cross( w_, u_ ) ;
