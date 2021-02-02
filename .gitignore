@@ -1,4 +1,5 @@
 .vscode/
+OptixCache_ec2-user/
 tmp/
 *.docx
 *.exe

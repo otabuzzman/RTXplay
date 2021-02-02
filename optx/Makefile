@@ -130,7 +130,7 @@ clean:
 
 tidy: clean
 	rm -f $(EXE) $(IMG)
-	rm -f $(OPTIX_CACHE_PATH)
+	rm -rf $(OPTIX_CACHE_PATH)
 
 
 
