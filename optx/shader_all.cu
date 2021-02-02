@@ -58,10 +58,9 @@ extern "C" __global__ void __raygen__camera() {
 
 	// get Camera class instance from SBT
 	CameraData* data  = reinterpret_cast<CameraData*>( optixGetSbtDataPointer() ) ;
-	Camera* camera = reinterpret_cast<Camera*>( data ) ;
 
 	float3 ori, dir ;
-	camera->ray( s, t, ori, dir ) ;
+	data->camera.ray( s, t, ori, dir ) ;
 
 	// trace into scene
 	unsigned int r, g, b ;
@@ -81,8 +80,8 @@ extern "C" __global__ void __raygen__camera() {
 			) ;
 	float3 color = make_float3(
 			int_as_float( r ),
-			int_as_float( r ),
-			int_as_float( r )
+			int_as_float( g ),
+			int_as_float( b )
 			) ;
 
 	lp_general.image[lp_general.image_w*idx.y+idx.x] = sRGB( color ) ;
