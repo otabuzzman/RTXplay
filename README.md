@@ -7,6 +7,7 @@ A lab for playing around with NVIDIA's realtime raytracing concept. The lab inte
 3. [Simple(r) implementation](https://zeux.io/2010/12/14/quantizing-floats/) to quantize `float` into `unsigned char`.
 4. OPTIX_CHECK_LOG macro in `sutil/Exception.h` depends on variable names `log` and `sizeof_log` which thus must not change.
 5. Changing shader sources requires cache file removal before starting application. Otherwise errors are likely.
+6. Code in a PTX file must contain any referenced objects (or variables). Calling a class member function from inside a shader (kernel) expects the class in question to be defined in the same .cu file (e.g. by including a header file containing the definition) or by a further .cu file given to NVCC on the command line when compiling to PTX.
 
 ### Git for short (copy&paste)
 
