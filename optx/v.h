@@ -40,6 +40,8 @@ __forceinline__ __host__ __device__ float3 unitV( const float3& v )             
 
 __forceinline__ __host__ __device__ bool   near0( const float3& v )                  { return ( fabsf(v.x )<1e-8 ) && ( fabsf( v.y )<1e-8 ) && ( fabsf( v.z )<1e-8 ) ; }
 
+#ifdef __CUDACC__
+
 __forceinline__ __device__ float3 rnd( curandState *state )                                   { return make_float3( util::rnd( state ), util::rnd( state ), util::rnd( state ) ) ; }
 __forceinline__ __device__ float3 rnd( const float min, const float max, curandState *state ) { return make_float3( util::rnd( min, max, state ), util::rnd( min, max, state ), util::rnd( min, max, state ) ) ; }
 
@@ -47,6 +49,14 @@ __forceinline__ __device__ float3 rnd( const float min, const float max, curandS
 __forceinline__ __device__ float3 rndVin1sphere( curandState *state ) { while ( true ) { auto v = rnd( -1.f, 1.f, state ) ; if ( 1.f>dot( v, v ) ) return v ; } }
 // random V on unit sphere (chapter 8.5)
 __forceinline__ __device__ float3 rndVon1sphere( curandState *state ) { return unitV( rndVin1sphere( state ) ) ; }
+
+#else
+
+inline float3 rnd()                                   { return make_float3( util::rnd(), util::rnd(), util::rnd() ) ; }
+inline float3 rnd( const float min, const float max ) { return make_float3( util::rnd( min, max ), util::rnd( min, max ), util::rnd( min, max ) ) ; }
+
+#endif
+
 }
 
 #endif // V_H
