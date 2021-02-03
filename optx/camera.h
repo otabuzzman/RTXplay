@@ -30,10 +30,17 @@ class Camera {
 			wvec_ = wlen*u_ ;
 		} ;
 
-		__device__ void ray( const float s, const float t, float3& ori, float3& dir ) const {
-			ori = eye_ ;
-			dir = dist_*( s*wvec_+t*hvec_ )-eye_ ;
+#ifdef __CUDACC__
+
+		__device__ void ray( const float s, const float t, float3& ori, float3& dir, curandState* state ) const {
+			const float3 r = lens_*V::rndVin1disk( state ) ;
+			const float3 o = eye_+r.x*u_+r.y*v_ ;
+
+			ori = o ;
+			dir = dist_*( s*wvec_+t*hvec_ )-o ;
 		} ;
+
+#endif
 
 	private:
 		float3 u_, v_, w_ ;
