@@ -79,6 +79,7 @@ NVCCFLAGS = -rdc true -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFL
 
 INC = \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.1.1_456.81_win10/cuda_cudart/cudart/include) \
+	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.1.1_456.81_win10/libcurand/curand_dev/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64/SDK) \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64/SDK/support) \
