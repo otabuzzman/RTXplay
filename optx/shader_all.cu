@@ -29,8 +29,6 @@
 #include <optix.h>
 
 #include "camera.h"
-#include "util.h"
-#include "v.h"
 
 #include "optixTriangle.h"
 
@@ -51,6 +49,12 @@ extern "C" __global__ void __raygen__camera() {
 	const uint3 idx = optixGetLaunchIndex() ;
 	const uint3 dim = optixGetLaunchDimensions() ;
 
+	// set pixel index and curand seed
+	const unsigned int pix = dim.x*idx.y+idx.x ;
+
+	curandState state ;
+	curand_init( 4711, pix, 0, &state ) ;
+
 	// transform x/y pixel coords (range 0/0 to w/h)
 	// into s/t viewport coords (range -1/-1 to 1/1)
 	const float s = 2.f*static_cast<float>( idx.x )/static_cast<float>( dim.x )-1.f ;
@@ -60,7 +64,7 @@ extern "C" __global__ void __raygen__camera() {
 	const Camera* camera  = reinterpret_cast<Camera*>( optixGetSbtDataPointer() ) ;
 
 	float3 ori, dir ;
-	camera->ray( s, t, ori, dir ) ;
+	camera->ray( s, t, ori, dir, &state ) ;
 
 	// trace into scene
 	unsigned int r, g, b ;
@@ -84,7 +88,7 @@ extern "C" __global__ void __raygen__camera() {
 			int_as_float( b )
 			) ;
 
-	lp_general.image[lp_general.image_w*idx.y+idx.x] = sRGB( color ) ;
+	lp_general.image[pix] = sRGB( color ) ;
 }
 
 extern "C" __global__ void __miss__ambient() {

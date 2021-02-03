@@ -50,6 +50,9 @@ __forceinline__ __device__ float3 rndVin1sphere( curandState *state ) { while ( 
 // random V on unit sphere (chapter 8.5)
 __forceinline__ __device__ float3 rndVon1sphere( curandState *state ) { return unitV( rndVin1sphere( state ) ) ; }
 
+// random V in unit disk (chapter 12.2)
+__forceinline__ __device__ float3 rndVin1disk( curandState *state )   { while ( true ) { auto v = make_float3( util::rnd( -1.f, 1.f, state ), util::rnd( -1.f, 1.f, state ), 0.f ) ; if ( 1.f>dot( v, v ) ) continue ; return v ; } }
+
 #else
 
 inline float3 rnd()                                   { return make_float3( util::rnd(), util::rnd(), util::rnd() ) ; }
