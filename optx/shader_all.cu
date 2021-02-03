@@ -78,7 +78,7 @@ extern "C" __global__ void __raygen__camera() {
 			0,                          // missSBTIndex -- See SBT discussion
 			r, g, b
 			) ;
-	float3 color = make_float3(
+	const float3 color = make_float3(
 			int_as_float( r ),
 			int_as_float( g ),
 			int_as_float( b )

@@ -8,8 +8,13 @@
 
 class Thing {
 	public:
-		const std::vector<float3> vces() const ;
-		const std::vector<uint3>  ices() const ;
+		const std::vector<float3> vces() const {
+			return vces_ ;
+		}
+
+		const std::vector<uint3>  ices() const {
+			return ices_ ;
+		}
 
 	protected:
 		std::vector<float3> vces_ ; // unique vertices

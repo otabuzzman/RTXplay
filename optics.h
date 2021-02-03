@@ -13,7 +13,7 @@ class Diffuse : public Optics {
 		Diffuse( const C& albedo ) : albedo_( albedo ) {}
 
 		virtual bool spray( const Ray& ray, const Binding& binding, C& attened, Ray& sprayed ) const override {
-			auto d = binding.normal + rndVon1sphere() ;
+			auto d = binding.normal+rndVon1sphere() ;
 			if ( d.isnear0() )
 				d = binding.normal ;
 
@@ -23,7 +23,7 @@ class Diffuse : public Optics {
 			return true ;
 		}
 
-	public:
+	private:
 		C albedo_ ;    // reflectivity
 } ;
 
@@ -39,7 +39,7 @@ class Reflect : public Optics {
 			return ( dot( sprayed.dir(), binding.normal )>0 ) ;
 		}
 
-	public:
+	private:
 		C albedo_ ;    // reflectivity
 		double fuzz_ ; // fuzz
 } ;
@@ -63,6 +63,7 @@ class Refract : public Optics {
 				d = refract( u, binding.normal, refraction_ratio ) ;
 
 			sprayed = Ray( binding.p, d ) ;
+
 			return true ;
 		}
 
