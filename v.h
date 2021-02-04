@@ -27,7 +27,7 @@ class V {
 		double len() const                     { return sqrt( dot() ) ; }
 		double dot() const                     { return v_[0]*v_[0]+v_[1]*v_[1]+v_[2]*v_[2] ; }
 
-		bool isnear0() const                   { return ( fabs(v_[0] )<1e-8 ) && ( fabs( v_[1] )<1e-8 ) && ( fabs( v_[2] )<1e-8 ) ; }
+		bool isnear0() const                   { return ( fabs(v_[0] )<kNear0 ) && ( fabs( v_[1] )<kNear0 ) && ( fabs( v_[2] )<kNear0 ) ; }
 
 		inline static V rnd()                  { return V( ::rnd(), ::rnd(), ::rnd() ) ; }
 		inline static V rnd( double min, double max ) { return V( ::rnd( min, max ), ::rnd( min, max ), ::rnd( min, max ) ) ; }

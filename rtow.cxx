@@ -33,7 +33,7 @@ const std::string sRGB( const C color, int spp ) {
 
 const C trace( const Ray& ray, const Thing& scene ) {
 	Binding binding ;
-	if ( scene.hit( ray, 0, kInfinty, binding ) )
+	if ( scene.hit( ray, 0, kInfinity, binding ) )
 		return .5*( binding.normal+C( 1, 1, 1 ) ) ;
 
 	V unit = unitV( ray.dir() ) ;
@@ -44,7 +44,7 @@ const C trace( const Ray& ray, const Thing& scene ) {
 
 const C trace( const Ray& ray, const Thing& scene, int depth ) {
 	Binding binding ;
-	if ( scene.hit( ray, .001, kInfinty, binding ) ) {
+	if ( scene.hit( ray, kAcne0, kInfinity, binding ) ) {
 		Ray sprayed ;
 		C attened ;
 		if ( depth>0 && binding.optics->spray( ray, binding, attened, sprayed ) )

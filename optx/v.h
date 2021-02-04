@@ -38,19 +38,19 @@ __forceinline__ __host__ __device__ float  len  ( const float3& v )             
 __forceinline__ __host__ __device__ float3 cross( const float3& a, const float3& b ) { return make_float3( a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x ) ; }
 __forceinline__ __host__ __device__ float3 unitV( const float3& v )                  { return 1.f/len( v )*v ; }
 
-__forceinline__ __host__ __device__ bool   near0( const float3& v )                  { return ( fabsf(v.x )<1e-8 ) && ( fabsf( v.y )<1e-8 ) && ( fabsf( v.z )<1e-8 ) ; }
+__forceinline__ __host__ __device__ bool   near0( const float3& v )                  { return ( fabsf(v.x )<kNear0 ) && ( fabsf( v.y )<kNear0 ) && ( fabsf( v.z )<kNear0 ) ; }
 
 #ifdef __CUDACC__
 
 __forceinline__ __device__ float3 rnd( curandState *state )                                   { return make_float3( util::rnd( state ), util::rnd( state ), util::rnd( state ) ) ; }
 __forceinline__ __device__ float3 rnd( const float min, const float max, curandState *state ) { return make_float3( util::rnd( min, max, state ), util::rnd( min, max, state ), util::rnd( min, max, state ) ) ; }
 
-// random V in unit sphere
+// random V (float3) in unit sphere
 __forceinline__ __device__ float3 rndVin1sphere( curandState *state ) { while ( true ) { auto v = rnd( -1.f, 1.f, state ) ; if ( 1.f>dot( v, v ) ) return v ; } }
-// random V on unit sphere (chapter 8.5)
+// random V (float3) on unit sphere (chapter 8.5)
 __forceinline__ __device__ float3 rndVon1sphere( curandState *state ) { return unitV( rndVin1sphere( state ) ) ; }
 
-// random V in unit disk (chapter 12.2)
+// random V (float3) in unit disk (chapter 12.2)
 __forceinline__ __device__ float3 rndVin1disk( curandState *state )   { while ( true ) { auto v = make_float3( util::rnd( -1.f, 1.f, state ), util::rnd( -1.f, 1.f, state ), 0.f ) ; if ( 1.f>dot( v, v ) ) continue ; return v ; } }
 
 #else
@@ -58,7 +58,7 @@ __forceinline__ __device__ float3 rndVin1disk( curandState *state )   { while ( 
 inline float3 rnd()                                   { return make_float3( util::rnd(), util::rnd(), util::rnd() ) ; }
 inline float3 rnd( const float min, const float max ) { return make_float3( util::rnd( min, max ), util::rnd( min, max ), util::rnd( min, max ) ) ; }
 
-#endif
+#endif // __CUDACC__
 
 }
 
