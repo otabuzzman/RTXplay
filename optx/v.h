@@ -38,7 +38,7 @@ __forceinline__ __host__ __device__ float  len  ( const float3& v )             
 __forceinline__ __host__ __device__ float3 cross( const float3& a, const float3& b ) { return make_float3( a.y*b.z-a.z*b.y, a.z*b.x-a.x*b.z, a.x*b.y-a.y*b.x ) ; }
 __forceinline__ __host__ __device__ float3 unitV( const float3& v )                  { return 1.f/len( v )*v ; }
 
-__forceinline__ __host__ __device__ bool   near0( const float3& v )                  { return ( fabsf(v.x )<kNear0 ) && ( fabsf( v.y )<kNear0 ) && ( fabsf( v.z )<kNear0 ) ; }
+__forceinline__ __host__ __device__ bool   near0( const float3& v )                  { return ( fabsf(v.x )<util::kNear0 ) && ( fabsf( v.y )<util::kNear0 ) && ( fabsf( v.z )<util::kNear0 ) ; }
 
 #ifdef __CUDACC__
 

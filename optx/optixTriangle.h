@@ -37,8 +37,4 @@ struct LpGeneral { // launch parameter
 	OptixTraversableHandle as_handle ;
 } ;
 
-struct HitGrpData
-{
-} ;
-
 #endif // OPTIXTRIANGLE_H

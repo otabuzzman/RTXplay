@@ -4,11 +4,12 @@
 #include <vector_functions.h>
 #include <vector_types.h>
 
+#include "optics.h"
 #include "thing.h"
 
 class Sphere : public Thing {
 	public:
-		Sphere( const float3& center = { 0.f, 0.f, 0.f }, const float radius = 1.f, const bool bbox = false, const unsigned int ndiv = 6 ) ;
+		Sphere( const float3& center, const float radius, const Optics optics, const bool bbox = false, const unsigned int ndiv = 6 ) ;
 
 	private:
 		float3 center_ ;
