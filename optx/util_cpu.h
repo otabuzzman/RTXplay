@@ -20,14 +20,14 @@ static inline void optxLogStderr( unsigned int level, const char* tag, const cha
 		<< message << "\n" ;
 }
 
-extern "C" void optxInitialize()                                        noexcept( false ) ;
-extern "C" void optxBuildAccelerationStructure ( const Things& things ) noexcept( false ) ;
-extern "C" void optxCreateModules()                                     noexcept( false ) ;
-extern "C" void optxCreateProgramGroups()                               noexcept( false ) ;
-extern "C" void optxLinkPipeline()                                      noexcept( false ) ;
-extern "C" void optxBuildShaderBindingTable( const Things& things )     noexcept( false ) ;
-extern "C" void optxLaunchPipeline()             ;
-extern "C" void optxCleanup()                                           noexcept( false ) ;
+void optxInitialize()                                                    noexcept( false ) ;
+void optxBuildAccelerationStructure ( const Things& things )             noexcept( false ) ;
+void optxCreateModules()                                                 noexcept( false ) ;
+void optxCreateProgramGroups()                                           noexcept( false ) ;
+void optxLinkPipeline()                                                  noexcept( false ) ;
+void optxBuildShaderBindingTable( const Things& things )                 noexcept( false ) ;
+const std::vector<uchar4> optxLaunchPipeline( const int w, const int h )                   ;
+void optxCleanup()                                                       noexcept( false ) ;
 
 }
 

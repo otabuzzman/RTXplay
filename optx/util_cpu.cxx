@@ -370,7 +370,7 @@ void optxBuildShaderBindingTable( const Things& things ) noexcept( false ) {
 	}
 }
 
-const std::vector<uchar4> optxLaunchPipeline( const unsigned int w, const unsigned int h ) {
+const std::vector<uchar4> optxLaunchPipeline( const int w, const int h ) {
 	std::vector<uchar4> image ;
 
 	CUDA_CHECK( cudaMalloc(
