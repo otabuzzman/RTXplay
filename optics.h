@@ -41,7 +41,7 @@ class Reflect : public Optics {
 
 	private:
 		C albedo_ ;    // reflectivity
-		double fuzz_ ; // fuzz
+		double fuzz_ ; // matting
 } ;
 
 class Refract : public Optics {

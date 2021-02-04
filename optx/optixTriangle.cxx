@@ -40,6 +40,7 @@
 #include <vector_types.h>
 
 #include "camera.h"
+#include "optics.h"
 #include "sphere.h"
 #include "things.h"
 #include "util.h"
@@ -59,14 +60,16 @@ struct SbtRecord {
 
 typedef SbtRecord<Camera> SbtRecordRG ; // Ray Generation program group SBT record type
 typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
-typedef SbtRecord<HitGrpData>  SbtRecordHitGrp ;
+typedef SbtRecord<Optics> SbtRecordHG ; // Hit Group program group SBT record type
 
 extern "C" const char shader_all[] ;
 
 const Things scene() {
+	Optics o ;
 	Things s ;
 
-	s.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f ) ) ;
+	o.diffuse.albedo = { .5f, .5f, .5f } ;
+	s.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f, o ) ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11; b++ ) {
@@ -74,22 +77,27 @@ const Things scene() {
 			float3 center = make_float3( a+.9f*util::rnd(), .2f, b+.9f*util::rnd() ) ;
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 				if ( select<.8f ) {
-					auto albedo = V::rnd()*V::rnd() ;
-					s.push_back( std::make_shared<Sphere>( center, .2f ) ) ;
+					o.diffuse.albedo = V::rnd()*V::rnd() ;
+					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
 				} else if ( select<.95f ) {
-					auto albedo = V::rnd( .5f, 1.f ) ;
-					auto fuzz = util::rnd( 0.f, .5f ) ;
-					s.push_back( std::make_shared<Sphere>( center, .2f ) ) ;
+					o.reflect.albedo = V::rnd( .5f, 1.f ) ;
+					o.reflect.fuzz = util::rnd( 0.f, .5f ) ;
+					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
 				} else {
-					s.push_back( std::make_shared<Sphere>( center, .2f ) ) ;
+					o.refract.index = 1.5f ;
+					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
 				}
 			}
 		}
 	}
 
-	s.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f ) ) ;
-	s.push_back( std::make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f ) ) ;
-	s.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f ) ) ;
+	o.refract.index  = 1.5f ;
+	s.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f, o ) ) ;
+	o.diffuse.albedo = { .4f, .2f, .1f } ;
+	s.push_back( std::make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f, o ) ) ;
+	o.reflect.albedo = { .7f, .6f, .5f } ;
+	o.reflect.fuzz   = 0.f ;
+	s.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f, o ) ) ;
 
 	return s ;
 }
@@ -451,22 +459,23 @@ int main() {
 
 
 			// SBT Record buffer for Hit Group program groups
-			std::vector<SbtRecordHitGrp> sbt_record_buffer ;
+			std::vector<SbtRecordHG> sbt_record_buffer ;
 			sbt_record_buffer.resize( things.size() ) ;
 
 			// set SBT record for each thing in scene
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 				// this thing's SBT record
-				SbtRecordHitGrp sbt_record_hitgrp ;
+				SbtRecordHG sbt_record_optics ;
+				sbt_record_optics.data = things[i]->optics() ;
 				// setup SBT record header
-				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[0], &sbt_record_hitgrp ) ) ;
+				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[0], &sbt_record_optics ) ) ;
 				// save thing's SBT Record to buffer
-				sbt_record_buffer[i] = sbt_record_hitgrp ;
+				sbt_record_buffer[i] = sbt_record_optics ;
 			}
 
 			// copy SBT record to GPU
 			CUdeviceptr d_sbt_record_buffer ;
-			const size_t sbt_record_buffer_size = sizeof( SbtRecordHitGrp )*sbt_record_buffer.size() ;
+			const size_t sbt_record_buffer_size = sizeof( SbtRecordHG )*sbt_record_buffer.size() ;
 			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_buffer ), sbt_record_buffer_size ) ) ;
 			CUDA_CHECK( cudaMemcpy(
 						reinterpret_cast<void*>( d_sbt_record_buffer ),
@@ -477,14 +486,15 @@ int main() {
 			// set SBT Hit Group section to point at records
 			sbt.hitgroupRecordBase          = d_sbt_record_buffer ;
 			// set size and number of Hit Group records
-			sbt.hitgroupRecordStrideInBytes = sizeof( SbtRecordHitGrp ) ;
+			sbt.hitgroupRecordStrideInBytes = sizeof( SbtRecordHG ) ;
 			sbt.hitgroupRecordCount         = static_cast<unsigned int>( sbt_record_buffer.size() ) ;
 		}
 
 
 
 		// launch pipeline
-		uchar4* d_image ;
+		uchar4*             d_image ;
+		std::vector<uchar4> image ;
 		{
 			CUDA_CHECK( cudaMalloc(
 						reinterpret_cast<void**>( &d_image ),
@@ -519,13 +529,7 @@ int main() {
 						&sbt,
 						w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 			CUDA_SYNC_CHECK() ;
-		}
 
-
-
-		// output image
-		{
-			std::vector<uchar4>  image ;
 			image.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
 						reinterpret_cast<void*>( image.data() ),
@@ -533,7 +537,12 @@ int main() {
 						w*h*sizeof( uchar4 ),
 						cudaMemcpyDeviceToHost
 						) ) ;
+		}
 
+
+
+		// output image
+		{
 			std::cout
 				<< "P3\n" // magic PPM header
 				<< w << ' ' << h << '\n' << 255 << '\n' ;

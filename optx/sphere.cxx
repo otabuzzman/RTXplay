@@ -13,8 +13,10 @@
 using V::operator+ ;
 using V::operator* ;
 
-Sphere::Sphere( const float3& center, const float radius, const bool bbox, const unsigned int ndiv )
+Sphere::Sphere( const float3& center, const float radius, const Optics optics, const bool bbox, const unsigned int ndiv )
 	: center_( center ), radius_( radius ), ndiv_( ndiv ) {
+	optics_ = optics ;
+
 	tetrahedron( bbox ) ;
 }
 
