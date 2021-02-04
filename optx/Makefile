@@ -19,6 +19,7 @@ OBJ = \
 	optixTriangle.o \
 	sphere.o \
 	shader_all.o \
+	util_cpu.o \
 
 IMG = optixTriangle.png
 
