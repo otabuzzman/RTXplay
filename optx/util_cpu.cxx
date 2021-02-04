@@ -9,7 +9,8 @@
 
 #include <sutil/Exception.h>
 
-#include "util_cpu.h"
+#include "camera.h"
+#include "util.h"
 
 #include "optixTriangle.h"
 
@@ -17,16 +18,6 @@ namespace util {
 
 // PTX sources of shaders
 extern "C" const char shader_all[] ;
-
-template <typename T>
-struct SbtRecord {
-	__align__( OPTIX_SBT_RECORD_ALIGNMENT ) char header[OPTIX_SBT_RECORD_HEADER_SIZE] ;
-
-	T data ;
-} ;
-
-typedef SbtRecord<Camera> SbtRecordRG ; // SBT record used by Ray Generation program group
-typedef SbtRecord<float3> SbtRecordMS ; // SBT record used by Miss program group
 
 // communicate state between optx* functions defined below
 static struct {
@@ -50,6 +41,8 @@ static struct {
 	OptixPipeline               pipeline                = nullptr ;
 
 	OptixShaderBindingTable     sbt                     = {} ;
+
+	uchar4*                     d_image ;
 } optx_state ;
 
 void optxInitialize() noexcept( false ) {
@@ -362,24 +355,86 @@ void optxBuildShaderBindingTable( const Things& things ) noexcept( false ) {
 
 
 	// SBT Record buffer for Hit Group program groups
-	std::vector<SbtRecordHitGrp> sbt_record_buffer ;
+	std::vector<SbtRecordHG> sbt_record_buffer ;
 	sbt_record_buffer.resize( things.size() ) ;
 	
 	// set SBT record for each thing in scene
 	for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 		// this thing's SBT record
-		SbtRecordHitGrp sbt_record_hitgrp ;
+		SbtRecordHG sbt_record_optics ;
+		sbt_record_optics.data = things[i]->optics() ;
 		// setup SBT record header
-		OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_optics[0], &sbt_record_hitgrp ) ) ;
+		OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_optics[0], &sbt_record_optics ) ) ;
 		// save thing's SBT Record to buffer
-		sbt_record_buffer[i] = sbt_record_hitgrp ;
+		sbt_record_buffer[i] = sbt_record_optics ;
 	}
 }
 
-void optxLaunchPipeline() {
+const std::vector<uchar4> optxLaunchPipeline( const unsigned int w, const unsigned int h ) {
+	std::vector<uchar4> image ;
+
+	CUDA_CHECK( cudaMalloc(
+				reinterpret_cast<void**>( &optx_state.d_image ),
+				w*h*sizeof( uchar4 )
+				) ) ;
+
+	CUstream cuda_stream ;
+	CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+
+	LpGeneral lp_general ; // launch parameter
+
+	lp_general.image     = optx_state.d_image ;
+	lp_general.image_w   = w ;
+	lp_general.image_h   = h ;
+
+	lp_general.as_handle = optx_state.as_handle ;
+
+	CUdeviceptr d_lp_general ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+				reinterpret_cast<void*>( d_lp_general ),
+				&lp_general, sizeof( lp_general ),
+				cudaMemcpyHostToDevice
+				) ) ;
+
+	const size_t lp_general_size = sizeof( LpGeneral ) ;
+	OPTIX_CHECK( optixLaunch(
+				optx_state.pipeline,
+				cuda_stream,
+				d_lp_general,
+				lp_general_size,
+				&optx_state.sbt,
+				w/*x*/, h/*y*/, 1/*z*/ ) ) ;
+	CUDA_SYNC_CHECK() ;
+
+	image.resize( w*h ) ;
+	CUDA_CHECK( cudaMemcpy(
+				reinterpret_cast<void*>( image.data() ),
+				optx_state.d_image,
+				w*h*sizeof( uchar4 ),
+				cudaMemcpyDeviceToHost
+				) ) ;
+
+	return image ;
 }
 
-void optxCleanup() {
+void optxCleanup() noexcept( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( optx_state.sbt.raygenRecord       ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( optx_state.sbt.missRecordBase     ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( optx_state.sbt.hitgroupRecordBase ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( optx_state.d_as_outbuf            ) ) ) ;
+//	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( optx_state.d_as_zipbuf            ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( optx_state.d_image                ) ) ) ;
+
+	OPTIX_CHECK( optixPipelineDestroy    ( optx_state.pipeline                ) ) ;
+	OPTIX_CHECK( optixProgramGroupDestroy( optx_state.program_group_optics[0] ) ) ;
+	OPTIX_CHECK( optixProgramGroupDestroy( optx_state.program_group_optics[1] ) ) ;
+	OPTIX_CHECK( optixProgramGroupDestroy( optx_state.program_group_optics[2] ) ) ;
+	OPTIX_CHECK( optixProgramGroupDestroy( optx_state.program_group_ambient   ) ) ;
+	OPTIX_CHECK( optixProgramGroupDestroy( optx_state.program_group_camera    ) ) ;
+	OPTIX_CHECK( optixModuleDestroy      ( optx_state.module_all              ) ) ;
+
+	OPTIX_CHECK( optixDeviceContextDestroy( optx_state.optx_context ) ) ;
 }
 
 }
