@@ -51,17 +51,7 @@
 using V::operator- ;
 using V::operator* ;
 
-template <typename T>
-struct SbtRecord {
-	__align__( OPTIX_SBT_RECORD_ALIGNMENT ) char header[OPTIX_SBT_RECORD_HEADER_SIZE] ;
-
-	T data;
-} ;
-
-typedef SbtRecord<Camera> SbtRecordRG ; // Ray Generation program group SBT record type
-typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
-typedef SbtRecord<Optics> SbtRecordHG ; // Hit Group program group SBT record type
-
+// PTX sources of shaders
 extern "C" const char shader_all[] ;
 
 const Things scene() {

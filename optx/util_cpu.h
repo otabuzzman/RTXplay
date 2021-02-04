@@ -27,7 +27,7 @@ extern "C" void optxCreateProgramGroups()                               noexcept
 extern "C" void optxLinkPipeline()                                      noexcept( false ) ;
 extern "C" void optxBuildShaderBindingTable( const Things& things )     noexcept( false ) ;
 extern "C" void optxLaunchPipeline()             ;
-extern "C" void optxCleanup()                    ;
+extern "C" void optxCleanup()                                           noexcept( false ) ;
 
 }
 

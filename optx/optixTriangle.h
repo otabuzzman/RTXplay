@@ -37,4 +37,15 @@ struct LpGeneral { // launch parameter
 	OptixTraversableHandle as_handle ;
 } ;
 
+template <typename T>
+struct SbtRecord {
+	__align__( OPTIX_SBT_RECORD_ALIGNMENT ) char header[OPTIX_SBT_RECORD_HEADER_SIZE] ;
+
+	T data;
+} ;
+
+typedef SbtRecord<Camera> SbtRecordRG ; // Ray Generation program group SBT record type
+typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
+typedef SbtRecord<Optics> SbtRecordHG ; // Hit Group program group SBT record type
+
 #endif // OPTIXTRIANGLE_H
