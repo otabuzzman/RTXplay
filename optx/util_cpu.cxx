@@ -383,13 +383,13 @@ void optxBuildShaderBindingTable( const Things& things ) noexcept( false ) {
 const std::vector<uchar4> optxLaunchPipeline( const int w, const int h ) {
 	std::vector<uchar4> image ;
 
+	CUstream cuda_stream ;
+	CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+
 	CUDA_CHECK( cudaMalloc(
 				reinterpret_cast<void**>( &optx_state.d_image ),
 				w*h*sizeof( uchar4 )
 				) ) ;
-
-	CUstream cuda_stream ;
-	CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
 	LpGeneral lp_general ; // launch parameter
 
@@ -400,14 +400,15 @@ const std::vector<uchar4> optxLaunchPipeline( const int w, const int h ) {
 	lp_general.as_handle = optx_state.as_handle ;
 
 	CUdeviceptr d_lp_general ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
+	const size_t lp_general_size = sizeof( LpGeneral ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( d_lp_general ),
-				&lp_general, sizeof( lp_general ),
+				&lp_general,
+				lp_general_size,
 				cudaMemcpyHostToDevice
 				) ) ;
 
-	const size_t lp_general_size = sizeof( LpGeneral ) ;
 	OPTIX_CHECK( optixLaunch(
 				optx_state.pipeline,
 				cuda_stream,

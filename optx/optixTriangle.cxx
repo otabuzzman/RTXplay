@@ -51,9 +51,6 @@
 using V::operator- ;
 using V::operator* ;
 
-// PTX sources of shaders
-extern "C" const char shader_all[] ;
-
 const Things scene() {
 	Optics o ;
 	Things s ;
@@ -114,7 +111,6 @@ int main() {
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
 
 	try {
-
 		util::optxInitialize() ;
 
 		util::optxBuildAccelerationStructure( things ) ;
@@ -125,7 +121,7 @@ int main() {
 
 		util::optxBuildShaderBindingTable( things ) ;
 
-		const std::vector<uchar4> image = util::optxLaunchPipeline( w, h ) ;
+		std::vector<uchar4> image = util::optxLaunchPipeline( w, h ) ;
 
 		// output image
 		{
@@ -145,7 +141,6 @@ int main() {
 		}
 
 		util::optxCleanup() ;
-
 	} catch( std::exception& e ) {
 		std::cerr << "exception: " << e.what() << "\n" ;
 
