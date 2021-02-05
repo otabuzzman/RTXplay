@@ -21,7 +21,6 @@ extern "C" const char shader_all[] ;
 
 // communicate state between optx* functions defined below
 static struct {
-	CUcontext                   cuda_context ;
 	OptixDeviceContext          optx_context ;
 
 	OptixTraversableHandle      as_handle ;
@@ -34,9 +33,6 @@ static struct {
 	OptixProgramGroup           program_group_camera    = nullptr ;
 	OptixProgramGroup           program_group_ambient   = nullptr ;
 	OptixProgramGroup           program_group_optics[3] = {} ;
-
-	SbtRecordRG                 sbt_record_camera ;
-	SbtRecordMS                 sbt_record_ambient ;
 
 	OptixPipeline               pipeline                = nullptr ;
 
@@ -317,32 +313,32 @@ void optxLinkPipeline() noexcept( false ) {
 }
 
 void optxBuildShaderBindingTable( const Things& things ) noexcept( false ) {
-	// setup SBT record header
-	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_camera, &optx_state.sbt_record_camera ) ) ;
+	SbtRecordRG sbt_record_camera ;
+	// Ray Generation program group SBT record header
+	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_camera, &sbt_record_camera ) ) ;
 	// copy SBT record to GPU
 	CUdeviceptr  d_sbt_record_camera ;
 	const size_t sbt_record_camera_size = sizeof( SbtRecordRG ) ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_camera ), sbt_record_camera_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( d_sbt_record_camera ),
-				&optx_state.sbt_record_camera,
+				&sbt_record_camera,
 				sbt_record_camera_size,
 				cudaMemcpyHostToDevice
 				) ) ;
 	// set SBT Ray Generation section to point at record
 	optx_state.sbt.raygenRecord = d_sbt_record_camera ;
 
-
-
-	// setup SBT record header
-	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_ambient, &optx_state.sbt_record_ambient ) ) ;
+	SbtRecordMS sbt_record_ambient ;
+	// Miss program group SBT record header
+	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_ambient, &sbt_record_ambient ) ) ;
 	// copy SBT record to GPU
 	CUdeviceptr d_sbt_record_ambient ;
 	const size_t sbt_record_ambient_size = sizeof( SbtRecordMS ) ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_ambient ), sbt_record_ambient_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( d_sbt_record_ambient ),
-				&optx_state.sbt_record_ambient,
+				&sbt_record_ambient,
 				sbt_record_ambient_size,
 				cudaMemcpyHostToDevice
 				) ) ;
@@ -352,12 +348,10 @@ void optxBuildShaderBindingTable( const Things& things ) noexcept( false ) {
 	optx_state.sbt.missRecordStrideInBytes = sizeof( SbtRecordMS ) ;
 	optx_state.sbt.missRecordCount         = 1 ;
 
-
-
 	// SBT Record buffer for Hit Group program groups
 	std::vector<SbtRecordHG> sbt_record_buffer ;
 	sbt_record_buffer.resize( things.size() ) ;
-	
+
 	// set SBT record for each thing in scene
 	for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 		// this thing's SBT record
@@ -368,6 +362,22 @@ void optxBuildShaderBindingTable( const Things& things ) noexcept( false ) {
 		// save thing's SBT Record to buffer
 		sbt_record_buffer[i] = sbt_record_optics ;
 	}
+
+	// copy SBT record to GPU
+	CUdeviceptr d_sbt_record_buffer ;
+	const size_t sbt_record_buffer_size = sizeof( SbtRecordHG )*sbt_record_buffer.size() ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_buffer ), sbt_record_buffer_size ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+				reinterpret_cast<void*>( d_sbt_record_buffer ),
+				sbt_record_buffer.data(),
+				sbt_record_buffer_size,
+				cudaMemcpyHostToDevice
+				) ) ;
+	// set SBT Hit Group section to point at records
+	optx_state.sbt.hitgroupRecordBase          = d_sbt_record_buffer ;
+	// set size and number of Hit Group records
+	optx_state.sbt.hitgroupRecordStrideInBytes = sizeof( SbtRecordHG ) ;
+	optx_state.sbt.hitgroupRecordCount         = static_cast<unsigned int>( sbt_record_buffer.size() ) ;
 }
 
 const std::vector<uchar4> optxLaunchPipeline( const int w, const int h ) {
