@@ -9,10 +9,7 @@
 
 #include <sutil/Exception.h>
 
-#include "camera.h"
 #include "util.h"
-
-#include "optixTriangle.h"
 
 namespace util {
 
@@ -36,12 +33,15 @@ static struct {
 
 	OptixPipeline               pipeline                = nullptr ;
 
+	SbtRecordRG                 sbt_record_camera ;
+	SbtRecordMS                 sbt_record_ambient ;
+
 	OptixShaderBindingTable     sbt                     = {} ;
 
 	uchar4*                     d_image ;
 } optx_state ;
 
-void optxInitialize() noexcept( false ) {
+void optxInitialize( const SbtRecordRG& camera, const SbtRecordMS& ambient ) noexcept( false ) {
 	CUDA_CHECK( cudaFree( 0 ) ) ;
 	OPTIX_CHECK( optixInit() ) ;
 
@@ -52,6 +52,9 @@ void optxInitialize() noexcept( false ) {
 	// use current (0) CUDA context
 	CUcontext cuda_context = 0 ;
 	OPTIX_CHECK( optixDeviceContextCreate( cuda_context, &optx_options, &optx_state.optx_context ) ) ;
+
+	optx_state.sbt_record_camera  = camera ;
+	optx_state.sbt_record_ambient = ambient ;
 }
 
 void optxBuildAccelerationStructure( const Things& things ) noexcept( false ) {
@@ -313,32 +316,30 @@ void optxLinkPipeline() noexcept( false ) {
 }
 
 void optxBuildShaderBindingTable( const Things& things ) noexcept( false ) {
-	SbtRecordRG sbt_record_camera ;
 	// Ray Generation program group SBT record header
-	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_camera, &sbt_record_camera ) ) ;
+	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_camera, &optx_state.sbt_record_camera ) ) ;
 	// copy SBT record to GPU
 	CUdeviceptr  d_sbt_record_camera ;
 	const size_t sbt_record_camera_size = sizeof( SbtRecordRG ) ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_camera ), sbt_record_camera_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( d_sbt_record_camera ),
-				&sbt_record_camera,
+				&optx_state.sbt_record_camera,
 				sbt_record_camera_size,
 				cudaMemcpyHostToDevice
 				) ) ;
 	// set SBT Ray Generation section to point at record
 	optx_state.sbt.raygenRecord = d_sbt_record_camera ;
 
-	SbtRecordMS sbt_record_ambient ;
 	// Miss program group SBT record header
-	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_ambient, &sbt_record_ambient ) ) ;
+	OPTIX_CHECK( optixSbtRecordPackHeader( optx_state.program_group_ambient, &optx_state.sbt_record_ambient ) ) ;
 	// copy SBT record to GPU
 	CUdeviceptr d_sbt_record_ambient ;
 	const size_t sbt_record_ambient_size = sizeof( SbtRecordMS ) ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_ambient ), sbt_record_ambient_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( d_sbt_record_ambient ),
-				&sbt_record_ambient,
+				&optx_state.sbt_record_ambient,
 				sbt_record_ambient_size,
 				cudaMemcpyHostToDevice
 				) ) ;
