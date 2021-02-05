@@ -121,7 +121,7 @@ int main() {
 
 		util::optxBuildShaderBindingTable( things ) ;
 
-		std::vector<uchar4> image = util::optxLaunchPipeline( w, h ) ;
+		const std::vector<uchar4> image = util::optxLaunchPipeline( w, h ) ;
 
 		// output image
 		{
