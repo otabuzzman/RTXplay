@@ -139,21 +139,19 @@ int main() {
 
 
 		// build accelleration structure
-		OptixTraversableHandle as_handle ;
-		CUdeviceptr            d_as_outbuf ;
-//		CUdeviceptr            d_as_zipbuf ;
+		std::vector<CUdeviceptr> d_vces ;
+		std::vector<CUdeviceptr> d_ices ;
+		OptixTraversableHandle   as_handle ;
+		CUdeviceptr              d_as_outbuf ;
+//		CUdeviceptr              d_as_zipbuf ;
 		{
 			// build input structures of things in scene
 			std::vector<OptixBuildInput> obi_things ;
 			obi_things.resize( things.size() ) ;
 
 			// GPU pointers at vertices lists of things in scene
-			std::vector<CUdeviceptr> d_vces ;
 			d_vces.resize( things.size() ) ;
-
-			// GPU pointers at lists of triangles lists of things in scene
-			// each triangle made up of indexed vertices triplet
-			std::vector<CUdeviceptr> d_ices ;
+			// GPU pointers at triangles lists of things in scene
 			d_ices.resize( things.size() ) ;
 
 			// create build input strucure for each thing in scene
@@ -268,8 +266,6 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf_size ) ) ) ;
-			for ( const CUdeviceptr p : d_vces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
-			for ( const CUdeviceptr p : d_ices ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
 		}
 
 
@@ -462,6 +458,8 @@ int main() {
 				// this thing's SBT record
 				SbtRecordHG sbt_record_optics ;
 				sbt_record_optics.data = things[i]->optics() ;
+				sbt_record_optics.data.vces = reinterpret_cast<float3*>( d_vces[i] ) ;
+				sbt_record_optics.data.ices = reinterpret_cast<uint3*>( d_ices[i] ) ;
 				// setup SBT record header
 				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[things[i]->optics().type], &sbt_record_optics ) ) ;
 				// save thing's SBT Record to buffer
@@ -561,12 +559,14 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
+			for ( const CUdeviceptr p : d_vces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
+			for ( const CUdeviceptr p : d_ices ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_image                ) ) ) ;
 
 			OPTIX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[0] ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[1] ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[2] ) ) ;
+			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;
+			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFLECT] ) ) ;
+			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFRACT] ) ) ;
 			OPTIX_CHECK( optixProgramGroupDestroy( program_group_ambient   ) ) ;
 			OPTIX_CHECK( optixProgramGroupDestroy( program_group_camera    ) ) ;
 			OPTIX_CHECK( optixModuleDestroy      ( module_all              ) ) ;
