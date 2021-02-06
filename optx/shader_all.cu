@@ -83,6 +83,7 @@ extern "C" __global__ void __raygen__camera() {
 			0,                          // missSBTIndex -- See SBT discussion
 			r, g, b
 			) ;
+
 	const float3 color = make_float3(
 			int_as_float( r ),
 			int_as_float( g ),
@@ -116,7 +117,19 @@ extern "C" __global__ void __closesthit__diffuse() {
 }
 
 extern "C" __global__ void __closesthit__reflect() {
+    // When built-in triangle intersection is used, a number of fundamental
+    // attributes are provided by the OptiX API, indlucing barycentric coordinates.
+    const float2 barycentrics = optixGetTriangleBarycentrics();
+    const float3 color = { barycentrics.x, barycentrics.y, .5f };
+
+    util::optxSetPayload( &color );
 }
 
 extern "C" __global__ void __closesthit__refract() {
+    // When built-in triangle intersection is used, a number of fundamental
+    // attributes are provided by the OptiX API, indlucing barycentric coordinates.
+    const float2 barycentrics = optixGetTriangleBarycentrics();
+    const float3 color = { barycentrics.x, barycentrics.y, 0.f };
+
+    util::optxSetPayload( &color );
 }

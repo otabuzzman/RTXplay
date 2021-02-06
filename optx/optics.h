@@ -1,21 +1,30 @@
 #ifndef OPTICS_H
 #define OPTICS_H
 
-typedef union {
+enum {
+	OPTICS_TYPE_DIFFUSE,
+	OPTICS_TYPE_REFLECT,
+	OPTICS_TYPE_REFRACT,
+	OPTICS_TYPE_NUM
+} ;
 
-	struct {
-		float3 albedo ;
-	} diffuse ;
+typedef struct {
+	int type ;
 
-	struct {
-		float3 albedo ;
-		float  fuzz ;
-	} reflect ;
+	union {
+		struct {
+			float3 albedo ;
+		} diffuse ;
 
-	struct {
-		float  index ;
-	} refract ;
+		struct {
+			float3 albedo ;
+			float  fuzz ;
+		} reflect ;
 
+		struct {
+			float  index ;
+		} refract ;
+	} ;
 } Optics ;
 
 #endif // OPTICS_H
