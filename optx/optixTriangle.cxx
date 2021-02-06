@@ -58,6 +58,7 @@ const Things scene() {
 	Optics o ;
 	Things s ;
 
+	o.type = OPTICS_TYPE_DIFFUSE ;
 	o.diffuse.albedo = { .5f, .5f, .5f } ;
 	s.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f, o ) ) ;
 
@@ -67,13 +68,16 @@ const Things scene() {
 			float3 center = make_float3( a+.9f*util::rnd(), .2f, b+.9f*util::rnd() ) ;
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 				if ( select<.8f ) {
+					o.type = OPTICS_TYPE_DIFFUSE ;
 					o.diffuse.albedo = V::rnd()*V::rnd() ;
 					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
 				} else if ( select<.95f ) {
+					o.type = OPTICS_TYPE_REFLECT ;
 					o.reflect.albedo = V::rnd( .5f, 1.f ) ;
 					o.reflect.fuzz = util::rnd( 0.f, .5f ) ;
 					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
 				} else {
+					o.type = OPTICS_TYPE_REFRACT ;
 					o.refract.index = 1.5f ;
 					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
 				}
@@ -81,10 +85,13 @@ const Things scene() {
 		}
 	}
 
+	o.type = OPTICS_TYPE_REFRACT ;
 	o.refract.index  = 1.5f ;
 	s.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f, o ) ) ;
+	o.type = OPTICS_TYPE_DIFFUSE ;
 	o.diffuse.albedo = { .4f, .2f, .1f } ;
 	s.push_back( std::make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f, o ) ) ;
+	o.type = OPTICS_TYPE_REFLECT ;
 	o.reflect.albedo = { .7f, .6f, .5f } ;
 	o.reflect.fuzz   = 0.f ;
 	s.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f, o ) ) ;
@@ -114,13 +121,6 @@ int main() {
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
 
 	try {
-		// OptiX API log buffer and size varibale names must not change:
-		// both hard-coded in OPTIX_CHECK_LOG macro (sutil/Exception.h).
-		char   log[2048] ;
-		size_t sizeof_log = sizeof( log ) ;
-
-
-
 		// initialize
 		OptixDeviceContext optx_context = nullptr;
 		{
@@ -278,6 +278,9 @@ int main() {
 		OptixModule module_all = nullptr ;
 		OptixPipelineCompileOptions pipeline_cc_options = {} ;
 		{
+			char   log[2048] ;
+			size_t sizeof_log = sizeof( log ) ;
+
 			OptixModuleCompileOptions module_cc_options = {} ;
 			module_cc_options.maxRegisterCount          = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT;
 			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_DEFAULT;
@@ -310,8 +313,11 @@ int main() {
 		// create program groups
 		OptixProgramGroup program_group_camera    = nullptr ;
 		OptixProgramGroup program_group_ambient   = nullptr ;
-		OptixProgramGroup program_group_optics[3] = {} ;
+		OptixProgramGroup program_group_optics[OPTICS_TYPE_NUM] = {} ;
 		{
+			char   log[2048] ;
+			size_t sizeof_log = sizeof( log ) ;
+
 			OptixProgramGroupOptions program_group_options = {} ;
 
 			// Ray Generation program group
@@ -350,15 +356,15 @@ int main() {
 			// Hit Group program groups
 			OptixProgramGroupDesc program_group_optics_desc[3] = {} ;
 			// multiple program groups at once
-			program_group_optics_desc[0].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[0].hitgroup.moduleCH            = module_all;
-			program_group_optics_desc[0].hitgroup.entryFunctionNameCH = "__closesthit__diffuse" ;
-			program_group_optics_desc[1].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[1].hitgroup.moduleCH            = module_all;
-			program_group_optics_desc[1].hitgroup.entryFunctionNameCH = "__closesthit__reflect" ;
-			program_group_optics_desc[2].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[2].hitgroup.moduleCH            = module_all;
-			program_group_optics_desc[2].hitgroup.entryFunctionNameCH = "__closesthit__refract" ;
+			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
+			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].hitgroup.entryFunctionNameCH = "__closesthit__diffuse" ;
+			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].hitgroup.moduleCH            = module_all;
+			program_group_optics_desc[OPTICS_TYPE_REFLECT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
+			program_group_optics_desc[OPTICS_TYPE_REFLECT].hitgroup.moduleCH            = module_all;
+			program_group_optics_desc[OPTICS_TYPE_REFLECT].hitgroup.entryFunctionNameCH = "__closesthit__reflect" ;
+			program_group_optics_desc[OPTICS_TYPE_REFRACT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
+			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.moduleCH            = module_all;
+			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.entryFunctionNameCH = "__closesthit__refract" ;
 			OPTIX_CHECK_LOG( optixProgramGroupCreate(
 						optx_context,
 						&program_group_optics_desc[0],
@@ -375,13 +381,16 @@ int main() {
 		// link pipeline
 		OptixPipeline pipeline = nullptr ;
 		{
+			char   log[2048] ;
+			size_t sizeof_log = sizeof( log ) ;
+
 			const uint32_t    max_trace_depth  = 1 ;
 			OptixProgramGroup program_groups[] = {
 				program_group_camera,
 				program_group_ambient,
-				program_group_optics[0],
-				program_group_optics[1],
-				program_group_optics[2] } ;
+				program_group_optics[OPTICS_TYPE_DIFFUSE],
+				program_group_optics[OPTICS_TYPE_REFLECT],
+				program_group_optics[OPTICS_TYPE_REFRACT] } ;
 
 			OptixPipelineLinkOptions pipeline_ld_options = {} ;
 			pipeline_ld_options.maxTraceDepth            = max_trace_depth ;
@@ -454,7 +463,7 @@ int main() {
 				SbtRecordHG sbt_record_optics ;
 				sbt_record_optics.data = things[i]->optics() ;
 				// setup SBT record header
-				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[0], &sbt_record_optics ) ) ;
+				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[things[i]->optics().type], &sbt_record_optics ) ) ;
 				// save thing's SBT Record to buffer
 				sbt_record_buffer[i] = sbt_record_optics ;
 			}
