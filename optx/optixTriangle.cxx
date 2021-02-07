@@ -284,7 +284,7 @@ int main() {
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
-			pipeline_cc_options.numPayloadValues                 = 5 ;
+			pipeline_cc_options.numPayloadValues                 = 6 ;
 			pipeline_cc_options.numAttributeValues               = 2 ;
 			pipeline_cc_options.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE ;
 			pipeline_cc_options.pipelineLaunchParamsVariableName = "lp_general" ;
@@ -380,7 +380,7 @@ int main() {
 			char   log[2048] ;
 			size_t sizeof_log = sizeof( log ) ;
 
-			const uint32_t    max_trace_depth  = 8 ;
+			const uint32_t    max_trace_depth  = 4 ;
 			OptixProgramGroup program_groups[] = {
 				program_group_camera,
 				program_group_ambient,
@@ -502,6 +502,8 @@ int main() {
 			lp_general.image     = d_image ;
 			lp_general.image_w   = w ;
 			lp_general.image_h   = h ;
+
+			lp_general.depth     = 4 ;
 
 			lp_general.as_handle = as_handle ;
 

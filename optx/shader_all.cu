@@ -72,6 +72,8 @@ extern "C" __global__ void __raygen__camera() {
 	float3 ori, dir ;
 	camera->ray( s, t, ori, dir, &state ) ;
 
+	unsigned int depth = 1 ;
+
 	// trace into scene
 	unsigned int r, g, b ;
 	optixTrace(
@@ -87,7 +89,8 @@ extern "C" __global__ void __raygen__camera() {
 			1,                          // SBT stride   -- See SBT discussion
 			0,                          // missSBTIndex -- See SBT discussion
 			r, g, b,
-			sh, sl
+			sh, sl,
+			depth
 			) ;
 
 	const float3 color = make_float3(
@@ -116,54 +119,63 @@ extern "C" __global__ void __miss__ambient() {
 }
 
 extern "C" __global__ void __closesthit__diffuse() {
-	const Optics optics = *reinterpret_cast<Optics*>( optixGetSbtDataPointer() ) ;
+	unsigned int depth = optixGetPayload_5() ;
 
-	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = optics.ices[prix] ;
+	if ( lp_general.depth>depth ) {
+		const Optics optics = *reinterpret_cast<Optics*>( optixGetSbtDataPointer() ) ;
 
-	const float3 A = optics.vces[trix.x] ;
-	const float3 B = optics.vces[trix.y] ;
-	const float3 C = optics.vces[trix.z] ;
+		const int   prix = optixGetPrimitiveIndex() ;
+		const uint3 trix = optics.ices[prix] ;
 
-	// calculate primitive normal
-	const float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
+		const float3 A = optics.vces[trix.x] ;
+		const float3 B = optics.vces[trix.y] ;
+		const float3 C = optics.vces[trix.z] ;
 
-	const float2 bary = optixGetTriangleBarycentrics() ;
-	const float u = bary.x ;
-	const float v = bary.y ;
-	const float w = 1.f-u-v ;
+		// calculate primitive normal
+		const float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
 
-	// calculate primitive hit point
-	const float3 ori = w*A+u*B+v*C ;
+		const float2 bary = optixGetTriangleBarycentrics() ;
+		const float u = bary.x ;
+		const float v = bary.y ;
+		const float w = 1.f-u-v ;
 
-	// retrieve and assemble curandState pointer from payload
-	unsigned int sh = optixGetPayload_3() ;
-	unsigned int sl = optixGetPayload_4() ;
-	curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
+		// calculate primitive hit point
+		const float3 ori = w*A+u*B+v*C ;
 
-	const float3 dir = N+V::rndVon1sphere( state ) ;
+		// retrieve and assemble curandState pointer from payload
+		unsigned int sh = optixGetPayload_3() ;
+		unsigned int sl = optixGetPayload_4() ;
+		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
-	unsigned int r, g, b ;
-	optixTrace(
-			lp_general.as_handle,
-			ori,
-			dir,
-			0.f,                        // Min intersection distance
-			1e16f,                      // Max intersection distance
-			0.f,                        // rayTime -- used for motion blur
-			OptixVisibilityMask( 255 ), // Specify always visible
-			OPTIX_RAY_FLAG_NONE,
-			0,                          // SBT offset   -- See SBT discussion
-			1,                          // SBT stride   -- See SBT discussion
-			0,                          // missSBTIndex -- See SBT discussion
-			r, g, b,
-			sh, sl
-			) ;
+		const float3 dir = N+V::rndVon1sphere( state ) ;
 
-	const float3 albedo = optics.diffuse.albedo ;
-	optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
-	optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
-	optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
+		unsigned int r, g, b ;
+		optixTrace(
+				lp_general.as_handle,
+				ori,
+				dir,
+				0.f,                        // Min intersection distance
+				1e16f,                      // Max intersection distance
+				0.f,                        // rayTime -- used for motion blur
+				OptixVisibilityMask( 255 ), // Specify always visible
+				OPTIX_RAY_FLAG_NONE,
+				0,                          // SBT offset   -- See SBT discussion
+				1,                          // SBT stride   -- See SBT discussion
+				0,                          // missSBTIndex -- See SBT discussion
+				r, g, b,
+				sh, sl,
+				++depth
+				) ;
+
+		const float3 albedo = optics.diffuse.albedo ;
+		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
+		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
+		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
+	} else {
+		optixSetPayload_0( 0 ) ;
+		optixSetPayload_1( 0 ) ;
+		optixSetPayload_2( 0 ) ;
+	}
 }
 
 extern "C" __global__ void __closesthit__reflect() {
