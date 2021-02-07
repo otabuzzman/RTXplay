@@ -284,8 +284,8 @@ int main() {
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
-			pipeline_cc_options.numPayloadValues                 = 3 ;
-			pipeline_cc_options.numAttributeValues               = 3 ;
+			pipeline_cc_options.numPayloadValues                 = 5 ;
+			pipeline_cc_options.numAttributeValues               = 2 ;
 			pipeline_cc_options.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE ;
 			pipeline_cc_options.pipelineLaunchParamsVariableName = "lp_general" ;
 			pipeline_cc_options.usesPrimitiveTypeFlags           = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE ;
