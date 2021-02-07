@@ -380,7 +380,7 @@ int main() {
 			char   log[2048] ;
 			size_t sizeof_log = sizeof( log ) ;
 
-			const uint32_t    max_trace_depth  = 1 ;
+			const uint32_t    max_trace_depth  = 8 ;
 			OptixProgramGroup program_groups[] = {
 				program_group_camera,
 				program_group_ambient,
