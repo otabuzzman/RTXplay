@@ -156,7 +156,8 @@ extern "C" __global__ void __closesthit__diffuse() {
 			0,                          // SBT offset   -- See SBT discussion
 			1,                          // SBT stride   -- See SBT discussion
 			0,                          // missSBTIndex -- See SBT discussion
-			r, g, b
+			r, g, b,
+			sh, sl
 			) ;
 
 	const float3 albedo = optics.diffuse.albedo ;
