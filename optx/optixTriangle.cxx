@@ -284,7 +284,7 @@ int main() {
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
-			pipeline_cc_options.numPayloadValues                 = 6 ;
+			pipeline_cc_options.numPayloadValues                 = 6 ; // R, G, B, RNG (2x), depth
 			pipeline_cc_options.numAttributeValues               = 2 ;
 			pipeline_cc_options.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE ;
 			pipeline_cc_options.pipelineLaunchParamsVariableName = "lp_general" ;
@@ -380,8 +380,8 @@ int main() {
 			char   log[2048] ;
 			size_t sizeof_log = sizeof( log ) ;
 
-			const uint32_t    max_trace_depth  = 4 ;
-			OptixProgramGroup program_groups[] = {
+			const unsigned int max_trace_depth  = 4 ;
+			OptixProgramGroup program_groups[]  = {
 				program_group_camera,
 				program_group_ambient,
 				program_group_optics[OPTICS_TYPE_DIFFUSE],
@@ -401,6 +401,38 @@ int main() {
 						&sizeof_log,
 						&pipeline
 						) ) ;
+
+
+
+OptixStackSizes stack_sizes = {} ;
+for( auto& prog_group : program_groups )
+	OPTIX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
+printf( "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDG: %u\n",
+	stack_sizes.cssRG,
+	stack_sizes.cssMS,
+	stack_sizes.cssCH,
+	stack_sizes.cssAH,
+	stack_sizes.cssIS,
+	stack_sizes.cssCC,
+	stack_sizes.dssDC ) ;
+
+unsigned int dssTrav ;
+unsigned int dssStat ;
+unsigned int css ;
+OPTIX_CHECK( optixUtilComputeStackSizes(
+	&stack_sizes,
+	max_trace_depth,
+	0, // maxCCDepth
+	0, // maxDCDEpth
+	&dssTrav,
+	&dssStat,
+	&css ) ) ;
+printf( "dss Traversal (IS, AH): %u, dss State (RG, MS, CH): %u, css: %u\n",
+	dssTrav,
+	dssStat,
+	css ) ;
+
+
 
 			OPTIX_CHECK( optixPipelineSetStackSize(
 						pipeline,
