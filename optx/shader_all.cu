@@ -199,14 +199,81 @@ extern "C" __global__ void __closesthit__diffuse() {
 }
 
 extern "C" __global__ void __closesthit__reflect() {
-    // When built-in triangle intersection is used, a number of fundamental
-    // attributes are provided by the OptiX API, indlucing barycentric coordinates.
-    const float2 barycentrics = optixGetTriangleBarycentrics();
-    const float3 color = { barycentrics.x, barycentrics.y, .5f };
+	// retrieve actual trace depth from payload
+	unsigned int depth = optixGetPayload_5() ;
 
-	optixSetPayload_0( __float_as_uint( color.x ) ) ;
-	optixSetPayload_1( __float_as_uint( color.y ) ) ;
-	optixSetPayload_2( __float_as_uint( color.z ) ) ;
+	// retrieve data (SBT record) of thing being hit
+	const Optics optics = *reinterpret_cast<Optics*>( optixGetSbtDataPointer() ) ;
+
+	// retrieve index of triangle (primitive) being hit
+	// index is same as in OptixBuildInput array handed to optixAccelBuild()
+	const int   prix = optixGetPrimitiveIndex() ;
+	const uint3 trix = optics.ices[prix] ;
+
+	// use index to access triangle vertices
+	const float3 A = optics.vces[trix.x] ;
+	const float3 B = optics.vces[trix.y] ;
+	const float3 C = optics.vces[trix.z] ;
+
+	// retrieve triangle barycentric coordinates of hit
+	const float2 bary = optixGetTriangleBarycentrics() ;
+	const float u = bary.x ;
+	const float v = bary.y ;
+	const float w = 1.f-u-v ;
+
+	// calculate world coordinates of hit
+	const float3 hit = w*A+u*B+v*C ;
+
+	// calculate primitive normal
+	float3 d = optixGetWorldRayDirection() ;
+	float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
+	if ( V::dot( d, N )>0.f )
+		N = -N ;
+
+	// assemble RNG pointer from payload
+	unsigned int sh = optixGetPayload_3() ; // used as well to propagate PNG further down
+	unsigned int sl = optixGetPayload_4() ;
+	curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
+
+	// finally the reflection according to RTOW
+	d = V::unitV( d ) ;
+	const float3 ref = d-2.f*V::dot( d, N )*N ;
+	const float fuzz = optics.reflect.fuzz ;
+	const float3 dir = ref+fuzz*V::rndVin1sphere( state ) ;
+
+	// go deeper as long as not reaching ground
+	if ( lp_general.depth>depth && V::dot( dir, N )>0 ) {
+		// payloads to carry back color
+		unsigned int r, g, b ;
+
+		// one step beyond (recursion)
+		optixTrace(
+				lp_general.as_handle,
+				hit,                        // ray position
+				dir,                        // ray direction
+				1e-3f,                      // tmin
+				1e16f,                      // tmax
+				0.f,                        // motion
+				OptixVisibilityMask( 255 ),
+				OPTIX_RAY_FLAG_NONE,
+				0,                          // SBT related
+				1,                          // SBT related
+				0,                          // SBT related
+				r, g, b, // payload upstream propagation: color
+				sh, sl,  // payload downstream propagation: RNG state pointer
+				++depth  // payload downstream propagation: recursion depth
+				) ;
+
+		// update this ray's reflect color according to RTOW and propagate
+		const float3 albedo = optics.reflect.albedo ;
+		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
+		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
+		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
+	} else {
+		optixSetPayload_0( 0u ) ;
+		optixSetPayload_1( 0u ) ;
+		optixSetPayload_2( 0u ) ;
+	}
 }
 
 extern "C" __global__ void __closesthit__refract() {
