@@ -81,7 +81,7 @@ extern "C" __global__ void __raygen__camera() {
 			lp_general.as_handle,
 			ori,
 			dir,
-			0.f,                        // Min intersection distance
+			1e-3f,                      // Min intersection distance
 			1e16f,                      // Max intersection distance
 			0.f,                        // rayTime -- used for motion blur
 			OptixVisibilityMask( 255 ), // Specify always visible
@@ -141,8 +141,9 @@ extern "C" __global__ void __closesthit__diffuse() {
 		const float3 ori = w*A+u*B+v*C ;
 
 		// calculate primitive normal
+		const float3 d = optixGetWorldRayDirection() ;
 		float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
-		if ( V::dot( ori, N )>0.f )
+		if ( V::dot( d, N )>0.f )
 			N = -N ;
 
 		// retrieve and assemble curandState pointer from payload
@@ -157,7 +158,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 				lp_general.as_handle,
 				ori,
 				dir,
-				0.f,                        // Min intersection distance
+				1e-3f,                      // Min intersection distance
 				1e16f,                      // Max intersection distance
 				0.f,                        // rayTime -- used for motion blur
 				OptixVisibilityMask( 255 ), // Specify always visible
@@ -175,9 +176,9 @@ extern "C" __global__ void __closesthit__diffuse() {
 		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
 	} else {
-		optixSetPayload_0( 0 ) ;
-		optixSetPayload_1( 0 ) ;
-		optixSetPayload_2( 0 ) ;
+		optixSetPayload_0( 0u ) ;
+		optixSetPayload_1( 0u ) ;
+		optixSetPayload_2( 0u ) ;
 	}
 }
 

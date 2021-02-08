@@ -404,9 +404,9 @@ int main() {
 
 			OPTIX_CHECK( optixPipelineSetStackSize(
 						pipeline,
-						2*1024, // direct callable stack size (called from AH and IS programs)
-						2*1024, // direct callable stack size (called from RG, MS and CH programs)
-						2*1024, // continuation callable stack size
+						4*1024, // direct callable stack size (called from AH and IS programs)
+						4*1024, // direct callable stack size (called from RG, MS and CH programs)
+						4*1024, // continuation callable stack size
 						1       // maxTraversableGraphDepth (acceleration structure depth)
 						) ) ;
 		}
