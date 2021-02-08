@@ -39,7 +39,7 @@ git checkout main
 git merge <branch>
 git push -u origin main
 ```
-6. Merge new feature branch
+6. Remove new feature branch
 ```
 # delete remote branch on Git site
 git branch -d <branch>  # local remove
