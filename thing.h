@@ -8,8 +8,8 @@
 class Optics ;
 
 struct Binding {
-	P p ;
 	double t ;
+	P p ;
 	V    normal ;
 	bool facing ;
 	std::shared_ptr<Optics> optics ;

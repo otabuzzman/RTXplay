@@ -84,16 +84,16 @@ extern "C" __global__ void __raygen__camera() {
 	// shoot initial ray
 	optixTrace(
 			lp_general.as_handle,
-			ori,                         // ray position
-			dir,                         // ray direction
-			1e-3f,                       // tmin
-			1e16f,                       // tmax
-			0.f,                         // motion
+			ori,                        // ray position
+			dir,                        // ray direction
+			1e-3f,                      // tmin
+			1e16f,                      // tmax
+			0.f,                        // motion
 			OptixVisibilityMask( 255 ),
 			OPTIX_RAY_FLAG_NONE,
-			0,                           // SBT related
-			1,                           // SBT related
-			0,                           // SBT related
+			0,                          // SBT related
+			1,                          // SBT related
+			0,                          // SBT related
 			r, g, b, // payload upstream: color
 			sh, sl,  // payload downstream: RNG state pointer
 			depth    // payload downstream: recursion depth
@@ -171,16 +171,16 @@ extern "C" __global__ void __closesthit__diffuse() {
 		// one step beyond (recursion)
 		optixTrace(
 				lp_general.as_handle,
-				hit,                         // ray position
-				dir,                         // ray direction
-				1e-3f,                       // tmin
-				1e16f,                       // tmax
-				0.f,                         // motion
+				hit,                        // ray position
+				dir,                        // ray direction
+				1e-3f,                      // tmin
+				1e16f,                      // tmax
+				0.f,                        // motion
 				OptixVisibilityMask( 255 ),
 				OPTIX_RAY_FLAG_NONE,
-				0,                           // SBT related
-				1,                           // SBT related
-				0,                           // SBT related
+				0,                          // SBT related
+				1,                          // SBT related
+				0,                          // SBT related
 				r, g, b, // payload upstream propagation: color
 				sh, sl,  // payload downstream propagation: RNG state pointer
 				++depth  // payload downstream propagation: recursion depth

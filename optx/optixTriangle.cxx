@@ -403,34 +403,45 @@ int main() {
 						) ) ;
 
 
+			/*** calculate stack sizes
 
-OptixStackSizes stack_sizes = {} ;
-for( auto& prog_group : program_groups )
-	OPTIX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
-printf( "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDG: %u\n",
-	stack_sizes.cssRG,
-	stack_sizes.cssMS,
-	stack_sizes.cssCH,
-	stack_sizes.cssAH,
-	stack_sizes.cssIS,
-	stack_sizes.cssCC,
-	stack_sizes.dssDC ) ;
+			OptixStackSizes stack_sizes = {} ;
+			for( auto& prog_group : program_groups )
+				OPTIX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
+			fprintf( stderr, "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDG: %u\n",
+				stack_sizes.cssRG,
+				stack_sizes.cssMS,
+				stack_sizes.cssCH,
+				stack_sizes.cssAH,
+				stack_sizes.cssIS,
+				stack_sizes.cssCC,
+				stack_sizes.dssDC ) ;
 
-unsigned int dssTrav ;
-unsigned int dssStat ;
-unsigned int css ;
-OPTIX_CHECK( optixUtilComputeStackSizes(
-	&stack_sizes,
-	max_trace_depth,
-	0, // maxCCDepth
-	0, // maxDCDEpth
-	&dssTrav,
-	&dssStat,
-	&css ) ) ;
-printf( "dss Traversal (IS, AH): %u, dss State (RG, MS, CH): %u, css: %u\n",
-	dssTrav,
-	dssStat,
-	css ) ;
+			unsigned int dssTrav ;
+			unsigned int dssStat ;
+			unsigned int css ;
+			OPTIX_CHECK( optixUtilComputeStackSizes(
+				&stack_sizes,
+				max_trace_depth,
+				0, // maxCCDepth
+				0, // maxDCDEpth
+				&dssTrav,
+				&dssStat,
+				&css ) ) ;
+			fprintf( stderr, "dss Traversal (IS, AH): %u, dss State (RG, MS, CH): %u, css: %u\n",
+				dssTrav,
+				dssStat,
+				css ) ;
+
+			// max_trace_depth = 4 :
+			// cssRG: 6496, cssMS: 0, cssCH: 32, cssAH: 0, cssIS: 0, cssCC: 0, dssDG: 0
+			// dss Traversal (IS, AH): 0, dss State (RG, MS, CH): 0, css: 6624
+
+			// max_trace_depth = 16 :
+			// cssRG: 6496, cssMS: 0, cssCH: 32, cssAH: 0, cssIS: 0, cssCC: 0, dssDG: 0
+			// dss Traversal (IS, AH): 0, dss State (RG, MS, CH): 0, css: 7008
+
+			***/
 
 
 
