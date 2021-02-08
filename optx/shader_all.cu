@@ -53,11 +53,11 @@ extern "C" __global__ void __raygen__camera() {
 	// set pixel index
 	const unsigned int pix = dim.x*idx.y+idx.x ;
 
-	// use pixel index for seed
+	// initialize random number generator
 	curandState state ;
 	curand_init( 4711, pix, 0, &state ) ;
 
-	// prepare curandState pointer for payload transmission
+	// prepare RNG state pointer for payload transmission
 	unsigned int sh = reinterpret_cast<unsigned long long>( &state )>>32 ;
 	unsigned int sl = reinterpret_cast<unsigned long long>( &state )&0x00000000ffffffff ;
 
@@ -72,6 +72,7 @@ extern "C" __global__ void __raygen__camera() {
 	float3 ori, dir ;
 	camera->ray( s, t, ori, dir, &state ) ;
 
+	// initialize depth count
 	unsigned int depth = 1 ;
 
 	// trace into scene
@@ -131,9 +132,6 @@ extern "C" __global__ void __closesthit__diffuse() {
 		const float3 B = optics.vces[trix.y] ;
 		const float3 C = optics.vces[trix.z] ;
 
-		// calculate primitive normal
-		const float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
-
 		const float2 bary = optixGetTriangleBarycentrics() ;
 		const float u = bary.x ;
 		const float v = bary.y ;
@@ -141,6 +139,11 @@ extern "C" __global__ void __closesthit__diffuse() {
 
 		// calculate primitive hit point
 		const float3 ori = w*A+u*B+v*C ;
+
+		// calculate primitive normal
+		float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
+		if ( V::dot( ori, N )>0.f )
+			N = -N ;
 
 		// retrieve and assemble curandState pointer from payload
 		unsigned int sh = optixGetPayload_3() ;
