@@ -29,7 +29,7 @@
 #include <optix.h>
 
 #include "camera.h"
-#include "optics.h"
+#include "thing.h"
 
 #include "optixTriangle.h"
 
@@ -127,17 +127,19 @@ extern "C" __global__ void __closesthit__diffuse() {
 	// go deeper as long as not reaching ground
 	if ( lp_general.depth>depth ) {
 		// retrieve data (SBT record) of thing being hit
-		const Optics optics = *reinterpret_cast<Optics*>( optixGetSbtDataPointer() ) ;
+		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
+		const Optics optics = thing->optics() ;
 
 		// retrieve index of triangle (primitive) being hit
 		// index is same as in OptixBuildInput array handed to optixAccelBuild()
 		const int   prix = optixGetPrimitiveIndex() ;
-		const uint3 trix = optics.ices[prix] ;
+		const uint3 trix = thing->d_ices()[prix] ;
 
 		// use index to access triangle vertices
-		const float3 A = optics.vces[trix.x] ;
-		const float3 B = optics.vces[trix.y] ;
-		const float3 C = optics.vces[trix.z] ;
+		const float3* d_vces = thing->d_vces() ;
+		const float3 A = d_vces[trix.x] ;
+		const float3 B = d_vces[trix.y] ;
+		const float3 C = d_vces[trix.z] ;
 
 		// retrieve triangle barycentric coordinates of hit
 		const float2 bary = optixGetTriangleBarycentrics() ;
@@ -200,17 +202,19 @@ extern "C" __global__ void __closesthit__reflect() {
 	unsigned int depth = optixGetPayload_5() ;
 
 	// retrieve data (SBT record) of thing being hit
-	const Optics optics = *reinterpret_cast<Optics*>( optixGetSbtDataPointer() ) ;
+	const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
+	const Optics optics = thing->optics() ;
 
 	// retrieve index of triangle (primitive) being hit
 	// index is same as in OptixBuildInput array handed to optixAccelBuild()
 	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = optics.ices[prix] ;
+	const uint3 trix = thing->d_ices()[prix] ;
 
 	// use index to access triangle vertices
-	const float3 A = optics.vces[trix.x] ;
-	const float3 B = optics.vces[trix.y] ;
-	const float3 C = optics.vces[trix.z] ;
+	const float3* d_vces = thing->d_vces() ;
+	const float3 A = d_vces[trix.x] ;
+	const float3 B = d_vces[trix.y] ;
+	const float3 C = d_vces[trix.z] ;
 
 	// retrieve triangle barycentric coordinates of hit
 	const float2 bary = optixGetTriangleBarycentrics() ;

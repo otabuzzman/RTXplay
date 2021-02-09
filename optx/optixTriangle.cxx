@@ -139,8 +139,6 @@ int main() {
 
 
 		// build accelleration structure
-		std::vector<CUdeviceptr> d_vces ;
-		std::vector<CUdeviceptr> d_ices ;
 		OptixTraversableHandle   as_handle ;
 		CUdeviceptr              d_as_outbuf ;
 //		CUdeviceptr              d_as_zipbuf ;
@@ -149,45 +147,20 @@ int main() {
 			std::vector<OptixBuildInput> obi_things ;
 			obi_things.resize( things.size() ) ;
 
-			// GPU pointers at vertices lists of things in scene
-			d_vces.resize( things.size() ) ;
-			// GPU pointers at triangles lists of things in scene
-			d_ices.resize( things.size() ) ;
-
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
-				// copy this thing's vertices to GPU
-				const std::vector<float3> vces = things[i]->vces() ;
-				const size_t vces_size = sizeof( float3 )*vces.size() ;
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_vces[i] ), vces_size ) ) ;
-				CUDA_CHECK( cudaMemcpy(
-					reinterpret_cast<void*>( d_vces[i] ),
-					vces.data(),
-					vces_size,
-					cudaMemcpyHostToDevice
-					) ) ;
-
-				// copy this thing's indices to GPU
-				const std::vector<uint3> ices = things[i]->ices() ;
-				const size_t ices_size = sizeof( uint3 )*ices.size() ;
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_ices[i] ), ices_size ) ) ;
-				CUDA_CHECK( cudaMemcpy(
-					reinterpret_cast<void*>( d_ices[i] ),
-					ices.data(),
-					ices_size,
-					cudaMemcpyHostToDevice
-					) ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = static_cast<unsigned int>( vces.size() ) ;
-				obi_thing.triangleArray.vertexBuffers               = &d_vces[i] ;
+				obi_thing.triangleArray.numVertices                 = things[i]->num_vces() ;
+				const float3* d_vces = things[i]->d_vces() ;
+				obi_thing.triangleArray.vertexBuffers               = reinterpret_cast<CUdeviceptr*>( &d_vces ) ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = static_cast<unsigned int>( ices.size() ) ;
-				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
+				obi_thing.triangleArray.numIndexTriplets            = things[i]->num_ices() ;
+				obi_thing.triangleArray.indexBuffer                 = reinterpret_cast<CUdeviceptr>( things[i]->d_ices() ) ;
 
 				const unsigned int obi_thing_flags[1]               = { OPTIX_GEOMETRY_FLAG_NONE } ;
 				obi_thing.triangleArray.flags                       = obi_thing_flags ;
@@ -499,14 +472,12 @@ int main() {
 			// set SBT record for each thing in scene
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 				// this thing's SBT record
-				SbtRecordHG sbt_record_optics ;
-				sbt_record_optics.data = things[i]->optics() ;
-				sbt_record_optics.data.vces = reinterpret_cast<float3*>( d_vces[i] ) ;
-				sbt_record_optics.data.ices = reinterpret_cast<uint3*>( d_ices[i] ) ;
+				SbtRecordHG sbt_record_thing ;
+				sbt_record_thing.data = *things[i] ;
 				// setup SBT record header
-				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[things[i]->optics().type], &sbt_record_optics ) ) ;
+				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[things[i]->optics().type], &sbt_record_thing ) ) ;
 				// save thing's SBT Record to buffer
-				sbt_record_buffer[i] = sbt_record_optics ;
+				sbt_record_buffer[i] = sbt_record_thing ;
 			}
 
 			// copy SBT record to GPU
@@ -604,8 +575,7 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
-			for ( const CUdeviceptr p : d_vces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
-			for ( const CUdeviceptr p : d_ices ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( p ) ) ) ;
+			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_image                ) ) ) ;
 
 			OPTIX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;

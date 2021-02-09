@@ -26,10 +26,6 @@ typedef struct {
 			float  index ;
 		} refract ;
 	} ;
-
-	// GPU pointers
-	float3* vces ; // thing's vertices
-	uint3*  ices ; // thing's triangles
 } Optics ;
 
 #endif // OPTICS_H

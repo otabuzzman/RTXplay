@@ -1,6 +1,8 @@
 #include <set>
 #include <vector>
 
+#include <sutil/Exception.h>
+
 #include <vector_functions.h>
 #include <vector_types.h>
 
@@ -14,10 +16,36 @@ using V::operator+ ;
 using V::operator* ;
 
 Sphere::Sphere( const float3& center, const float radius, const Optics optics, const bool bbox, const unsigned int ndiv )
-	: center_( center ), radius_( radius ), ndiv_( ndiv ) {
+	: radius_( radius ), ndiv_( ndiv ) {
+	center_ = center ;
 	optics_ = optics ;
 
 	tetrahedron( bbox ) ;
+
+	// copy this thing's vertices to GPU
+	const size_t vces_size = sizeof( float3 )*vces_.size() ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_vces_ ), vces_size ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( d_vces_ ),
+		vces_.data(),
+		vces_size,
+		cudaMemcpyHostToDevice
+		) ) ;
+	// copy this thing's indices to GPU
+	const size_t ices_size = sizeof( uint3 )*ices_.size() ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_ices_ ), ices_size ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( d_ices_ ),
+		ices_.data(),
+		ices_size,
+		cudaMemcpyHostToDevice
+		) ) ;
+}
+
+Sphere::~Sphere() noexcept ( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_vces_ ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_ices_ ) ) ) ;
+	fprintf( stderr, "### DTOR called\n" ) ;
 }
 
 void Sphere::tetrahedron( const bool bbox ) {

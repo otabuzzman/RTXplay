@@ -24,7 +24,7 @@ class Diffuse : public Optics {
 		}
 
 	private:
-		C albedo_ ;    // reflectivity
+		C albedo_ ;     // reflectivity
 } ;
 
 class Reflect : public Optics {
@@ -40,35 +40,35 @@ class Reflect : public Optics {
 		}
 
 	private:
-		C albedo_ ;    // reflectivity
-		double fuzz_ ; // matting
+		C albedo_ ;     // reflectivity
+		double fuzz_ ;  // matting
 } ;
 
 class Refract : public Optics {
 	public:
-		Refract( double refraction_index ) : refraction_index_( refraction_index ) {}
+		Refract( double index ) : index_( index ) {}
 
 		virtual bool spray( const Ray& ray, const Binding& binding, C& attened, Ray& sprayed ) const override {
-			attened = C( 1., 1., 1. ) ;
 			V d, u = unitV( ray.dir() ) ;
 			double ctta = fmin( dot( -u, binding.normal ), 1. ) ;
 			double stta = sqrt( 1.-ctta*ctta ) ;
 
-			double refraction_ratio = binding.facing ? 1./refraction_index_ : refraction_index_ ;
-			bool cannot = refraction_ratio*stta>1. ;
+			double ratio = binding.facing ? 1./index_ : index_ ;
+			bool cannot = ratio*stta>1. ;
 
-			if ( cannot || schlick( ctta, refraction_ratio )>rnd() )
+			if ( cannot || schlick( ctta, ratio )>rnd() )
 				d = reflect( u, binding.normal ) ;
 			else
-				d = refract( u, binding.normal, refraction_ratio ) ;
+				d = refract( u, binding.normal, ratio ) ;
 
 			sprayed = Ray( binding.p, d ) ;
+			attened = C( 1., 1., 1. ) ;
 
 			return true ;
 		}
 
 	private:
-		double refraction_index_ ;
+		double index_ ; // refraction index
 
 		// Schlick's reflectance approximation (chapter 10.4)
 		static double schlick( double ctta, double rrat ) { auto r0 = ( 1-rrat )/( 1+rrat ) ; r0 = r0*r0 ; return r0+( 1-r0 )*pow( ( 1-ctta ), 5 ) ; }

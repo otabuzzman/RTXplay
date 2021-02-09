@@ -10,22 +10,39 @@
 
 class Thing {
 	public:
-		const std::vector<float3> vces() const {
-			return vces_ ;
+		__host__ __device__ const float3* d_vces() const {
+			return d_vces_ ;
 		}
 
-		const std::vector<uint3>  ices() const {
-			return ices_ ;
+		unsigned int num_vces() {
+			return static_cast<unsigned int>( vces_.size() ) ;
 		}
 
-		const Optics optics() const {
+		__host__ __device__ const uint3*  d_ices() const {
+			return d_ices_ ;
+		}
+
+		unsigned int num_ices() {
+			return static_cast<unsigned int>( ices_.size() ) ;
+		}
+
+		__device__ const float3 center() const {
+			return center_ ;
+		}
+
+		__host__ __device__ const Optics optics() const {
 			return optics_ ;
 		}
 
 	protected:
-		std::vector<float3> vces_ ; // unique vertices
-		std::vector<uint3>  ices_ ; // indexed triangles
-		Optics optics_ ;            // optical properties
+		float3 center_ ;
+		Optics optics_ ;
+		// CPU memory
+		std::vector<float3> vces_ ; // thing's unique vertices...
+		std::vector<uint3>  ices_ ; // ...as indexed triangles
+		// GPU memory
+		float3* d_vces_ ;
+		uint3*  d_ices_ ;
 } ;
 
 #endif // THING_H
