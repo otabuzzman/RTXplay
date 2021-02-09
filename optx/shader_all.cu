@@ -39,11 +39,11 @@ using V::operator* ;
 
 extern "C" { __constant__ LpGeneral lp_general ; }
 
-static __forceinline__ __device__ uchar4 sRGB( const float r, const float g, const float b ) {
+static __forceinline__ __device__ uchar4 sRGB( const unsigned int r, const unsigned int g, const unsigned int b ) {
 	return make_uchar4(
-		(unsigned char) ( util::clamp( r, .0f, 1.f )*255.f+.5f ),
-		(unsigned char) ( util::clamp( g, .0f, 1.f )*255.f+.5f ),
-		(unsigned char) ( util::clamp( b, .0f, 1.f )*255.f+.5f ), 255u ) ;
+		(unsigned char) ( util::clamp( __uint_as_float( r ), .0f, 1.f )*255.f+.5f ),
+		(unsigned char) ( util::clamp( __uint_as_float( g ), .0f, 1.f )*255.f+.5f ),
+		(unsigned char) ( util::clamp( __uint_as_float( b ), .0f, 1.f )*255.f+.5f ), 255u ) ;
 }
 
 extern "C" __global__ void __raygen__camera() {
@@ -84,8 +84,8 @@ extern "C" __global__ void __raygen__camera() {
 	// shoot initial ray
 	optixTrace(
 			lp_general.as_handle,
-			ori,                        // ray position
-			dir,                        // ray direction
+			ori,                        // next ray's origin
+			dir,                        // next ray's direction
 			1e-3f,                      // tmin
 			1e16f,                      // tmax
 			0.f,                        // motion
@@ -100,10 +100,7 @@ extern "C" __global__ void __raygen__camera() {
 			) ;
 
 	// update pixel in image buffer with this ray's color
-	lp_general.image[pix] = sRGB(
-		__uint_as_float( r ),
-		__uint_as_float( g ),
-		__uint_as_float( b ) ) ;
+	lp_general.image[pix] = sRGB( r, g, b ) ;
 }
 
 extern "C" __global__ void __miss__ambient() {
@@ -158,12 +155,12 @@ extern "C" __global__ void __closesthit__diffuse() {
 			N = -N ;
 
 		// assemble RNG pointer from payload
-		unsigned int sh = optixGetPayload_3() ; // used as well to propagate PNG further down
+		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
 		unsigned int sl = optixGetPayload_4() ;
 		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
 		// finally the diffuse reflection according to RTOW
-		const float3 dir = N+V::rndVon1sphere( state ) ;
+		const float3 dir = N+V::rndVon1sphere( state ) ; // see CPU version of RTOW, function Diffuse.spray()
 
 		// payloads to carry back color
 		unsigned int r, g, b ;
@@ -171,8 +168,8 @@ extern "C" __global__ void __closesthit__diffuse() {
 		// one step beyond (recursion)
 		optixTrace(
 				lp_general.as_handle,
-				hit,                        // ray position
-				dir,                        // ray direction
+				hit,                        // next ray's origin
+				dir,                        // next ray's direction
 				1e-3f,                      // tmin
 				1e16f,                      // tmax
 				0.f,                        // motion
@@ -231,17 +228,19 @@ extern "C" __global__ void __closesthit__reflect() {
 		N = -N ;
 
 	// assemble RNG pointer from payload
-	unsigned int sh = optixGetPayload_3() ; // used as well to propagate PNG further down
+	unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
 	unsigned int sl = optixGetPayload_4() ;
 	curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
 	// finally the reflection according to RTOW
-	d = V::unitV( d ) ;
-	const float3 ref = d-2.f*V::dot( d, N )*N ;
-	const float fuzz = optics.reflect.fuzz ;
-	const float3 dir = ref+fuzz*V::rndVin1sphere( state ) ;
+	// see CPU version of RTOW, function Reflect.spray()
+		const float3 d1V     = V::unitV( d ) ;              // V.reflect()
+		const float3 reflect = d1V-2.f*V::dot( d1V, N )*N ; // V.reflect()
+		const float fuzz = optics.reflect.fuzz ;
+		const float3 dir = reflect+fuzz*V::rndVin1sphere( state ) ;
+	//
 
-	// go deeper as long as not reaching ground
+	// go deeper as long as not reaching ground and same directions of hit point normal and reflected ray.
 	if ( lp_general.depth>depth && V::dot( dir, N )>0 ) {
 		// payloads to carry back color
 		unsigned int r, g, b ;
@@ -249,8 +248,8 @@ extern "C" __global__ void __closesthit__reflect() {
 		// one step beyond (recursion)
 		optixTrace(
 				lp_general.as_handle,
-				hit,                        // ray position
-				dir,                        // ray direction
+				hit,                        // next ray's origin
+				dir,                        // next ray's direction
 				1e-3f,                      // tmin
 				1e16f,                      // tmax
 				0.f,                        // motion
