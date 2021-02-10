@@ -265,8 +265,8 @@ int main() {
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
-						&camera_ptx[0],
-						camera_ptx_size,
+						&optics_ptx[0],
+						optics_ptx_size,
 						log,
 						&sizeof_log,
 						&module_optics
