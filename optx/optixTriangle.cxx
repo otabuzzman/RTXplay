@@ -147,10 +147,15 @@ int main() {
 			std::vector<OptixBuildInput> obi_things ;
 			obi_things.resize( things.size() ) ;
 
-			// create build input strucure for each thing in scene
+			// GPU pointers at vertices lists of things in scene
 			std::vector<CUdeviceptr> d_vces ;
-			std::vector<CUdeviceptr> d_ices ;
 			d_vces.resize( things.size() ) ;
+
+			// GPU pointers at triangles lists of things in scene
+			std::vector<CUdeviceptr> d_ices ;
+			d_ices.resize( things.size() ) ;
+
+			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 				d_vces[i] = reinterpret_cast<CUdeviceptr>( things[i]->d_vces() ) ;
 				d_ices[i] = reinterpret_cast<CUdeviceptr>( things[i]->d_ices() ) ;
