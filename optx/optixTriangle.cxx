@@ -148,18 +148,23 @@ int main() {
 			obi_things.resize( things.size() ) ;
 
 			// create build input strucure for each thing in scene
+			std::vector<CUdeviceptr> d_vces ;
+			std::vector<CUdeviceptr> d_ices ;
+			d_vces.resize( things.size() ) ;
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
+				d_vces[i] = reinterpret_cast<CUdeviceptr>( things[i]->d_vces() ) ;
+				d_ices[i] = reinterpret_cast<CUdeviceptr>( things[i]->d_ices() ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 				obi_thing.triangleArray.numVertices                 = things[i]->num_vces() ;
-				obi_thing.triangleArray.vertexBuffers               = reinterpret_cast<CUdeviceptr*>( things[i]->d_vces() ) ;
+				obi_thing.triangleArray.vertexBuffers               = &d_vces[i] ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
 				obi_thing.triangleArray.numIndexTriplets            = things[i]->num_ices() ;
-				obi_thing.triangleArray.indexBuffer                 = reinterpret_cast<CUdeviceptr>( things[i]->d_ices() ) ;
+				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
 				const unsigned int obi_thing_flags[1]               = { OPTIX_GEOMETRY_FLAG_NONE } ;
 				obi_thing.triangleArray.flags                       = obi_thing_flags ;

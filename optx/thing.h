@@ -10,7 +10,7 @@
 
 class Thing {
 	public:
-		__host__ __device__ float3*& d_vces() {
+		__host__ __device__ const float3* d_vces() const {
 			return d_vces_ ;
 		}
 
