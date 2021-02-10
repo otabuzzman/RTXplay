@@ -1,5 +1,5 @@
-#ifndef OPTIXTRIANGLE_H
-#define OPTIXTRIANGLE_H
+#ifndef RTOW_H
+#define RTOW_H
 
 struct LpGeneral { // launch parameter
 	uchar4*                image ;
@@ -24,4 +24,4 @@ typedef SbtRecord<Camera> SbtRecordRG ; // Ray Generation program group SBT reco
 typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
 typedef SbtRecord<Thing>  SbtRecordHG ; // Hit Group program group SBT record type
 
-#endif // OPTIXTRIANGLE_H
+#endif // RTOW_H

@@ -3,7 +3,7 @@
 #include "camera.h"
 #include "thing.h"
 
-#include "optixTriangle.h"
+#include "rtow.h"
 
 using V::operator+ ;
 using V::operator- ;

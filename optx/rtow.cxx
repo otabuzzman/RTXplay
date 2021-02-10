@@ -18,7 +18,7 @@
 #include "util.h"
 #include "v.h"
 
-#include "optixTriangle.h"
+#include "rtow.h"
 
 using V::operator- ;
 using V::operator* ;
