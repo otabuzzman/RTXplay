@@ -1,31 +1,3 @@
-//
-// Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions
-// are met:
-//  * Redistributions of source code must retain the above copyright
-//    notice, this list of conditions and the following disclaimer.
-//  * Redistributions in binary form must reproduce the above copyright
-//    notice, this list of conditions and the following disclaimer in the
-//    documentation and/or other materials provided with the distribution.
-//  * Neither the name of NVIDIA CORPORATION nor the names of its
-//    contributors may be used to endorse or promote products derived
-//    from this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
-// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
-// CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-// PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-// OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-
 #include <array>
 #include <string>
 #include <vector>
@@ -52,7 +24,8 @@ using V::operator- ;
 using V::operator* ;
 
 // PTX sources of shaders
-extern "C" const char shader_all[] ;
+extern "C" const char camera_ptx[] ;
+extern "C" const char optics_ptx[] ;
 
 const Things scene() {
 	Optics o ;
@@ -254,7 +227,8 @@ int main() {
 
 
 		// create module(s)
-		OptixModule module_all = nullptr ;
+		OptixModule module_camera = nullptr ;
+		OptixModule module_optics = nullptr ;
 		OptixPipelineCompileOptions pipeline_cc_options = {} ;
 		{
 			char   log[2048] ;
@@ -274,16 +248,28 @@ int main() {
 			pipeline_cc_options.usesPrimitiveTypeFlags           = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE ;
 
 			// compile (each) shader source file into a module
-			const size_t shader_all_size = strlen( &shader_all[0] ) ;
+			const size_t camera_ptx_size = strlen( &camera_ptx[0] ) ;
 			OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
-						&shader_all[0],
-						shader_all_size,
+						&camera_ptx[0],
+						camera_ptx_size,
 						log,
 						&sizeof_log,
-						&module_all
+						&module_camera
+						) ) ;
+
+			const size_t optics_ptx_size = strlen( &optics_ptx[0] ) ;
+			OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
+						optx_context,
+						&module_cc_options,
+						&pipeline_cc_options,
+						&camera_ptx[0],
+						camera_ptx_size,
+						log,
+						&sizeof_log,
+						&module_optics
 						) ) ;
 		}
 
@@ -302,7 +288,7 @@ int main() {
 			// Ray Generation program group
 			OptixProgramGroupDesc program_group_camera_desc           = {} ;
 			program_group_camera_desc.kind                            = OPTIX_PROGRAM_GROUP_KIND_RAYGEN ;
-			program_group_camera_desc.raygen.module                   = module_all;
+			program_group_camera_desc.raygen.module                   = module_camera ;
 			// function in shader source file with __global__ decorator
 			program_group_camera_desc.raygen.entryFunctionName        = "__raygen__camera" ;
 			OPTIX_CHECK_LOG( optixProgramGroupCreate(
@@ -319,7 +305,7 @@ int main() {
 			OptixProgramGroupDesc program_group_ambient_desc   = {} ;
 
 			program_group_ambient_desc.kind                           = OPTIX_PROGRAM_GROUP_KIND_MISS ;
-			program_group_ambient_desc.miss.module                    = module_all ;
+			program_group_ambient_desc.miss.module                    = module_camera ;
 			// function in shader source file with __global__ decorator
 			program_group_ambient_desc.miss.entryFunctionName         = "__miss__ambient" ;
 			OPTIX_CHECK_LOG( optixProgramGroupCreate(
@@ -337,12 +323,12 @@ int main() {
 			// multiple program groups at once
 			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
 			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].hitgroup.entryFunctionNameCH = "__closesthit__diffuse" ;
-			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].hitgroup.moduleCH            = module_all;
+			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].hitgroup.moduleCH            = module_optics ;
 			program_group_optics_desc[OPTICS_TYPE_REFLECT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[OPTICS_TYPE_REFLECT].hitgroup.moduleCH            = module_all;
+			program_group_optics_desc[OPTICS_TYPE_REFLECT].hitgroup.moduleCH            = module_optics ;
 			program_group_optics_desc[OPTICS_TYPE_REFLECT].hitgroup.entryFunctionNameCH = "__closesthit__reflect" ;
 			program_group_optics_desc[OPTICS_TYPE_REFRACT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.moduleCH            = module_all;
+			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.moduleCH            = module_optics ;
 			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.entryFunctionNameCH = "__closesthit__refract" ;
 			OPTIX_CHECK_LOG( optixProgramGroupCreate(
 						optx_context,
@@ -596,7 +582,8 @@ int main() {
 			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFRACT] ) ) ;
 			OPTIX_CHECK( optixProgramGroupDestroy( program_group_ambient   ) ) ;
 			OPTIX_CHECK( optixProgramGroupDestroy( program_group_camera    ) ) ;
-			OPTIX_CHECK( optixModuleDestroy      ( module_all              ) ) ;
+			OPTIX_CHECK( optixModuleDestroy      ( module_camera              ) ) ;
+			OPTIX_CHECK( optixModuleDestroy      ( module_optics              ) ) ;
 
 			OPTIX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
 		}

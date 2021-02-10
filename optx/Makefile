@@ -17,16 +17,19 @@ endif
 
 OBJ = \
 	optixTriangle.o \
-	shader_all.o \
+	camera.o \
+	optics.o \
 	sphere.o \
 
 IMG = optixTriangle.png
 
 SHD = \
-	shader_all.cu \
+	camera.cu \
+	optics.cu \
 
 PTX = \
-	shader_all.ptx \
+	camera.ptx \
+	optics.ptx \
 
 OPTIX_CACHE_PATH = ./OptixCache_$$USER
 
