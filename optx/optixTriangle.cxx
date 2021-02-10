@@ -64,7 +64,7 @@ const Things scene() {
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11; b++ ) {
-			auto bbox = .3f>util::rnd() ? true : false ;
+			auto bbox = false ; // .3f>util::rnd() ? true : false ;
 			auto select = util::rnd() ;
 			float3 center = make_float3( a+.9f*util::rnd(), .2f, b+.9f*util::rnd() ) ;
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
@@ -88,7 +88,7 @@ const Things scene() {
 
 	o.type = OPTICS_TYPE_REFRACT ;
 	o.refract.index  = 1.5f ;
-	s.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f, o ) ) ;
+	s.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f, o, false, 8 ) ) ;
 	o.type = OPTICS_TYPE_DIFFUSE ;
 	o.diffuse.albedo = { .4f, .2f, .1f } ;
 	s.push_back( std::make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f, o ) ) ;
