@@ -10,18 +10,18 @@ space = $(empty) $(empty)
 comma := ,
 
 ifdef winos
-EXE = optixTriangle.exe
+EXE = rtow.exe
 else
-EXE = optixTriangle
+EXE = rtow
 endif
 
 OBJ = \
-	optixTriangle.o \
+	rtow.o \
 	camera.o \
 	optics.o \
 	sphere.o \
 
-IMG = optixTriangle.png
+IMG = rtow.png
 
 SHD = \
 	camera.cu \
@@ -116,7 +116,7 @@ endif
 		$(INC) \
 
 .ptx.c:
-	bin2c -c -p 0 -n $(basename $<) $< > $@
+	bin2c -c -p 0 -n $(basename $<)_ptx $< > $@
 
 all: $(EXE) $(IMG)
 
