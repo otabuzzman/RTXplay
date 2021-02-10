@@ -64,22 +64,23 @@ const Things scene() {
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11; b++ ) {
+			auto bbox = .3f>util::rnd() ? true : false ;
 			auto select = util::rnd() ;
 			float3 center = make_float3( a+.9f*util::rnd(), .2f, b+.9f*util::rnd() ) ;
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 				if ( select<.8f ) {
 					o.type = OPTICS_TYPE_DIFFUSE ;
 					o.diffuse.albedo = V::rnd()*V::rnd() ;
-					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
+					s.push_back( std::make_shared<Sphere>( center, .2f, o, bbox ) ) ;
 				} else if ( select<.95f ) {
 					o.type = OPTICS_TYPE_REFLECT ;
 					o.reflect.albedo = V::rnd( .5f, 1.f ) ;
 					o.reflect.fuzz = util::rnd( 0.f, .5f ) ;
-					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
+					s.push_back( std::make_shared<Sphere>( center, .2f, o, bbox ) ) ;
 				} else {
 					o.type = OPTICS_TYPE_REFRACT ;
 					o.refract.index = 1.5f ;
-					s.push_back( std::make_shared<Sphere>( center, .2f, o ) ) ;
+					s.push_back( std::make_shared<Sphere>( center, .2f, o, bbox, 3 ) ) ;
 				}
 			}
 		}
@@ -94,7 +95,7 @@ const Things scene() {
 	o.type = OPTICS_TYPE_REFLECT ;
 	o.reflect.albedo = { .7f, .6f, .5f } ;
 	o.reflect.fuzz   = 0.f ;
-	s.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f, o ) ) ;
+	s.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f, o, false, 3 ) ) ;
 
 	return s ;
 }
@@ -526,7 +527,9 @@ int main() {
 			lp_general.image_w   = w ;
 			lp_general.image_h   = h ;
 
-			lp_general.depth     = 4 ;
+			lp_general.spp       = 50 ; // samples per pixel
+
+			lp_general.depth     = 50 ; // recursion depth
 
 			lp_general.as_handle = as_handle ;
 
