@@ -54,12 +54,12 @@ V rndVin1sphere()                  { while ( true ) { auto v = V::rnd( -1, 1 ) ;
 // random V on unit sphere (chapter 8.5)
 V rndVon1sphere()                  { return unitV( rndVin1sphere() ) ; }
 // random V against ray (chapter 8.6)
-V rndVoppraydir( const V& normal ) { auto v = rndVin1sphere() ; return dot( v, normal ) ? v : -v ; }
+V rndVoppraydir( const V& n )      { auto v = rndVin1sphere() ; return dot( v, n ) ? v : -v ; }
 // random V in unit disk (chapter 12.2)
 V rndVin1disk() { while ( true ) { auto v = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ; if ( 1>v.dot() ) continue ; return v ; } }
 
-V reflect( const V& v, const V& n )              { return v-2*dot( v, n )*n ; }
-V refract( const V& v, const V& n, double qeta ) { auto tta = fmin( dot( -v, n ), 1. ) ; V perp = qeta*( v+tta*n ) ; V parl = -sqrt( fabs( 1.-perp.dot() ) )*n ; return perp+parl ; }
+V reflect( const V& v, const V& n )               { return v-2*dot( v, n )*n ; }
+V refract( const V& v, const V& n, double ratio ) { auto theta = fmin( dot( -v, n ), 1. ) ; V perpen = ratio*( v+theta*n ) ; V parall = -sqrt( fabs( 1.-perpen.dot() ) )*n ; return perpen+parall ; }
 
 inline std::ostream& operator << ( std::ostream &out, const V &v ) { return out << v.x() << ' ' << v.y() << ' ' << v.z() ; }
 
