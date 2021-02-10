@@ -148,7 +148,6 @@ int main() {
 			obi_things.resize( things.size() ) ;
 
 			// create build input strucure for each thing in scene
-			const float3* d_vces ;
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
@@ -156,8 +155,7 @@ int main() {
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 				obi_thing.triangleArray.numVertices                 = things[i]->num_vces() ;
-				d_vces = things[i]->d_vces() ;
-				obi_thing.triangleArray.vertexBuffers               = reinterpret_cast<CUdeviceptr*>( &d_vces ) ;
+				obi_thing.triangleArray.vertexBuffers               = reinterpret_cast<CUdeviceptr*>( things[i]->d_vces() ) ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
 				obi_thing.triangleArray.numIndexTriplets            = things[i]->num_ices() ;
