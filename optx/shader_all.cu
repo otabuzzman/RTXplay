@@ -127,7 +127,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 	// go deeper as long as not reaching ground
 	if ( lp_general.depth>depth ) {
 		// retrieve data (SBT record) of thing being hit
-		Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
+		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
 		const Optics optics = thing->optics() ;
 
 		// retrieve index of triangle (primitive) being hit
@@ -202,7 +202,7 @@ extern "C" __global__ void __closesthit__reflect() {
 	unsigned int depth = optixGetPayload_5() ;
 
 	// retrieve data (SBT record) of thing being hit
-	Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
+	const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
 	const Optics optics = thing->optics() ;
 
 	// retrieve index of triangle (primitive) being hit
