@@ -34,7 +34,9 @@ struct LpGeneral { // launch parameter
 	unsigned int           image_w ;
 	unsigned int           image_h ;
 
-	unsigned int           depth ;
+	unsigned int           spp ;   // samples per pixel
+
+	unsigned int           depth ; // recursion depth
 
 	OptixTraversableHandle as_handle ;
 } ;
