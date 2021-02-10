@@ -162,7 +162,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
 		// finally the diffuse reflection according to RTOW
-		// see CPU version of RTOW, function Diffuse.spray()
+		// see CPU version of RTOW, optics.h: Diffuse.spray()
 			const float3 dir = N+V::rndVon1sphere( state ) ;
 		//
 
@@ -239,9 +239,9 @@ extern "C" __global__ void __closesthit__reflect() {
 	curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
 	// finally the reflection according to RTOW
-	// see CPU version of RTOW, function Reflect.spray()
-		const float3 d1V     = V::unitV( d ) ;              // V.reflect()
-		const float3 reflect = d1V-2.f*V::dot( d1V, N )*N ; // V.reflect()
+	// see CPU version of RTOW, optics.h:  Reflect.spray()
+		const float3 d1V     = V::unitV( d ) ;              // v.h: reflect()
+		const float3 reflect = d1V-2.f*V::dot( d1V, N )*N ; // v.h: reflect()
 		const float fuzz = optics.reflect.fuzz ;
 		const float3 dir = reflect+fuzz*V::rndVin1sphere( state ) ;
 	//
@@ -323,28 +323,28 @@ extern "C" __global__ void __closesthit__refract() {
 		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
 		// finally the refraction according to RTOW
-		// see CPU version of RTOW, function Refract.spray()
+		// see CPU version of RTOW, optics.h: Refract.spray()
 			const float3 d1V     = V::unitV( d ) ;
-			const float ctta = fminf( V::dot( -d1V, N ), 1.f ) ;
-			const float stta = sqrtf( 1.f-ctta*ctta ) ;
+			const float cos_theta = fminf( V::dot( -d1V, N ), 1.f ) ;
+			const float sin_theta = sqrtf( 1.f-cos_theta*cos_theta ) ;
 
 			const float3 O = hit-thing->center() ;
 			const float ratio = 0.f>V::dot( d, O )
 					? 1.f/optics.refract.index
 					: optics.refract.index ;
-			const bool cannot = ratio*stta>1.f ;
+			const bool cannot = ratio*sin_theta>1.f ;
 
-			float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;            // Refract.schlick()
-			const float schlick =  r0+( 1.f-r0 )*powf( ( 1.f-ctta ), 5.f ) ; // Refract.schlick()
+			float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;                 // optics.h: Refract.schlick()
+			const float schlick =  r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // optics.h: Refract.schlick()
 
 			float3 dir ;
 			if ( cannot || schlick>util::rnd( state ) ) {
-				dir = d1V-2.f*V::dot( d1V, N )*N ;                                  // V.reflect()
+				dir = d1V-2.f*V::dot( d1V, N )*N ;                                        // v.h: reflect()
 			} else {
-				const float tta = fminf( V::dot( -d1V, N ), 1.f ) ;                 // V.refract()
-				const float3 perp = ratio*( d1V+tta*N ) ;                           // V.refract()
-				const float3 parl = -sqrtf( fabsf( 1.f-V::dot( perp, perp ) ) )*N ; // V.refract()
-				dir = perp+parl ;                                                   // V.refract()
+				const float theta   = fminf( V::dot( -d1V, N ), 1.f ) ;                   // v.h: refract()
+				const float3 perpen = ratio*( d1V+theta*N ) ;                             // v.h: refract()
+				const float3 parall = -sqrtf( fabsf( 1.f-V::dot( perpen, perpen ) ) )*N ; // v.h: refract()
+				dir = perpen+parall ;                                                     // v.h: refract()
 			}
 		//
 
