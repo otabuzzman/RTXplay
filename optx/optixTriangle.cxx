@@ -148,6 +148,7 @@ int main() {
 			obi_things.resize( things.size() ) ;
 
 			// create build input strucure for each thing in scene
+			const float3* d_vces ;
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
@@ -155,7 +156,7 @@ int main() {
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 				obi_thing.triangleArray.numVertices                 = things[i]->num_vces() ;
-				const float3* d_vces = things[i]->d_vces() ;
+				d_vces = things[i]->d_vces() ;
 				obi_thing.triangleArray.vertexBuffers               = reinterpret_cast<CUdeviceptr*>( &d_vces ) ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
@@ -575,7 +576,7 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
-			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ;
+			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ; // force thing's dtor
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_image                ) ) ) ;
 
 			OPTIX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
