@@ -71,7 +71,7 @@ class Refract : public Optics {
 		double index_ ; // refraction index
 
 		// Schlick's reflectance approximation (chapter 10.4)
-		static double schlick( double ctta, double rrat ) { auto r0 = ( 1-rrat )/( 1+rrat ) ; r0 = r0*r0 ; return r0+( 1-r0 )*pow( ( 1-ctta ), 5 ) ; }
+		static double schlick( double ctta, double ratio ) { auto r0 = ( 1-ratio )/( 1+ratio ) ; r0 = r0*r0 ; return r0+( 1-r0 )*pow( ( 1-ctta ), 5 ) ; }
 } ;
 
 #endif // OPTICS_H

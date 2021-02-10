@@ -18,6 +18,10 @@ struct Binding {
 class Thing {
 	public:
 		virtual bool hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const = 0 ;
+
+	protected:
+		P center_ ;
+		std::shared_ptr<Optics> optics_ ;
 } ;
 
 #endif // THING_H

@@ -6,14 +6,15 @@
 class Sphere : public Thing {
 	public:
 		Sphere() {}
-		Sphere( const P& center, const double radius, std::shared_ptr<Optics> optics ) : center_( center ), radius_( radius ), optics_( optics ) {}
+		Sphere( const P& center, const double radius, std::shared_ptr<Optics> optics ) : radius_( radius ) {
+			center_ = center ;
+			optics_ = optics ;
+		}
 
 		virtual bool hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const override ;
 
 	private:
-		P center_ ;
 		double radius_ ;
-		std::shared_ptr<Optics> optics_ ;
 } ;
 
 bool Sphere::hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const {

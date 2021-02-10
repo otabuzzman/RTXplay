@@ -162,7 +162,9 @@ extern "C" __global__ void __closesthit__diffuse() {
 		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
 		// finally the diffuse reflection according to RTOW
-		const float3 dir = N+V::rndVon1sphere( state ) ; // see CPU version of RTOW, function Diffuse.spray()
+		// see CPU version of RTOW, function Diffuse.spray()
+			const float3 dir = N+V::rndVon1sphere( state ) ;
+		//
 
 		// payloads to carry back color
 		unsigned int r, g, b ;
@@ -280,12 +282,101 @@ extern "C" __global__ void __closesthit__reflect() {
 }
 
 extern "C" __global__ void __closesthit__refract() {
-    // When built-in triangle intersection is used, a number of fundamental
-    // attributes are provided by the OptiX API, indlucing barycentric coordinates.
-    const float2 barycentrics = optixGetTriangleBarycentrics();
-    const float3 color = { barycentrics.x, barycentrics.y, 0.f };
+	// retrieve actual trace depth from payload
+	unsigned int depth = optixGetPayload_5() ;
 
-	optixSetPayload_0( __float_as_uint( color.x ) ) ;
-	optixSetPayload_1( __float_as_uint( color.y ) ) ;
-	optixSetPayload_2( __float_as_uint( color.z ) ) ;
+	// go deeper as long as not reaching ground
+	if ( lp_general.depth>depth ) {
+		// retrieve data (SBT record) of thing being hit
+		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
+		const Optics optics = thing->optics() ;
+
+		// retrieve index of triangle (primitive) being hit
+		// index is same as in OptixBuildInput array handed to optixAccelBuild()
+		const int   prix = optixGetPrimitiveIndex() ;
+		const uint3 trix = thing->d_ices()[prix] ;
+
+		// use index to access triangle vertices
+		const float3* d_vces = thing->d_vces() ;
+		const float3 A = d_vces[trix.x] ;
+		const float3 B = d_vces[trix.y] ;
+		const float3 C = d_vces[trix.z] ;
+
+		// retrieve triangle barycentric coordinates of hit
+		const float2 bary = optixGetTriangleBarycentrics() ;
+		const float u = bary.x ;
+		const float v = bary.y ;
+		const float w = 1.f-u-v ;
+
+		// calculate world coordinates of hit
+		const float3 hit = w*A+u*B+v*C ;
+
+		// calculate primitive normal
+		const float3 d = optixGetWorldRayDirection() ;
+		float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
+		if ( V::dot( d, N )>0.f )
+			N = -N ;
+
+		// assemble RNG pointer from payload
+		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
+		unsigned int sl = optixGetPayload_4() ;
+		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
+
+		// finally the refraction according to RTOW
+		// see CPU version of RTOW, function Refract.spray()
+			const float3 d1V     = V::unitV( d ) ;
+			const float ctta = fminf( V::dot( -d1V, N ), 1.f ) ;
+			const float stta = sqrtf( 1.f-ctta*ctta ) ;
+
+			const float3 O = hit-thing->center() ;
+			const float ratio = 0.f>V::dot( d, O )
+					? 1.f/optics.refract.index
+					: optics.refract.index ;
+			const bool cannot = ratio*stta>1.f ;
+
+			float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;            // Refract.schlick()
+			const float schlick =  r0+( 1.f-r0 )*powf( ( 1.f-ctta ), 5.f ) ; // Refract.schlick()
+
+			float3 dir ;
+			if ( cannot || schlick>util::rnd( state ) ) {
+				dir = d1V-2.f*V::dot( d1V, N )*N ;                                  // V.reflect()
+			} else {
+				const float tta = fminf( V::dot( -d1V, N ), 1.f ) ;                 // V.refract()
+				const float3 perp = ratio*( d1V+tta*N ) ;                           // V.refract()
+				const float3 parl = -sqrtf( fabsf( 1.f-V::dot( perp, perp ) ) )*N ; // V.refract()
+				dir = perp+parl ;                                                   // V.refract()
+			}
+		//
+
+		// payloads to carry back color
+		unsigned int r, g, b ;
+
+		// one step beyond (recursion)
+		optixTrace(
+				lp_general.as_handle,
+				hit,                        // next ray's origin
+				dir,                        // next ray's direction
+				1e-3f,                      // tmin
+				1e16f,                      // tmax
+				0.f,                        // motion
+				OptixVisibilityMask( 255 ),
+				OPTIX_RAY_FLAG_NONE,
+				0,                          // SBT related
+				1,                          // SBT related
+				0,                          // SBT related
+				r, g, b, // payload upstream propagation: color
+				sh, sl,  // payload downstream propagation: RNG state pointer
+				++depth  // payload downstream propagation: recursion depth
+				) ;
+
+		// update this ray's refract color according to RTOW and propagate
+		const float3 albedo = { 1.f, 1.f, 1.f } ;
+		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
+		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
+		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
+	} else {
+		optixSetPayload_0( 0u ) ;
+		optixSetPayload_1( 0u ) ;
+		optixSetPayload_2( 0u ) ;
+	}
 }
