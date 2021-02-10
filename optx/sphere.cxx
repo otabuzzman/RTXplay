@@ -45,7 +45,6 @@ Sphere::Sphere( const float3& center, const float radius, const Optics optics, c
 Sphere::~Sphere() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_vces_ ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_ices_ ) ) ) ;
-	fprintf( stderr, "### DTOR called\n" ) ;
 }
 
 void Sphere::tetrahedron( const bool bbox ) {
