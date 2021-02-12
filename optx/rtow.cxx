@@ -90,6 +90,8 @@ int main() {
 
 	const int w = 1200 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
+	const int spp = 50 ;                           // samples per pixel
+	const int depth = 50 ;                         // recursion depth
 
 	SbtRecordMS sbt_record_ambient ;
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
@@ -513,9 +515,9 @@ int main() {
 			lp_general.image_w   = w ;
 			lp_general.image_h   = h ;
 
-			lp_general.spp       = 50 ; // samples per pixel
+			lp_general.spp       = spp ;
 
-			lp_general.depth     = 50 ; // recursion depth
+			lp_general.depth     = depth ;
 
 			lp_general.as_handle = as_handle ;
 
