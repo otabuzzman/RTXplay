@@ -10,18 +10,18 @@ space = $(empty) $(empty)
 comma := ,
 
 ifdef winos
-EXE = rtow.exe
+EXE = rtwo.exe
 else
-EXE = rtow
+EXE = rtwo
 endif
 
 OBJ = \
-	rtow.o \
+	rtwo.o \
 	camera.o \
 	optics.o \
 	sphere.o \
 
-IMG = rtow.png
+IMG = rtwo.png
 
 SHD = \
 	camera.cu \

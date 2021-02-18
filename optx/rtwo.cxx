@@ -18,7 +18,7 @@
 #include "util.h"
 #include "v.h"
 
-#include "rtow.h"
+#include "rtwo.h"
 
 using V::operator- ;
 using V::operator* ;
@@ -90,7 +90,7 @@ int main() {
 
 	const int w = 1200 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
-	const int spp = 50 ;                           // samples per pixel
+	const int spp = 500 ;                          // samples per pixel
 	const int depth = 50 ;                         // recursion depth
 
 	SbtRecordMS sbt_record_ambient ;
@@ -114,9 +114,10 @@ int main() {
 
 
 
-		// build accelleration structure
+		// build acceleration structure
 		OptixTraversableHandle   as_handle ;
 		CUdeviceptr              d_as_outbuf ;
+		// acceleration structure compaction buffer
 //		CUdeviceptr              d_as_zipbuf ;
 		{
 			// build input structures of things in scene
@@ -198,6 +199,7 @@ int main() {
 						as_buffer_sizes.outputSizeInBytes,
 						&as_handle,
 						nullptr, 0
+						// acceleration structure compaction (must comment previous line)
 //						&oas_request, 1
 						) ) ;
 
@@ -222,6 +224,7 @@ int main() {
 //						&as_handle) ) ;
 
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
+			// free GPU memory for acceleration structure compaction buffer
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf_size ) ) ) ;
 		}
@@ -374,35 +377,36 @@ int main() {
 						) ) ;
 
 
+
 			/*** calculate stack sizes
 
 			OptixStackSizes stack_sizes = {} ;
 			for( auto& prog_group : program_groups )
 				OPTIX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
-			fprintf( stderr, "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDG: %u\n",
-				stack_sizes.cssRG,
-				stack_sizes.cssMS,
-				stack_sizes.cssCH,
-				stack_sizes.cssAH,
-				stack_sizes.cssIS,
-				stack_sizes.cssCC,
-				stack_sizes.dssDC ) ;
+//			fprintf( stderr, "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDG: %u\n",
+//				stack_sizes.cssRG,
+//				stack_sizes.cssMS,
+//				stack_sizes.cssCH,
+//				stack_sizes.cssAH,
+//				stack_sizes.cssIS,
+//				stack_sizes.cssCC,
+//				stack_sizes.dssDC ) ;
 
 			unsigned int dssTrav ;
 			unsigned int dssStat ;
 			unsigned int css ;
 			OPTIX_CHECK( optixUtilComputeStackSizes(
-				&stack_sizes,
-				max_trace_depth,
-				0, // maxCCDepth
-				0, // maxDCDEpth
-				&dssTrav,
-				&dssStat,
-				&css ) ) ;
-			fprintf( stderr, "dss Traversal (IS, AH): %u, dss State (RG, MS, CH): %u, css: %u\n",
-				dssTrav,
-				dssStat,
-				css ) ;
+						&stack_sizes,
+						max_trace_depth,
+						0, // maxCCDepth
+						0, // maxDCDEpth
+						&dssTrav,
+						&dssStat,
+						&css ) ) ;
+//			fprintf( stderr, "dss Traversal (IS, AH): %u, dss State (RG, MS, CH): %u, css: %u\n",
+//				dssTrav,
+//				dssStat,
+//				css ) ;
 
 			// max_trace_depth = 4 :
 			// cssRG: 6496, cssMS: 0, cssCH: 32, cssAH: 0, cssIS: 0, cssCC: 0, dssDG: 0
@@ -412,10 +416,19 @@ int main() {
 			// cssRG: 6496, cssMS: 0, cssCH: 32, cssAH: 0, cssIS: 0, cssCC: 0, dssDG: 0
 			// dss Traversal (IS, AH): 0, dss State (RG, MS, CH): 0, css: 7008
 
+			OPTIX_CHECK( optixPipelineSetStackSize(
+						pipeline,
+						dssTrav, // direct callable stack size (called from AH and IS programs)
+						dssStat, // direct callable stack size (called from RG, MS and CH programs)
+						css,     // continuation callable stack size
+						1        // maxTraversableGraphDepth (acceleration structure depth)
+						) ) ;
+
 			***/
 
 
 
+			// comment if using code from comment block titled `calculate stack sizes´
 			OPTIX_CHECK( optixPipelineSetStackSize(
 						pipeline,
 						4*1024, // direct callable stack size (called from AH and IS programs)
