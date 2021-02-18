@@ -67,6 +67,9 @@ AWS
 CUDA
 - How to [share C++ classes between host and and device](https://stackoverflow.com/questions/39006348/accessing-class-data-members-from-within-cuda-kernel-how-to-design-proper-host) (kernel code
 
+OptiX
+- Developer forum QA on [subpixel jittering and progressive rendering antialiasing techniques](https://forums.developer.nvidia.com/t/anti-aliased-image/48255)
+
 NVIDIA
 - [CUDA Toolkit Documentation](https://docs.nvidia.com/cuda/index.html)
 - [CUDA Toolkit Download](https://developer.nvidia.com/cuda-downloads)
