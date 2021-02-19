@@ -1,4 +1,5 @@
 #include <array>
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -510,6 +511,7 @@ int main() {
 
 
 
+		auto t0 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
 		uchar4*             d_image ;
 		std::vector<uchar4> image ;
@@ -560,6 +562,9 @@ int main() {
 						cudaMemcpyDeviceToHost
 						) ) ;
 		}
+		auto t1 = std::chrono::high_resolution_clock::now() ;
+		long long int dt = std::chrono::duration_cast<std::chrono::microseconds>( t1-t0 ).count() ;
+		fprintf( stderr, "OptiX pipeline for RTWO ran %lld microseconds\n", dt ) ;
 
 
 
@@ -579,6 +584,7 @@ int main() {
 				}
 			}
 		}
+
 
 
 		// cleanup
