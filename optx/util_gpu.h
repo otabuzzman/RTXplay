@@ -6,6 +6,8 @@
 
 namespace util {
 
+__device__ const float kPi = K_PI ;
+
 __forceinline__ __device__ float rnd( curandState* state )                                   { return static_cast<float>( curand( state ) )/( static_cast<float>( UINT_MAX )+1.f ) ; }
 __forceinline__ __device__ float rnd( const float min, const float max, curandState* state ) { return min+rnd( state )*( max-min ) ; }
 

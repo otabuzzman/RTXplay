@@ -52,6 +52,24 @@ extern "C" __global__ void __closesthit__diffuse() {
 		unsigned int sl = optixGetPayload_4() ;
 		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
 
+
+
+		// experimental triangle hit point correction
+		const float3 tc_vec_b = hit-thing->center() ;
+		const float  tc_b     = V::len( tc_vec_b ) ;
+		const float  tc_c     = V::len( A-thing->center() ) ;
+		const float  tc_cos_g = V::dot( tc_vec_b, d )/( V::len( tc_vec_b )*V::len( d ) ) ;
+		const float  tc_sin_g = sqrtf( 1.f-tc_cos_g*tc_cos_g ) ;
+		const float  tc_sin_b = tc_sin_g/tc_c*tc_b ;
+		const float  tc_ang_a = util::kPi-acosf( tc_cos_g )-asinf( tc_sin_b ) ;
+		const float  tc_sin_a = sinf( tc_ang_a ) ;
+		const float  tc_a     = tc_c/tc_sin_g*tc_sin_a ;
+		const float3 tc_vec_a = tc_a/V::len( d )*-d ;
+		const float3 tc_hit   = hit+tc_vec_a ;                       // to replace hit
+		const float3 tc_N     = V::unitV( tc_hit-thing->center() ) ; // to replace N
+
+
+
 		// finally the diffuse reflection according to RTOW
 		// see CPU version of RTOW, optics.h: Diffuse.spray()
 			const float3 dir = N+V::rndVon1sphere( state ) ;
