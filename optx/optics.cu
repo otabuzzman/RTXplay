@@ -215,7 +215,7 @@ extern "C" __global__ void __closesthit__refract() {
 
 		// finally the refraction according to RTOW
 		// see CPU version of RTOW, optics.h: Refract.spray()
-			const float3 d1V     = V::unitV( d ) ;
+			const float3 d1V = V::unitV( d ) ;
 			const float cos_theta = fminf( V::dot( -d1V, N ), 1.f ) ;
 			const float sin_theta = sqrtf( 1.f-cos_theta*cos_theta ) ;
 
@@ -226,7 +226,7 @@ extern "C" __global__ void __closesthit__refract() {
 			const bool cannot = ratio*sin_theta>1.f ;
 
 			float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;                 // optics.h: Refract.schlick()
-			const float schlick =  r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // optics.h: Refract.schlick()
+			const float schlick = r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // optics.h: Refract.schlick()
 
 			float3 dir ;
 			if ( cannot || schlick>util::rnd( state ) ) {
