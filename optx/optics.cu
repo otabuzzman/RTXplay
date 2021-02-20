@@ -246,7 +246,7 @@ extern "C" __global__ void __closesthit__refract() {
 		// hit point correction (experimental)
 		// const float3 tit = hit ;
 		// const bool lookout = 0.f>V::dot( d, hit-thing->center() ) ;
-		// hitcorr( lookout, tit, d, thing->center(), A, hit, N, lookout ) ;
+		// hitcorr( tit, d, thing->center(), A, hit, N, lookout ) ;
 
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
