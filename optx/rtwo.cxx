@@ -34,7 +34,7 @@ const Things scene() {
 
 	o.type = OPTICS_TYPE_DIFFUSE ;
 	o.diffuse.albedo = { .5f, .5f, .5f } ;
-	s.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f, o ) ) ;
+	s.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f, o, false, 9 ) ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11; b++ ) {
@@ -563,8 +563,8 @@ int main() {
 						) ) ;
 		}
 		auto t1 = std::chrono::high_resolution_clock::now() ;
-		long long int dt = std::chrono::duration_cast<std::chrono::microseconds>( t1-t0 ).count() ;
-		fprintf( stderr, "OptiX pipeline for RTWO ran %lld microseconds\n", dt ) ;
+		long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+		fprintf( stderr, "OptiX pipeline for RTWO ran %lld milliseconds\n", dt ) ;
 
 
 
