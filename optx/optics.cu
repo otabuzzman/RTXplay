@@ -14,17 +14,19 @@ extern "C" { __constant__ LpGeneral lp_general ; }
 
 
 // hit point correction (experimental)
-static __device__ void hitcorr( const float3& H, const float3& dir, const float3& C, const float3& A, float3& hit, float3& N ) {
-	const float3 vec_b = H-C ;
-	const float  cos_g = V::dot( vec_b, dir )/( V::len( vec_b )*V::len( dir ) ) ;
-	const float  sin_g = sqrtf( 1.f-cos_g*cos_g ) ;
-	const float  b     = V::len( vec_b ) ;
-	const float  c     = V::len( A-C ) ;
-	const float  sin_b = sin_g/c*b ;
-	const float  rad_a = util::kPi-acosf( cos_g )-asinf( sin_b ) ;
-	const float  sin_a = sinf( rad_a ) ;
-	const float  a     = c/sin_g*sin_a ;
-	const float3 vec_a = a/V::len( dir )*-dir ;
+static __device__ void hitcorr( const float3& H, const float3& dir, const float3& C, const float3& A, float3& hit, float3& N, const bool lookout ) {
+	const float3 vec_b   = H-C ;
+	float cos_g          = V::dot( vec_b, dir )/( V::len( vec_b )*V::len( dir ) ) ;
+	const float  rad_g2  = util::kPi-acosf( cos_g ) ;
+	if ( lookout ) cos_g = cosf( rad_g2 ) ;
+	const float  sin_g   = sqrtf( 1.f-cos_g*cos_g ) ;
+	const float  b       = V::len( vec_b ) ;
+	const float  c       = V::len( A-C ) ;
+	const float  sin_b   = sin_g/c*b ;
+	const float  rad_a   = rad_g2-asinf( sin_b ) ;
+	const float  sin_a   = sinf( rad_a ) ;
+	const float  a       = c/sin_g*sin_a ;
+	const float3 vec_a   = a/V::len( dir )*-dir ;
 
 	hit = H+vec_a ;
 	N   = V::unitV( hit-C ) ;
@@ -70,7 +72,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 
 		// hit point correction (experimental)
 		// const float3 tit = hit ;
-		// hitcorr( tit, d, thing->center(), A, hit, N ) ;
+		// hitcorr( tit, d, thing->center(), A, hit, N, false ) ;
 
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
@@ -153,7 +155,7 @@ extern "C" __global__ void __closesthit__reflect() {
 
 	// hit point correction (experimental)
 	// const float3 tit = hit ;
-	// hitcorr( tit, d, thing->center(), A, hit, N ) ;
+	// hitcorr( tit, d, thing->center(), A, hit, N, false ) ;
 
 	// assemble RNG pointer from payload
 	unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
@@ -243,7 +245,8 @@ extern "C" __global__ void __closesthit__refract() {
 
 		// hit point correction (experimental)
 		// const float3 tit = hit ;
-		// hitcorr( tit, d, thing->center(), A, hit, N ) ;
+		// const bool lookout = 0.f>V::dot( d, hit-thing->center() ) ;
+		// hitcorr( lookout, tit, d, thing->center(), A, hit, N, lookout ) ;
 
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
@@ -252,7 +255,7 @@ extern "C" __global__ void __closesthit__refract() {
 
 		// finally the refraction according to RTOW
 		// see CPU version of RTOW, optics.h: Refract.spray()
-			const float3 d1V     = V::unitV( d ) ;
+			const float3 d1V = V::unitV( d ) ;
 			const float cos_theta = fminf( V::dot( -d1V, N ), 1.f ) ;
 			const float sin_theta = sqrtf( 1.f-cos_theta*cos_theta ) ;
 
@@ -263,7 +266,7 @@ extern "C" __global__ void __closesthit__refract() {
 			const bool cannot = ratio*sin_theta>1.f ;
 
 			float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;                 // optics.h: Refract.schlick()
-			const float schlick =  r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // optics.h: Refract.schlick()
+			const float schlick = r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // optics.h: Refract.schlick()
 
 			float3 dir ;
 			if ( cannot || schlick>util::rnd( state ) ) {
