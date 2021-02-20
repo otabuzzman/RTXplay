@@ -14,7 +14,7 @@ extern "C" { __constant__ LpGeneral lp_general ; }
 
 
 // hit point correction (experimental)
-static void hitcorr( const float3& H, const float3& dir, const float3& C, const float3& A, float3& hit, float3& N ) {
+static __device__ void hitcorr( const float3& H, const float3& dir, const float3& C, const float3& A, float3& hit, float3& N ) {
 	const float3 vec_b = H-C ;
 	const float  cos_g = V::dot( vec_b, dir )/( V::len( vec_b )*V::len( dir ) ) ;
 	const float  sin_g = sqrtf( 1.f-cos_g*cos_g ) ;
@@ -70,7 +70,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 
 		// hit point correction (experimental)
 		// const float3 tit = hit ;
-		// hitcorr( tit, dir, thing->center(), A, hit, N ) ;
+		// hitcorr( tit, d, thing->center(), A, hit, N ) ;
 
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
@@ -153,7 +153,7 @@ extern "C" __global__ void __closesthit__reflect() {
 
 	// hit point correction (experimental)
 	// const float3 tit = hit ;
-	// hitcorr( tit, dir, thing->center(), A, hit, N ) ;
+	// hitcorr( tit, d, thing->center(), A, hit, N ) ;
 
 	// assemble RNG pointer from payload
 	unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
@@ -233,7 +233,7 @@ extern "C" __global__ void __closesthit__refract() {
 		const float w = 1.f-u-v ;
 
 		// calculate world coordinates of hit
-		const float3 hit = w*A+u*B+v*C ;
+		float3 hit = w*A+u*B+v*C ;
 
 		// calculate primitive normal
 		const float3 d = optixGetWorldRayDirection() ;
@@ -243,7 +243,7 @@ extern "C" __global__ void __closesthit__refract() {
 
 		// hit point correction (experimental)
 		// const float3 tit = hit ;
-		// hitcorr( tit, dir, thing->center(), A, hit, N ) ;
+		// hitcorr( tit, d, thing->center(), A, hit, N ) ;
 
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
