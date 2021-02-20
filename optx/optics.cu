@@ -117,8 +117,6 @@ extern "C" __global__ void __closesthit__diffuse() {
 	}
 }
 
-
-
 extern "C" __global__ void __closesthit__reflect() {
 	// retrieve actual trace depth from payload
 	unsigned int depth = optixGetPayload_5() ;
@@ -204,8 +202,6 @@ extern "C" __global__ void __closesthit__reflect() {
 		optixSetPayload_2( 0u ) ;
 	}
 }
-
-
 
 extern "C" __global__ void __closesthit__refract() {
 	// retrieve actual trace depth from payload
