@@ -11,6 +11,27 @@ using V::operator* ;
 
 extern "C" { __constant__ LpGeneral lp_general ; }
 
+
+
+// hit point correction (experimental)
+static void hitcorr( const float3& H, const float3& dir, const float3& C, const float3& A, float3& hit, float3& N ) {
+	const float3 vec_b = H-C ;
+	const float  cos_g = V::dot( vec_b, dir )/( V::len( vec_b )*V::len( dir ) ) ;
+	const float  sin_g = sqrtf( 1.f-cos_g*cos_g ) ;
+	const float  b     = V::len( vec_b ) ;
+	const float  c     = V::len( A-C ) ;
+	const float  sin_b = sin_g/c*b ;
+	const float  rad_a = util::kPi-acosf( cos_g )-asinf( sin_b ) ;
+	const float  sin_a = sinf( rad_a ) ;
+	const float  a     = c/sin_g*sin_a ;
+	const float3 vec_a = a/V::len( dir )*-dir ;
+
+	hit = H+vec_a ;
+	N   = V::unitV( hit-C ) ;
+}
+
+
+
 extern "C" __global__ void __closesthit__diffuse() {
 	// retrieve actual trace depth from payload
 	unsigned int depth = optixGetPayload_5() ;
@@ -39,7 +60,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 		const float w = 1.f-u-v ;
 
 		// calculate world coordinates of hit
-		const float3 hit = w*A+u*B+v*C ;
+		float3 hit = w*A+u*B+v*C ;
 
 		// calculate primitive normal
 		const float3 d = optixGetWorldRayDirection() ;
@@ -47,28 +68,14 @@ extern "C" __global__ void __closesthit__diffuse() {
 		if ( V::dot( d, N )>0.f )
 			N = -N ;
 
+		// hit point correction (experimental)
+		// const float3 tit = hit ;
+		// hitcorr( tit, dir, thing->center(), A, hit, N ) ;
+
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
 		unsigned int sl = optixGetPayload_4() ;
 		curandState* state = reinterpret_cast<curandState*>( static_cast<unsigned long long>( sh )<<32|sl ) ;
-
-
-
-		// experimental triangle hit point correction
-		const float3 tc_vec_b = hit-thing->center() ;
-		const float  tc_b     = V::len( tc_vec_b ) ;
-		const float  tc_c     = V::len( A-thing->center() ) ;
-		const float  tc_cos_g = V::dot( tc_vec_b, d )/( V::len( tc_vec_b )*V::len( d ) ) ;
-		const float  tc_sin_g = sqrtf( 1.f-tc_cos_g*tc_cos_g ) ;
-		const float  tc_sin_b = tc_sin_g/tc_c*tc_b ;
-		const float  tc_ang_a = util::kPi-acosf( tc_cos_g )-asinf( tc_sin_b ) ;
-		const float  tc_sin_a = sinf( tc_ang_a ) ;
-		const float  tc_a     = tc_c/tc_sin_g*tc_sin_a ;
-		const float3 tc_vec_a = tc_a/V::len( d )*-d ;
-		const float3 tc_hit   = hit+tc_vec_a ;                       // to replace hit
-		const float3 tc_N     = V::unitV( tc_hit-thing->center() ) ; // to replace N
-
-
 
 		// finally the diffuse reflection according to RTOW
 		// see CPU version of RTOW, optics.h: Diffuse.spray()
@@ -108,6 +115,8 @@ extern "C" __global__ void __closesthit__diffuse() {
 	}
 }
 
+
+
 extern "C" __global__ void __closesthit__reflect() {
 	// retrieve actual trace depth from payload
 	unsigned int depth = optixGetPayload_5() ;
@@ -134,13 +143,17 @@ extern "C" __global__ void __closesthit__reflect() {
 	const float w = 1.f-u-v ;
 
 	// calculate world coordinates of hit
-	const float3 hit = w*A+u*B+v*C ;
+	float3 hit = w*A+u*B+v*C ;
 
 	// calculate primitive normal
 	float3 d = optixGetWorldRayDirection() ;
 	float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
 	if ( V::dot( d, N )>0.f )
 		N = -N ;
+
+	// hit point correction (experimental)
+	// const float3 tit = hit ;
+	// hitcorr( tit, dir, thing->center(), A, hit, N ) ;
 
 	// assemble RNG pointer from payload
 	unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
@@ -190,6 +203,8 @@ extern "C" __global__ void __closesthit__reflect() {
 	}
 }
 
+
+
 extern "C" __global__ void __closesthit__refract() {
 	// retrieve actual trace depth from payload
 	unsigned int depth = optixGetPayload_5() ;
@@ -225,6 +240,10 @@ extern "C" __global__ void __closesthit__refract() {
 		float3 N = V::unitV( V::cross( B-A, C-A ) ) ;
 		if ( V::dot( d, N )>0.f )
 			N = -N ;
+
+		// hit point correction (experimental)
+		// const float3 tit = hit ;
+		// hitcorr( tit, dir, thing->center(), A, hit, N ) ;
 
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
