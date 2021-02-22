@@ -42,7 +42,7 @@ extern "C" __global__ void __raygen__camera() {
 	unsigned int sl = reinterpret_cast<unsigned long long>( &state )&0x00000000ffffffff ;
 
 	// payload to propagate depth count down the trace
-	unsigned int depth = 1 ;
+	unsigned int depth = 0 ;
 
 	// color accumulator
 	float3 color = {} ;

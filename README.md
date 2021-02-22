@@ -11,7 +11,8 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 - Unpack Optix 7 SDK somewhere, e.g. `/usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64` (Cygwin)
 - Add `nvcc.exe` and `cl.exe` to PATH
 - Install ImageMagick 7 (Windows installer)
-- Run `make` in top-level directory of repo (compilation only, no linking)
+- Run `make` in top-level directory of repo to get RTOW (Raytracing in one weekend)
+- Run `make` in `optx` directory to check compilation (no linking) of RTWO (Raytracing with OptiX)
 
 #### Linux
 - Get appropriate hardware, e.g. AWS EC2 instance type `g4dn.xlarge` with Amazon Linux AMI
@@ -67,3 +68,26 @@ Due to lack of appropriate hardware development and tests had been split on Wind
   ```
 
 - Run `make` in `optx` directory of repo
+
+### Gallery
+
+|RTWO (Raytracing with OptiX) samples|   |
+|:---|:---|
+|1 spp (samples per pixel) in 3348 milliseconds|50 spp in 3850 milliseconds|
+|![1 spp in 3348 milliseconds](./optx/img/rtwo-1spp-3348.png)|![50 spp in 3850 milliseconds](./optx/img/rtwo-50spp-3850.png)|
+|500 spp (default) in 7110 milliseconds|no defocus blur|
+|![500 spp in 7110 milliseconds](./optx/img/rtwo-500spp-7110.png)|![no defocus blur](./optx/img/rtwo-noblur.png)|
+
+|RTWO samples with experimental|triangle hit correction|made with branch `hitcorr`|
+|:---|:---|:---|
+|enabled for diffuse only|reflect added|refract added|
+|![enabled for diffuse only](optx/img/rtwo-branch-hc-diff.png)|![reflect added](optx/img/rtwo-branch-hc-refl.png)|![refract added](optx/img/rtwo-branch-hc-refr-8811.png)|
+
+|Sphere (subdivided tetrahedron)|samples made with [commit](https://github.com/otabuzzman/RTXplay/tree/e68dc9d7e28d1763c741d5efab63e3392b24a457)|   |
+|:---|:---|:---|
+|single triangle, no subdivision|1 subdivision|2 subdivisions|
+|![single triangle, no subdivision](optx/img/tetra-1tri-0div.png)|![1 subdivision](optx/img/tetra-1tri-1div.png)|![2 subdivisions](optx/img/tetra-1tri-2div.png)|
+|3 subdivisions|4 subdivisions|5 subdivisions|
+|![3 subdivisions](optx/img/tetra-1tri-3div.png)|![4 subdivisions](optx/img/tetra-1tri-4div.png)|![5 subdivisions](optx/img/tetra-1tri-5div.png)|
+|6 subdivisions|sphere (6 subdivisions)|triangled bounding box|
+|![6 subdivisions](optx/img/tetra-1tri-6div.png)|![sphere (6 subdivisions)](optx/img/tetra-base.png)|![triangled bounding box](optx/img/tetra-bbox.png)|
