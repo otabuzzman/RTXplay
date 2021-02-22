@@ -1,19 +1,21 @@
 #ifndef FRAND48_h
 #define FRAND48_h
 
-struct Frand48 {
+class Frand48 {
+	public:
+		__forceinline__ __device__ void init( const unsigned int seed = 4711 ) {
+			state = seed ;
 
-	__forceinline__ __device__ void init( const unsigned int seed = 4711 ) {
-		state = seed ;
+			// http://www0.cs.ucl.ac.uk/staff/d.jones/GoodPracticeRNG.pdf
+			for ( int r = 0 ; 8>r ; r++ )
+				( *this )() ;
+		}
 
-		// http://www0.cs.ucl.ac.uk/staff/d.jones/GoodPracticeRNG.pdf
-		for ( int r = 0 ; 16>r ; r++ )
-			( *this )() ;
-	}
+		__forceinline__ __device__ float operator () () {
+			state = 0x5DEECE66Dull*state+0xBull ;
 
-	__forceinline__ __device__ float operator () () {
-		return float( 0x5DEECE66Dull*state+0xBull&0xFFFFFFFFFFFFull )/float( 0xFFFFFFFFFFFFull+1ull ) ;
-	}
+			return float( state&0xFFFFFFFFFFFFull )/float( 0xFFFFFFFFFFFFull+1ull ) ;
+		}
 
 	private:
 		unsigned long long state ;
