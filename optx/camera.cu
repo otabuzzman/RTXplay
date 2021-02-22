@@ -30,8 +30,8 @@ extern "C" __global__ void __raygen__camera() {
 	const unsigned int pix = dim.x*idx.y+idx.x ;
 
 	// initialize random number generator
-	curandState state ;
-	curand_init( 4711, pix, 0, &state ) ;
+	Frand48 state ;
+	state.init( pix ) ;
 
 	// payloads to carry back color from abyss of trace
 	unsigned int r, g, b ;

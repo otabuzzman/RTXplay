@@ -32,7 +32,7 @@ class Camera {
 
 #ifdef __CUDACC__
 
-		__device__ void ray( const float s, const float t, float3& ori, float3& dir, curandState* state ) const {
+		__device__ void ray( const float s, const float t, float3& ori, float3& dir, Frand48* state ) const {
 			const float3 r = lens_*V::rndVin1disk( state ) ;
 			const float3 o = eye_+r.x*u_+r.y*v_ ;
 
