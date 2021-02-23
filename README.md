@@ -1,5 +1,9 @@
 # RTXplay
-A lab for playing around with NVIDIA's realtime raytracing concept. The lab intends to migrate the raytracer presented by RTOW to OptiX Ray Tracing Engine and thus utilizing the new RT cores which had been introduced by Turing microarchitecture.
+A lab for playing around with NVIDIA's realtime raytracing concept. The lab intends to migrate Pete Shirley's raytracer presented in his book series [Raytracing in one weekend](https://github.com/RayTracing/raytracing.github.io/) (RTOW) to become Raytracing with OptiX (RTWO) which utilizes the new RT cores introduced by NVIDIA with Turing microarchitecture.
+
+Code in the top-level folder was created while working through the [first book](https://raytracing.github.io/books/RayTracingInOneWeekend.html) of Pete's series. Creation followed the suggested method of typing yourself and foregoing copy and paste. Doing so there have been few changes to the code logic. Most changes concerned with style guide and naming.
+
+The `optx` folder contains RTWO. Work started out with the *optixTriange* sample from the OptiX SDK which has been modified step by step as shown by the repository's commit history.
 
 ### Build
 Due to lack of appropriate hardware development and tests had been split on Windows and Linux respectively.
@@ -11,8 +15,8 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 - Unpack Optix 7 SDK somewhere, e.g. `/usr/lab/cudacons/NVIDIA-OptiX-SDK-7.2.0-win64` (Cygwin)
 - Add `nvcc.exe` and `cl.exe` to PATH
 - Install ImageMagick 7 (Windows installer)
-- Run `make` in top-level directory of repo to get RTOW (Raytracing in one weekend)
-- Run `make` in `optx` directory to check compilation (no linking) of RTWO (Raytracing with OptiX)
+- Run `make` in top-level directory of repo to get RTOW
+- Run `make` in `optx` directory to check compilation (no linking) of RTWO
 
 #### Linux
 - Get appropriate hardware, e.g. AWS EC2 instance type `g4dn.xlarge` with Amazon Linux AMI
