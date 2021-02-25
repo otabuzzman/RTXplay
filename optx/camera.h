@@ -13,8 +13,6 @@ using V::operator* ;
 
 class Camera {
 	public:
-		Camera() {} ;
-
 		void set( const float3&  eye, const float3&  pat, const float3&  vup, const float fov, const float aspratio, const float aperture, const float distance ) {
 			w_    = V::unitV( eye-pat ) ;
 			u_    = V::unitV( V::cross( vup, w_ ) ) ;
