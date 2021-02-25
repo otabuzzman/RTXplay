@@ -16,6 +16,6 @@ class Ray {
 	private:
 		P ori_ ;
 		V dir_ ;
-};
+} ;
 
 #endif // RAY_H
