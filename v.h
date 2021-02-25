@@ -33,7 +33,7 @@ class V {
 		inline static V rnd( double min, double max ) { return V( ::rnd( min, max ), ::rnd( min, max ), ::rnd( min, max ) ) ; }
 
 	private:
-		double v_[3];
+		double v_[3] ;
 } ;
 
 using P = V ; // point

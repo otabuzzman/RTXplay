@@ -65,7 +65,7 @@ const Things scene() {
 	s.add( std::make_shared<Sphere>( P( 0, -1000, 0 ), 1000., std::make_shared<Diffuse>( C( .5, .5, .5 ) ) ) ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
-		for ( int b = -11 ; b<11; b++ ) {
+		for ( int b = -11 ; b<11 ; b++ ) {
 			auto select = rnd() ;
 			P center( a+.9*rnd(), .2, b+.9*rnd() ) ;
 			if ( ( center-P( 4, .2, 0 ) ).len()>.9 ) {

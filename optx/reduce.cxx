@@ -21,7 +21,7 @@ struct VCmp {
 			return l.first.y<r.first.y ;
 		if ( l.first.z != r.first.z )
 			return l.first.z<r.first.z ;
-		return false;
+		return false ;
 	}
 } ;
 
