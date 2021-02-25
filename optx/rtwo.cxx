@@ -92,7 +92,7 @@ int main() {
 	const int w = 1200 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
 	const int spp = 500 ;                          // samples per pixel
-	const int depth = 50 ;                         // recursion depth
+	const int depth = 16 ;                         // recursion depth
 
 	SbtRecordMS sbt_record_ambient ;
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
@@ -242,8 +242,8 @@ int main() {
 
 			OptixModuleCompileOptions module_cc_options = {} ;
 			module_cc_options.maxRegisterCount          = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT ;
-			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_DEFAULT ;
-			module_cc_options.debugLevel                = OPTIX_COMPILE_DEBUG_LEVEL_FULL ;
+			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0 ; // OPTIX_COMPILE_OPTIMIZATION_DEFAULT
+			module_cc_options.debugLevel                = OPTIX_COMPILE_DEBUG_LEVEL_FULL ;     // OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
@@ -355,7 +355,7 @@ int main() {
 			char   log[2048] ;
 			size_t sizeof_log = sizeof( log ) ;
 
-			const unsigned int max_trace_depth  = 4 ;
+			const unsigned int max_trace_depth  = depth ;
 			OptixProgramGroup program_groups[]  = {
 				program_group_camera,
 				program_group_ambient,
