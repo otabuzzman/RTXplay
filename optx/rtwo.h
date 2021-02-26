@@ -1,8 +1,10 @@
 #ifndef RTWO_H
 #define RTWO_H
 
+#define FRAMES 1
+
 struct LpGeneral { // launch parameter
-	uchar4*                image ;
+	uchar4*                image[FRAMES] ;
 	unsigned int           image_w ;
 	unsigned int           image_h ;
 
@@ -20,7 +22,7 @@ struct SbtRecord {
 	T data ;
 } ;
 
-typedef SbtRecord<Camera> SbtRecordRG ; // Ray Generation program group SBT record type
+typedef SbtRecord<Camera[FRAMES]> SbtRecordRG ; // Ray Generation program group SBT record type
 typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
 typedef SbtRecord<Thing>  SbtRecordHG ; // Hit Group program group SBT record type
 

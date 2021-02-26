@@ -80,7 +80,7 @@ int main() {
 	float aspratio = 3.f/2.f ;
 
 	SbtRecordRG sbt_record_camera ;
-	sbt_record_camera.data.set(
+	sbt_record_camera.data[0].set(
 		{13.f, 2.f, 3.f} /*eye*/,
 		{ 0.f, 0.f, 0.f} /*pat*/,
 		{ 0.f, 1.f, 0.f} /*vup*/,
@@ -242,8 +242,8 @@ int main() {
 
 			OptixModuleCompileOptions module_cc_options = {} ;
 			module_cc_options.maxRegisterCount          = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT ;
-			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0 ; // OPTIX_COMPILE_OPTIMIZATION_DEFAULT
-			module_cc_options.debugLevel                = OPTIX_COMPILE_DEBUG_LEVEL_FULL ;     // OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT
+			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_DEFAULT ; // OPTIX_COMPILE_OPTIMIZATION_LEVEL_0
+			module_cc_options.debugLevel                = OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT ;  // OPTIX_COMPILE_DEBUG_LEVEL_FULL
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
@@ -365,7 +365,7 @@ int main() {
 
 			OptixPipelineLinkOptions pipeline_ld_options = {} ;
 			pipeline_ld_options.maxTraceDepth            = max_trace_depth ;
-			pipeline_ld_options.debugLevel               = OPTIX_COMPILE_DEBUG_LEVEL_FULL ;
+			pipeline_ld_options.debugLevel               = OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT ; // OPTIX_COMPILE_DEBUG_LEVEL_FULL
 			OPTIX_CHECK_LOG( optixPipelineCreate(
 						optx_context,
 						&pipeline_cc_options,
@@ -519,7 +519,7 @@ int main() {
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
 			CUDA_CHECK( cudaMalloc(
-						reinterpret_cast<void**>( &lp_general.image ),
+						reinterpret_cast<void**>( &lp_general.image[0] ),
 						w*h*sizeof( uchar4 )
 						) ) ;
 			lp_general.image_w   = w ;
@@ -546,7 +546,7 @@ int main() {
 						d_lp_general,
 						lp_general_size,
 						&sbt,
-						w/*x*/, h/*y*/, 1/*z*/ ) ) ;
+						w/*x*/, h/*y*/, FRAMES/*z*/ ) ) ;
 			CUDA_SYNC_CHECK() ;
 		}
 		auto t1 = std::chrono::high_resolution_clock::now() ;
@@ -561,7 +561,7 @@ int main() {
 			image.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
 						reinterpret_cast<void*>( image.data() ),
-						lp_general.image,
+						lp_general.image[0],
 						w*h*sizeof( uchar4 ),
 						cudaMemcpyDeviceToHost
 						) ) ;
@@ -591,7 +591,7 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ; // force thing's dtor
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image       ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image[0]    ) ) ) ;
 
 			OPTIX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
 			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;

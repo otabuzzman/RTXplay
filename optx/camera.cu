@@ -31,7 +31,7 @@ extern "C" __global__ void __raygen__camera() {
 
 	// initialize random number generator
 	curandState state ;
-	curand_init( 4711, pix, 0, &state ) ;
+	curand_init( 4711, dim.x*dim.y*idx.z+pix, 0, &state ) ;
 
 	// payloads to carry back color from abyss of trace
 	unsigned int r, g, b ;
@@ -53,10 +53,10 @@ extern "C" __global__ void __raygen__camera() {
 		const float t = 2.f*static_cast<float>( idx.y+util::rnd( &state ) )/static_cast<float>( dim.y )-1.f ;
 
 		// get Camera class instance from SBT
-		const Camera* camera  = reinterpret_cast<Camera*>( optixGetSbtDataPointer() ) ;
+		Camera** camera  = reinterpret_cast<Camera**>( optixGetSbtDataPointer() ) ;
 
 		float3 ori, dir ;
-		camera->ray( s, t, ori, dir, &state ) ;
+		camera[idx.z]->ray( s, t, ori, dir, &state ) ;
 
 		// shoot initial ray
 		optixTrace(
@@ -81,7 +81,7 @@ extern "C" __global__ void __raygen__camera() {
 	}
 
 	// update pixel in image buffer with mean color
-	lp_general.image[pix] = sRGB( color, lp_general.spp ) ;
+	lp_general.image[idx.z][pix] = sRGB( color, lp_general.spp ) ;
 }
 
 extern "C" __global__ void __miss__ambient() {
