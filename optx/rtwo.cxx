@@ -532,14 +532,15 @@ int main() {
 			lp_general.as_handle = as_handle ;
 
 			CUdeviceptr d_lp_general ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
+			const size_t lp_general_size = sizeof( LpGeneral ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
 			CUDA_CHECK( cudaMemcpy(
 						reinterpret_cast<void*>( d_lp_general ),
-						&lp_general, sizeof( lp_general ),
+						&lp_general,
+						lp_general_size,
 						cudaMemcpyHostToDevice
 						) ) ;
 
-			const size_t lp_general_size = sizeof( LpGeneral ) ;
 			OPTIX_CHECK( optixLaunch(
 						pipeline,
 						cuda_stream,
