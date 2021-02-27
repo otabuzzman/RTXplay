@@ -81,15 +81,15 @@ int main() {
 
 	SbtRecordRG sbt_record_camera ;
 	float3 eye = { 13.f, 2.f, 3.f } ;
-	auto rot_y = 90.f*util::kPi/180.f ; // angle to rotate around y-axis
-	auto rot_i = rot_y/FRAMES ;         // y-rotation increment per frame
-	auto fov_i = 2.f*util::kPi/FRAMES ;
+	auto rot_y = 90.f*util::kPi/180.f ;    // angle to rotate around y-axis
+	auto rot_inc = rot_y/FRAMES ;          // y-rotation increment per frame
+	auto rad_phi = 2.f*util::kPi/FRAMES ;  // central angle of circle sector per frame
 	for ( int f = 0 ; FRAMES>f ; f++ ) {
-		auto cos_i = cosf( f*rot_i ) ;
-		auto sin_i = sinf( f*rot_i ) ;
-		auto fov = 20.f*( 1.f+sinf( -util::kPi*.5f+f*fov_i ) )*.5f ;
-		eye.x =  eye.x*cos_i+eye.z*sin_i ; // y-rotation
+		auto cos_i = cosf( rot_inc ) ;
+		auto sin_i = sinf( rot_inc ) ;
+		eye.x =  eye.x*cos_i+eye.z*sin_i ; // perform y-rotation
 		eye.z = -eye.x*sin_i+eye.z*cos_i ;
+		auto fov = 20.f*( 1.f+sinf( -util::kPi*.5f+f*rad_phi ) )*.5f ; // sine modulation
 		sbt_record_camera.data[f].set(
 			eye,
 			{ 0.f, 0.f, 0.f } /*pat*/,

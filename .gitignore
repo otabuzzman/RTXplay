@@ -4,6 +4,8 @@ tmp/
 *.docx
 *.exe
 *.gz
+*.mp4
+!/optx/vid/*.mp4
 *.o
 *.out
 *.png
