@@ -80,13 +80,22 @@ int main() {
 	float aspratio = 3.f/2.f ;
 
 	SbtRecordRG sbt_record_camera ;
-	auto rot_y = 90.f*util::kPi/180.f ;
-	auto rot_s = rot_y/FRAMES ;
+	float3 eye = { 13.f, 2.f, 3.f } ;
+	auto rot_y  = 90.f*util::kPi/180.f ; // radians to rotate around y-axis
+	auto rot_yi = rot_y/FRAMES ;         // y-rotation increment per frame
+	auto rot_x  = 20.f*util::kPi/180.f ;
+	auto rot_xi = 2.f*util::kPi/FRAMES ;
 	for ( int f = 0 ; FRAMES>f ; f++ ) {
-		auto cos_s = cosf( f*rot_s ) ;
-		auto sin_s = sinf( f*rot_s ) ;
+		auto cos_yi = cosf( f*rot_yi ) ;
+		auto sin_yi = sinf( f*rot_yi ) ;
+		auto cos_xi = cosf( rot_x*( 1.f+sinf( -util::kPi*.5f+f*rot_xi ) )*.5f ) ;
+		auto sin_xi = sinf( rot_x*( 1.f+sinf( -util::kPi*.5f+f*rot_xi ) )*.5f ) ;
+		eye.x =  eye.x*cos_yi+eye.z*sin_yi ; // y-rotation
+		eye.z = -eye.x*sin_yi+eye.z*cos_yi ;
+		eye.y =  eye.y*cos_xi-eye.z*sin_xi ; // x-rotation
+		eye.z =  eye.y*sin_xi+eye.z*cos_xi ;
 		sbt_record_camera.data[f].set(
-			{13.f*cos_s+3.f*sin_s, 2.f, -13.f*sin_s+3.f*cos_s } /*eye*/,
+			eye,
 			{ 0.f, 0.f, 0.f } /*pat*/,
 			{ 0.f, 1.f, 0.f } /*vup*/,
 			20.f /*fov*/,
@@ -588,6 +597,8 @@ int main() {
 							<< static_cast<int>( p.z ) << '\n' ;
 					}
 				}
+
+				std::cout << '\n' ;
 			}
 		}
 
