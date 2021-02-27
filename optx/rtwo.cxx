@@ -80,14 +80,20 @@ int main() {
 	float aspratio = 3.f/2.f ;
 
 	SbtRecordRG sbt_record_camera ;
-	sbt_record_camera.data[0].set(
-		{13.f, 2.f, 3.f} /*eye*/,
-		{ 0.f, 0.f, 0.f} /*pat*/,
-		{ 0.f, 1.f, 0.f} /*vup*/,
-		20.f /*fov*/,
-		aspratio,
-		.1f  /*aperture*/,
-		10.f /*distance*/ ) ;
+	auto rot_y = 90.f*util::kPi/180.f ;
+	auto rot_s = rot_y/FRAMES ;
+	for ( int f = 0 ; FRAMES>f ; f++ ) {
+		auto cos_s = cosf( f*rot_s ) ;
+		auto sin_s = sinf( f*rot_s ) ;
+		sbt_record_camera.data[f].set(
+			{13.f*cos_s+3.f*sin_s, 2.f, -13.f*sin_s+3.f*cos_s } /*eye*/,
+			{ 0.f, 0.f, 0.f } /*pat*/,
+			{ 0.f, 1.f, 0.f } /*vup*/,
+			20.f /*fov*/,
+			aspratio,
+			.1f  /*aperture*/,
+			10.f /*distance*/ ) ;
+	}
 
 	const int w = 1200 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
@@ -518,9 +524,10 @@ int main() {
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-			CUDA_CHECK( cudaMalloc(
-						reinterpret_cast<void**>( &lp_general.image[0] ),
-						w*h*sizeof( uchar4 )
+			for ( int f = 0 ; FRAMES>f ; f++ )
+				CUDA_CHECK( cudaMalloc(
+							reinterpret_cast<void**>( &lp_general.image[f] ),
+							w*h*sizeof( uchar4 )
 						) ) ;
 			lp_general.image_w   = w ;
 			lp_general.image_h   = h ;
@@ -560,24 +567,26 @@ int main() {
 		std::vector<uchar4> image ;
 		{
 			image.resize( w*h ) ;
-			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( image.data() ),
-						lp_general.image[0],
-						w*h*sizeof( uchar4 ),
-						cudaMemcpyDeviceToHost
-						) ) ;
+			for ( int f = 0 ; FRAMES>f ; f++ ) {
+				CUDA_CHECK( cudaMemcpy(
+							reinterpret_cast<void*>( image.data() ),
+							lp_general.image[f],
+							w*h*sizeof( uchar4 ),
+							cudaMemcpyDeviceToHost
+							) ) ;
 
-			std::cout
-				<< "P3\n" // magic PPM header
-				<< w << ' ' << h << '\n' << 255 << '\n' ;
+				std::cout
+					<< "P3\n" // magic PPM header
+					<< w << ' ' << h << '\n' << 255 << '\n' ;
 
-			for ( int y = h-1 ; y>=0 ; --y ) {
-				for ( int x = 0 ; x<w ; ++x ) {
-					auto p = image.data()[w*y+x] ;
-					std::cout
-						<< static_cast<int>( p.x ) << ' '
-						<< static_cast<int>( p.y ) << ' '
-						<< static_cast<int>( p.z ) << '\n' ;
+				for ( int y = h-1 ; y>=0 ; --y ) {
+					for ( int x = 0 ; x<w ; ++x ) {
+						auto p = image.data()[w*y+x] ;
+						std::cout
+							<< static_cast<int>( p.x ) << ' '
+							<< static_cast<int>( p.y ) << ' '
+							<< static_cast<int>( p.z ) << '\n' ;
+					}
 				}
 			}
 		}
@@ -592,7 +601,7 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ; // force thing's dtor
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image[0]    ) ) ) ;
+			for ( int f = 0 ; FRAMES>f ; f++ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image[f] ) ) ) ;
 
 			OPTIX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
 			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;
