@@ -11,9 +11,6 @@
 ### Video (experimental)
 Simple approach to render multiple frames with a single launch. Uses 3rd dimension to render frames with different camera positions. Cameras handed to raygen program via array in SBT record. Result stored in array of image buffers in launch parameters. Both indexed by `idx.z`. Number of frames controlled by `FRAMES` macro in `optx/rtwo.h`. Default is 1 frame thus same behaviour as single frame version.
 ```
-# cd to RTWO and checkout branch
-cd optx ; git checkout movie
-
 # set FRAMES macro in rtwo.h to number of frames
 
 # build an run RTWO
