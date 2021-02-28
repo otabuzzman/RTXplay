@@ -9,14 +9,24 @@
 8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
 
 ### Video (experimental)
-Checkout branch `movie`. Set FRAMES macro in `optx/rtwo.h` to some value greater than 1. Compile with `make tidy rtwo` and run `./rtwo | magick convert ppm:- rtwo-%03d.png`. If FRAMES was set to 72 there should be files numbered from 000 to 071. Pipe them into [FFmpeg](https://ffmpeg.org/) to make an MP4 using
+Simple approach to render multiple frames with a single launch. Uses 3rd dimension to render frames with different camera positions. Cameras handed to raygen program via array in SBT record. Result stored in array of image buffers in launch parameters. Both indexed by `idx.z`. Number of frames controlled by `FRAMES` macro in `optx/rtwo.h`. Default is 1 frame thus same behaviour as single frame version.
 ```
+# cd to RTWO and checkout branch
+cd optx ; git checkout movie
+
+# set FRAMES macro in rtwo.h to number of frames
+
+# build an run RTWO
+make tidy rtwo
+./rtwo | magick convert ppm:- rtwo-%03d.png
+
+# assemble individual pictures into a video
 cat rtwo-???.png |\
 	ffmpeg -f image2pipe -r 24 -i - \
 	-filter_complex "[0:v]reverse,fifo[r];[0:v][r] concat=n=2:v=1 [v]" -map "[v]" \
 	rtwo.mp4
 ```
-The complex filter of FFmpeg reverses and concats the clip to double playtime.
+The complex filter of FFmpeg also reverses and concats the clip to double playtime.
 
 ### Git for short (copy&paste)
 
