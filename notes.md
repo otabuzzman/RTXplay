@@ -9,7 +9,7 @@
 8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
 
 ### Video (experimental)
-To make a video set FRAMES macro in `optx/rtwo.h` to some value greater than 1. Compile with `make tidy rtwo` and run `./rtwo | magick convert ppm:- rtwo-%03d.png`. If FRAMES was set to 72 there should be files numbered from 000 to 071. Pipe them into [FFmpeg](https://ffmpeg.org/) to make an MP4 using
+Checkout branch `movie`. Set FRAMES macro in `optx/rtwo.h` to some value greater than 1. Compile with `make tidy rtwo` and run `./rtwo | magick convert ppm:- rtwo-%03d.png`. If FRAMES was set to 72 there should be files numbered from 000 to 071. Pipe them into [FFmpeg](https://ffmpeg.org/) to make an MP4 using
 ```
 cat rtwo-???.png |\
 	ffmpeg -f image2pipe -r 24 -i - \
