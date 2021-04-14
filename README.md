@@ -48,8 +48,11 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 
 - Install OptiX 7 SDK
   ```
-  # prerequisites
+  # prerequisite packages
   sudo yum install -y cmake3 freeglut-devel libXcursor-devel libXinerama-devel libXrandr-devel
+  # prerequisite NVIDIA driver r465+
+  wget https://us.download.nvidia.com/XFree86/Linux-x86_64/465.24.02/NVIDIA-Linux-x86_64-465.24.02.run
+  sudo sh NVIDIA-Linux-x86_64-465.24.02.run
 
   sudo mkdir /usr/local/optix-7.3
   sudo ln -s /usr/local/optix-7.3 /usr/local/optix
