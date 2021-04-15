@@ -1,3 +1,134 @@
+### Compile OptiX 7 course
+Steps below assume a working instance of the [RTXplay](https://github.com/otabuzzman/RTXplay) repository.
+
+1. Install GLFW
+  ```
+  # prerequsites
+  sudo yum install -y libXi-devel
+
+  # clone GLFW
+  cd ~/lab ; git clone https://github.com/glfw/glfw.git ; cd glfw
+
+  # build GLFW
+  mkdir build ; cd build ; cmake3 .. ; make
+
+  # install GLFW
+  sudo make install
+  ```
+
+2. Install OptiX 7 course tutorial
+  ```
+  # clone optix7course
+  cd ~/lab ; git clone https://github.com/ingowald/optix7course.git ; cd optix7course
+
+  # in file common/gdt/cmake/configure_optix.cmake
+  # in line containing
+  #    `find_package(OptiX REQUIRED VERSION 7.0)´
+  # replace
+  #    `7.0´
+  # by
+  #    `7.3´
+  # to set proper OptiX version
+
+  # build optix7course (ignore errors)
+  mkdir build ; cd build ; OptiX_INSTALL_DIR=/usr/local/optix cmake3 .. ; make -k
+
+  # ###
+  # denoiser examples 11 and 12 fail due to changes in OptiX 7.3
+  # ###
+
+  # check (no X required)
+  ./ex01_helloOptix
+  ./ex02_pipelineAndRayGen
+  ```
+
+### Simple GPU workstation on AWS (VNC)
+The faster RPD would have been a better approach but it's not compatible with Nvidia's GLX for Xorg (see [xrdp issues](https://github.com/neutrinolabs/xrdp/issues/721#issuecomment-293241800) *xorgxrdp driver not supporting Nvidia's GLX* [and](https://github.com/neutrinolabs/xrdp/issues/1550#issuecomment-614910727) *not seen that (Nvidia's GLX) work yet with xrdpdev*) which has been confirmed by tests with numerous configurations which all failed. Due to these obstacles and despite it is slow, falling back on VNC is considered ok because it works after all and it's only for testing anyway.
+
+Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-types/g4/) (`g4dn.xlarge`) with [Amazon Linux 2 AMI](https://aws.amazon.com/amazon-linux-2/).
+
+1. Install X
+  ```
+  # install server
+  sudo yum install -y xorg-x11-server-Xorg
+
+  # configure Xorg for NVIDIA
+  sudo X -configure
+  sudo mv /root/xorg.conf.new /etc/X11/xorg-nvidia.conf
+  ```
+
+2. Install LibVNC
+  ```
+  # clone libvncserver
+  cd ~/lab ; git clone https://github.com/LibVNC/libvncserver.git ; cd libvncserver
+
+  # build libvncserver
+  mkdir build ; cd build ; cmake3 .. \
+  	-DWITH_OPENSSL=ON \
+  	-DWITH_GCRYPT=OFF \
+  	-DWITH_GNUTLS=OFF ; make
+
+  # install libvncserver
+  sudo make install
+
+  # prerequsites
+  sudo yum install -y libXtst-devel openssl-devel
+
+  # clone x11vnc
+  cd ~/lab ; git clone https://github.com/LibVNC/x11vnc.git ; cd x11vnc
+
+  # build x11vnc
+  export LIBVNCSERVER_CFLAGS=-I/usr/local/include/rfb
+  export LIBVNCCLIENT_CFLAGS=-I/usr/local/include/rfb
+  export LIBVNCSERVER_LIBS="-L/usr/local/lib64 -lvncserver"
+  export LIBVNCCLIENT_LIBS="-L/usr/local/lib64 -lvncclient"
+
+  autoreconf -fiv
+  ./configure ; make
+
+  # install x11vnc
+  sudo make install
+  ```
+
+3. Check configuration
+  ```
+  # start X server
+  sudo X -config /etc/X11/xorg-nvidia.conf &
+
+  # start VNC server
+  export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
+  x11vnc -display :0 &
+
+  # set password for `ec2-user´
+  sudo passwd ec2-user
+  ```
+
+  [Download](https://www.realvnc.com/de/connect/download/viewer/windows/) and install VNC viewer
+
+  Login as `ec2-user` with VNC viewer
+
+  Run OptiX 7 course examples (within SSH session)
+  ```
+  cd ~/lab/optix7course/build
+
+  DISPLAY=:0 ./ex03_testFrameInWindow
+  ```
+
+  Try iOS version of VNC viewer
+
+### GPU workstation on AWS (CAS)
+CAS (Cloud Access Software) and PCoIP from Teradici allow for fast access of remote workstations via public networks.
+
+#### Manual setup on Amazon AMI
+[AWS blog post](https://aws.amazon.com/blogs/compute/building-a-gpu-workstation-for-visual-effects-with-aws/) (2018) on how to perform a manual setup. The article gives a good overview and comprehensive hints on steps and proper sequence to set up a remote workstation that utilizes Teradici's trial version.
+
+Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-types/g4/) (`g4dn.xlarge`) with [Amazon CentOS AMI](https://aws.amazon.com/mp/linux/#centos).
+
+#### Setup on Teradici CAS AMI
+Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-types/g4/) (`g4dn.xlarge`) with [Teradici Cloud Access Software for CentOS 7 AMI](https://aws.amazon.com/marketplace/pp/Teradici-Teradici-Cloud-Access-Software-for-CentOS/B07CT11PCQ).
+
+
+
 ### Findings
 1. Extracting optixTriangle from OptiX SDK samples. Code copied from `cuda/CUDAOutputBuffer.h` contained `cudaFree ( <d_pointer> ) ; cudaMalloc ( <d_pointer> ) ;`. Original code worked fine, copied code produced random background, thus apparently didn't execute miss program. Removing `cudaFree( <d_pointer> )` fixed it. Using `cudaFree` with a device pointer not allocated before is not allowed according to CUDA API reference. Question is why this worked in original CUDAOutputBuffer class implementation.
 2. Curly braces around `params` declaration in `shader_optixTriangle.cu`. Removing braces [shall yield same scope](https://vladonsoftware.wordpress.com/2019/02/25/c-when-the-curly-braces-really-matter/) (section *What happened*) but produces warning. Avoid with NVCC option `-rdc true` to [force relocatable device code](https://forums.developer.nvidia.com/t/warning-extern-declaration-of-the-entity-xxxx-is-treated-as-a-static-definition/69887) generation.
@@ -7,6 +138,16 @@
 6. Code in a PTX file must contain any referenced objects (or variables). Calling a class member function from inside a shader (kernel) expects the class in question to be defined in the same .cu file (e.g. by including a header file containing the definition) or by a further .cu file given to NVCC on the command line when compiling to PTX.
 7. [Q&A on NVIDIA developer forum](https://forums.developer.nvidia.com/t/intersection-point/81612/7) on how to get a hit primitive's vertices in a closest hit shader. Using `optixGetGASTraversableHandle()` and related [might be bad for performance](https://raytracing-docs.nvidia.com/optix7/guide/index.html#device_side_functions#vertex-random-access). Passing device pointers pointing at primitive vertices and indices of `OptixBuildInput` objects (the *Things*) via SBT records thus recommended.
 8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
+
+### Video (experimental)
+To make a video set FRAMES macro in `optx/rtwo.h` to some value greater than 1. Compile with `make tidy rtwo` and run `./rtwo | magick convert ppm:- rtwo-%03d.png`. If FRAMES was set to 72 there should be files numbered from 000 to 071. Pipe them into [FFmpeg](https://ffmpeg.org/) to make an MP4 using
+```
+cat rtwo-???.png |\
+	ffmpeg -f image2pipe -r 24 -i - \
+	-filter_complex "[0:v]reverse,fifo[r];[0:v][r] concat=n=2:v=1 [v]" -map "[v]" \
+	rtwo.mp4
+```
+The complex filter of FFmpeg reverses and concats the clip to double playtime.
 
 ### Git for short (copy&paste)
 
