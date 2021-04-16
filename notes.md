@@ -18,24 +18,11 @@ Steps below assume a working instance of the [RTXplay](https://github.com/otabuz
 
 2. Install OptiX 7 course tutorial
   ```
-  # clone optix7course
-  cd ~/lab ; git clone https://github.com/ingowald/optix7course.git ; cd optix7course
+  # clone optix7course (fork)
+  cd ~/lab ; git clone https://github.com/otabuzzman/optix7course.git ; cd optix7course
 
-  # in file common/gdt/cmake/configure_optix.cmake
-  # in line containing
-  #    `find_package(OptiX REQUIRED VERSION 7.0)´
-  # replace
-  #    `7.0´
-  # by
-  #    `7.3´
-  # to set proper OptiX version
-
-  # build optix7course (ignore errors)
-  mkdir build ; cd build ; OptiX_INSTALL_DIR=/usr/local/optix cmake3 .. ; make -k
-
-  # ###
-  # denoiser examples 11 and 12 fail due to changes in OptiX 7.3
-  # ###
+  # build optix7course
+  mkdir build ; cd build ; OptiX_INSTALL_DIR=/usr/local/optix cmake3 .. ; make
 
   # check (no X required)
   ./ex01_helloOptix
