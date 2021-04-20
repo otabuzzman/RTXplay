@@ -56,7 +56,7 @@ V rndVon1sphere()                  { return unitV( rndVin1sphere() ) ; }
 // random V against ray (chapter 8.6)
 V rndVoppraydir( const V& n )      { auto v = rndVin1sphere() ; return dot( v, n ) ? v : -v ; }
 // random V in unit disk (chapter 12.2)
-V rndVin1disk() { while ( true ) { auto v = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ; if ( 1>v.dot() ) continue ; return v ; } }
+V rndVin1disk() { while ( true ) { auto v = V( rnd( -1, 1 ), rnd( -1, 1 ), 0 ) ; if ( 1>v.dot() ) return v ; } }
 
 V reflect( const V& v, const V& n )               { return v-2*dot( v, n )*n ; }
 V refract( const V& v, const V& n, double ratio ) { auto theta = fmin( dot( -v, n ), 1. ) ; V perpen = ratio*( v+theta*n ) ; V parall = -sqrt( fabs( 1.-perpen.dot() ) )*n ; return perpen+parall ; }

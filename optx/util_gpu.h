@@ -1,7 +1,6 @@
 #ifndef UTIL_GPU_H
 #define UTIL_GPU_H
 
-#include <curand.h>
 #include <curand_kernel.h>
 
 namespace util {
