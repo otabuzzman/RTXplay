@@ -3,7 +3,7 @@ A lab for playing around with NVIDIA's realtime raytracing concept. The lab inte
 
 Code in the top-level folder was created while working through the [first book](https://raytracing.github.io/books/RayTracingInOneWeekend.html) of Pete's series. Creation followed the suggested method of typing yourself and foregoing copy and paste. Doing so there have been few changes to the code logic. Most changes concerned with style guide and naming.
 
-The `optx` folder contains RTWO. Work started out with the *optixTriange* sample from the OptiX SDK which has been modified step by step as shown by the repository's commit history.
+The `optx` folder contains RTWO. Work started out with the *optixTriangle* sample from the OptiX SDK which has been modified step by step as shown by the repository's commit history.
 
 ### Build
 Due to lack of appropriate hardware development and tests had been split on Windows and Linux respectively.
