@@ -8,13 +8,15 @@
 7. [Q&A on NVIDIA developer forum](https://forums.developer.nvidia.com/t/intersection-point/81612/7) on how to get a hit primitive's vertices in a closest hit shader. Using `optixGetGASTraversableHandle()` and related [might be bad for performance](https://raytracing-docs.nvidia.com/optix7/guide/index.html#device_side_functions#vertex-random-access). Passing device pointers pointing at primitive vertices and indices of `OptixBuildInput` objects (the *Things*) via SBT records thus recommended.
 8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
 
-### Video (experimental)
+### Video
 Simple approach to render multiple frames with a single launch. Uses 3rd dimension to render frames with different camera positions. Cameras handed to raygen program via array in SBT record. Result stored in array of image buffers in launch parameters. Both indexed by `idx.z`. Number of frames controlled by `FRAMES` macro in `optx/rtwo.h`. Default is 1 frame thus same behaviour as single frame version.
 ```
 # set FRAMES macro in rtwo.h to number of frames
 
-# build an run RTWO
+# build...
 make tidy rtwo
+
+# ...and run RTWO
 ./rtwo | magick convert ppm:- rtwo-%03d.png
 
 # assemble individual pictures into a video
