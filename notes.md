@@ -1,3 +1,9 @@
+### Branches
+- `main` - main development branch (default)
+- `movie` - render multiple images to compose clip
+- `frand48` - replacement for NVIDIA's curand RNG
+- `hitcorr` - calculate real intersection point on sphere
+
 ### Compile OptiX 7 course
 Steps below assume a working instance of the [RTXplay](https://github.com/otabuzzman/RTXplay) repository.
 
@@ -125,16 +131,6 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
 6. Code in a PTX file must contain any referenced objects (or variables). Calling a class member function from inside a shader (kernel) expects the class in question to be defined in the same .cu file (e.g. by including a header file containing the definition) or by a further .cu file given to NVCC on the command line when compiling to PTX.
 7. [Q&A on NVIDIA developer forum](https://forums.developer.nvidia.com/t/intersection-point/81612/7) on how to get a hit primitive's vertices in a closest hit shader. Using `optixGetGASTraversableHandle()` and related [might be bad for performance](https://raytracing-docs.nvidia.com/optix7/guide/index.html#device_side_functions#vertex-random-access). Passing device pointers pointing at primitive vertices and indices of `OptixBuildInput` objects (the *Things*) via SBT records thus recommended.
 8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
-
-### Video (experimental)
-To make a video set FRAMES macro in `optx/rtwo.h` to some value greater than 1. Compile with `make tidy rtwo` and run `./rtwo | magick convert ppm:- rtwo-%03d.png`. If FRAMES was set to 72 there should be files numbered from 000 to 071. Pipe them into [FFmpeg](https://ffmpeg.org/) to make an MP4 using
-```
-cat rtwo-???.png |\
-	ffmpeg -f image2pipe -r 24 -i - \
-	-filter_complex "[0:v]reverse,fifo[r];[0:v][r] concat=n=2:v=1 [v]" -map "[v]" \
-	rtwo.mp4
-```
-The complex filter of FFmpeg reverses and concats the clip to double playtime.
 
 ### Git for short (copy&paste)
 
