@@ -3,7 +3,9 @@ OptixCache_ec2-user/
 tmp/
 *.docx
 *.exe
+*.exp
 *.gz
+*.lib
 *.o
 *.out
 *.png

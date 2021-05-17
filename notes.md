@@ -1,8 +1,9 @@
 ### Branches
 - `main` - main development branch (default)
 - `movie` - render multiple images to compose clip
-- `frand48` - replacement for NVIDIA's curand RNG
+- `frand48` - replace for NVIDIA's curand RNG
 - `hitcorr` - calculate real intersection point on sphere
+- `objout` - provide triangle mesh inspection support
 
 ### Compile OptiX 7 course
 Steps below assume a working instance of the [RTXplay](https://github.com/otabuzzman/RTXplay) repository.
