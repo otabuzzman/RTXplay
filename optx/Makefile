@@ -84,9 +84,11 @@ INC = \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.3.0_465.89_win10/cuda_cudart/cudart/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.3.0_465.89_win10/libcurand/curand_dev/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/include) \
-	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/SDK) \
-	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/SDK/support) \
 
+LIB = \
+	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.3.0_465.89_win10/cuda_cudart/cudart/lib/x64) \
+
+LD = nvcc
 else
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG
 NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
@@ -94,9 +96,12 @@ NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma)
 INC = \
 	-I/usr/local/cuda/include \
 	-I/usr/local/optix/include \
-	-I/usr/local/optix/SDK \
-	-I/usr/local/optix/SDK/support \
 
+LIB = \
+	-L/usr/local/cuda/lib64 -lcudart -lpthread -lrt -ldl \
+	-lm \
+
+LD = g++
 endif
 
 .PHONY: all clean tidy
@@ -121,14 +126,15 @@ endif
 all: $(EXE) $(IMG)
 
 $(EXE): $(OBJ)
-	g++ -o $@ $^ \
-		-L ~/optix-samples/lib -lsutil_7_sdk -lglad \
-		-L /usr/local/cuda/lib64 -lcudart -lpthread -lrt -ldl \
-		-lm \
+	$(LD) -o $@ $^ \
+		$(LIB) \
 
 
 
 clean:
+ifdef winos
+	rm -f rtwo.lib rtwo.exp
+endif
 	rm -f $(OBJ)
 
 tidy: clean
