@@ -132,6 +132,17 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
 7. [Q&A on NVIDIA developer forum](https://forums.developer.nvidia.com/t/intersection-point/81612/7) on how to get a hit primitive's vertices in a closest hit shader. Using `optixGetGASTraversableHandle()` and related [might be bad for performance](https://raytracing-docs.nvidia.com/optix7/guide/index.html#device_side_functions#vertex-random-access). Passing device pointers pointing at primitive vertices and indices of `OptixBuildInput` objects (the *Things*) via SBT records thus recommended.
 8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
 
+### Inspect triangle meshes of Sphere class
+Run `sphere.exe` with parameter to define number of triangle divisions per face.
+```
+# compile
+make sphere.exe
+
+# make Wavefront .OBJ files
+for ndiv in 0 1 2 3 4 5 6 ; do ./sphere.exe $ndiv >face-4f-${ndiv}div.obj ; done
+```
+Inspect results with Wavefront `.OBJ` file [viewer](https://www.creators3d.com/online-viewer). Comment out `pumpup` method calls in `sphere.cxx` to reduce number of tetrahedron faces.
+
 ### Git for short (copy&paste)
 
 #### Branching on new features

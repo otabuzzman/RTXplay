@@ -89,6 +89,12 @@ LIB = \
 	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.3.0_465.89_win10/cuda_cudart/cudart/lib/x64) \
 
 LD = nvcc
+
+sphere.exe:
+	g++ -o $@ $(subst .exe,.cxx,$@) \
+		-I/usr/lab/cudacons/cuda_11.3.0_465.89_win10/cuda_nvcc/nvcc/include \
+		$(INC) \
+
 else
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG
 NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math

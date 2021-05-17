@@ -12,6 +12,9 @@ class Sphere : public Thing {
 		Sphere( const float3& center, const float radius, const Optics optics, const bool bbox = false, const unsigned int ndiv = 6 ) ;
 		~Sphere() noexcept ( false ) ;
 
+		void vout() ;
+		void iout() ;
+
 	private:
 		float  radius_ ;
 

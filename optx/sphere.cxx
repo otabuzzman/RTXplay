@@ -1,6 +1,5 @@
 #include <set>
 #include <vector>
-#include <sstream>
 
 #include <vector_functions.h>
 #include <vector_types.h>
@@ -21,6 +20,7 @@ Sphere::Sphere( const float3& center, const float radius, const Optics optics, c
 
 	tetrahedron( bbox ) ;
 
+#ifdef __NVCC__
 	// copy this thing's vertices to GPU
 	const size_t vces_size = sizeof( float3 )*vces_.size() ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_vces_ ), vces_size ) ) ;
@@ -39,11 +39,24 @@ Sphere::Sphere( const float3& center, const float radius, const Optics optics, c
 		ices_size,
 		cudaMemcpyHostToDevice
 		) ) ;
+#endif // __NVCC__
 }
 
 Sphere::~Sphere() noexcept ( false ) {
+#ifdef __NVCC__
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_vces_ ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_ices_ ) ) ) ;
+#endif // __NVCC__
+}
+
+void Sphere::vout() {
+	for ( unsigned int v = 0 ; vces_.size()>v ; v++ )
+		printf( "v %f %f %f\n", vces_[v].x, vces_[v].y, vces_[v].z ) ;
+}
+
+void Sphere::iout() {
+	for ( unsigned int i = 0 ; ices_.size()>i ; i++ )
+		printf( "f %d %d %d\n", ices_[i].x+1, ices_[i].y+1, ices_[i].z+1 ) ;
 }
 
 void Sphere::tetrahedron( const bool bbox ) {
@@ -156,4 +169,17 @@ void Sphere::reduce() { // (SO #14396788)
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
 
 	vtmp_.clear() ;
+}
+
+int main( const int argc, const char** argv ) {
+	int ndiv = 6 ;
+	Optics dummy ;
+
+	if ( argc>1 )
+		sscanf( argv[1], "%d", &ndiv ) ;
+
+	Sphere sphere( make_float3( 0.f, 0.f, 0.f ), 1.f, dummy, false, ndiv ) ;
+
+	sphere.vout() ;
+	sphere.iout() ;
 }
