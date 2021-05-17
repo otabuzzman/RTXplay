@@ -1,6 +1,5 @@
 #include <set>
 #include <vector>
-#include <sstream>
 
 #include <vector_functions.h>
 #include <vector_types.h>
