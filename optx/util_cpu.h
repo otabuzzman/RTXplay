@@ -4,6 +4,40 @@
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
+
+#define CUDA_CHECK( api ) \
+			if ( true ) {                                       \
+				cudaError_t e = api ;                           \
+				if ( e != cudaSuccess ) {                       \
+					std::ostringstream comment ;                \
+					comment                                     \
+						<< "CUDA error: " << #api << " : "      \
+						<< cudaGetErrorString( e ) << "\n" ;    \
+					throw std::runtime_error( comment.str() ) ; \
+				}                                               \
+			} else
+
+#define OPTX_CHECK( api )                                       \
+			if ( true ) {                                       \
+				if ( api != OPTIX_SUCCESS ) {                   \
+					std::ostringstream comment ;                \
+					comment << "OPTX error: " << #api << "\n" ; \
+					throw std::runtime_error( comment.str() ) ; \
+				}                                               \
+			} else
+
+#define OPTX_CHECK_LOG( api )                                   \
+			if ( true ) {                                       \
+				char   log[512] ;                               \
+				size_t sizeof_log = sizeof( log ) ;             \
+				if ( api != OPTIX_SUCCESS ) {                   \
+					std::ostringstream comment ;                \
+					comment << "OPTX error: " << #api << " : "  \
+					<< log << "\n" ;                            \
+					throw std::runtime_error( comment.str() ) ; \
+				}                                               \
+			} else
 
 namespace util {
 

@@ -5,9 +5,10 @@
 
 #include <optix.h>
 #include <optix_stubs.h>
+/*** calculate stack sizes
 #include <optix_stack_size.h>
-
-#include <sutil/Exception.h>
+***/
+#include <optix_function_table_definition.h>
 
 #include <vector_functions.h>
 #include <vector_types.h>
@@ -102,7 +103,7 @@ int main() {
 		OptixDeviceContext optx_context = nullptr ;
 		{
 			CUDA_CHECK( cudaFree( 0 ) ) ;
-			OPTIX_CHECK( optixInit() ) ;
+			OPTX_CHECK( optixInit() ) ;
 
 			OptixDeviceContextOptions optx_options = {} ;
 			optx_options.logCallbackFunction       = &util::optxLogStderr ;
@@ -110,7 +111,7 @@ int main() {
 
 			// use current (0) CUDA context
 			CUcontext cuda_context = 0 ;
-			OPTIX_CHECK( optixDeviceContextCreate( cuda_context, &optx_options, &optx_context ) ) ;
+			OPTX_CHECK( optixDeviceContextCreate( cuda_context, &optx_options, &optx_context ) ) ;
 		}
 
 
@@ -165,7 +166,7 @@ int main() {
 
 			// request acceleration structure buffer sizes from OptiX
 			OptixAccelBufferSizes as_buffer_sizes ;
-			OPTIX_CHECK( optixAccelComputeMemoryUsage(
+			OPTX_CHECK( optixAccelComputeMemoryUsage(
 						optx_context,
 						&oas_options,
 						obi_things.data(),
@@ -188,7 +189,7 @@ int main() {
 			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_outbuf ), as_buffer_sizes.outputSizeInBytes ) ) ;
 
 			// build acceleration structure
-			OPTIX_CHECK( optixAccelBuild(
+			OPTX_CHECK( optixAccelBuild(
 						optx_context,
 						0,
 						&oas_options,
@@ -216,7 +217,7 @@ int main() {
 			// allocate GPU memory for acceleration structure compaction buffer
 //			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf ), as_zipbuf_size ) ) ;
 			// condense previously built acceleration structure
-//			OPTIX_CHECK(optixAccelCompact(
+//			OPTX_CHECK( optixAccelCompact(
 //						optixContext,
 //						0,
 //						as_handle,
@@ -237,9 +238,6 @@ int main() {
 		OptixModule module_optics = nullptr ;
 		OptixPipelineCompileOptions pipeline_cc_options = {} ;
 		{
-			char   log[2048] ;
-			size_t sizeof_log = sizeof( log ) ;
-
 			OptixModuleCompileOptions module_cc_options = {} ;
 			module_cc_options.maxRegisterCount          = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT ;
 			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0 ; // OPTIX_COMPILE_OPTIMIZATION_DEFAULT
@@ -255,7 +253,7 @@ int main() {
 
 			// compile (each) shader source file into a module
 			const size_t camera_ptx_size = strlen( &camera_ptx[0] ) ;
-			OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
+			OPTX_CHECK_LOG( optixModuleCreateFromPTX(
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
@@ -267,7 +265,7 @@ int main() {
 						) ) ;
 
 			const size_t optics_ptx_size = strlen( &optics_ptx[0] ) ;
-			OPTIX_CHECK_LOG( optixModuleCreateFromPTX(
+			OPTX_CHECK_LOG( optixModuleCreateFromPTX(
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
@@ -286,9 +284,6 @@ int main() {
 		OptixProgramGroup program_group_ambient   = nullptr ;
 		OptixProgramGroup program_group_optics[OPTICS_TYPE_NUM] = {} ;
 		{
-			char   log[2048] ;
-			size_t sizeof_log = sizeof( log ) ;
-
 			OptixProgramGroupOptions program_group_options = {} ;
 
 			// Ray Generation program group
@@ -297,7 +292,7 @@ int main() {
 			program_group_camera_desc.raygen.module                   = module_camera ;
 			// function in shader source file with __global__ decorator
 			program_group_camera_desc.raygen.entryFunctionName        = "__raygen__camera" ;
-			OPTIX_CHECK_LOG( optixProgramGroupCreate(
+			OPTX_CHECK_LOG( optixProgramGroupCreate(
 						optx_context,
 						&program_group_camera_desc,
 						1,
@@ -314,7 +309,7 @@ int main() {
 			program_group_ambient_desc.miss.module                    = module_camera ;
 			// function in shader source file with __global__ decorator
 			program_group_ambient_desc.miss.entryFunctionName         = "__miss__ambient" ;
-			OPTIX_CHECK_LOG( optixProgramGroupCreate(
+			OPTX_CHECK_LOG( optixProgramGroupCreate(
 						optx_context,
 						&program_group_ambient_desc,
 						1,
@@ -336,7 +331,7 @@ int main() {
 			program_group_optics_desc[OPTICS_TYPE_REFRACT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
 			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.moduleCH            = module_optics ;
 			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.entryFunctionNameCH = "__closesthit__refract" ;
-			OPTIX_CHECK_LOG( optixProgramGroupCreate(
+			OPTX_CHECK_LOG( optixProgramGroupCreate(
 						optx_context,
 						&program_group_optics_desc[0],
 						3,
@@ -352,9 +347,6 @@ int main() {
 		// link pipeline
 		OptixPipeline pipeline = nullptr ;
 		{
-			char   log[2048] ;
-			size_t sizeof_log = sizeof( log ) ;
-
 			const unsigned int max_trace_depth  = depth ;
 			OptixProgramGroup program_groups[]  = {
 				program_group_camera,
@@ -366,7 +358,7 @@ int main() {
 			OptixPipelineLinkOptions pipeline_ld_options = {} ;
 			pipeline_ld_options.maxTraceDepth            = max_trace_depth ;
 			pipeline_ld_options.debugLevel               = OPTIX_COMPILE_DEBUG_LEVEL_FULL ;
-			OPTIX_CHECK_LOG( optixPipelineCreate(
+			OPTX_CHECK_LOG( optixPipelineCreate(
 						optx_context,
 						&pipeline_cc_options,
 						&pipeline_ld_options,
@@ -382,8 +374,8 @@ int main() {
 			/*** calculate stack sizes
 
 			OptixStackSizes stack_sizes = {} ;
-			for( auto& prog_group : program_groups )
-				OPTIX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
+			for ( auto& prog_group : program_groups )
+				OPTX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
 //			fprintf( stderr, "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDG: %u\n",
 //				stack_sizes.cssRG,
 //				stack_sizes.cssMS,
@@ -396,7 +388,7 @@ int main() {
 			unsigned int dssTrav ;
 			unsigned int dssStat ;
 			unsigned int css ;
-			OPTIX_CHECK( optixUtilComputeStackSizes(
+			OPTX_CHECK( optixUtilComputeStackSizes(
 						&stack_sizes,
 						max_trace_depth,
 						0, // maxCCDepth
@@ -417,7 +409,7 @@ int main() {
 			// cssRG: 6496, cssMS: 0, cssCH: 32, cssAH: 0, cssIS: 0, cssCC: 0, dssDG: 0
 			// dss Traversal (IS, AH): 0, dss State (RG, MS, CH): 0, css: 7008
 
-			OPTIX_CHECK( optixPipelineSetStackSize(
+			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
 						dssTrav, // direct callable stack size (called from AH and IS programs)
 						dssStat, // direct callable stack size (called from RG, MS and CH programs)
@@ -430,7 +422,7 @@ int main() {
 
 
 			// comment if using code from comment block titled `calculate stack sizes´
-			OPTIX_CHECK( optixPipelineSetStackSize(
+			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
 						4*1024, // direct callable stack size (called from AH and IS programs)
 						4*1024, // direct callable stack size (called from RG, MS and CH programs)
@@ -445,7 +437,7 @@ int main() {
 		OptixShaderBindingTable sbt = {} ;
 		{
 			// Ray Generation program group SBT record header
-			OPTIX_CHECK( optixSbtRecordPackHeader( program_group_camera, &sbt_record_camera ) ) ;
+			OPTX_CHECK( optixSbtRecordPackHeader( program_group_camera, &sbt_record_camera ) ) ;
 			// copy SBT record to GPU
 			CUdeviceptr  d_sbt_record_camera ;
 			const size_t sbt_record_camera_size = sizeof( SbtRecordRG ) ;
@@ -460,7 +452,7 @@ int main() {
 			sbt.raygenRecord = d_sbt_record_camera ;
 
 			// Miss program group SBT record header
-			OPTIX_CHECK( optixSbtRecordPackHeader( program_group_ambient, &sbt_record_ambient ) ) ;
+			OPTX_CHECK( optixSbtRecordPackHeader( program_group_ambient, &sbt_record_ambient ) ) ;
 			// copy SBT record to GPU
 			CUdeviceptr d_sbt_record_ambient ;
 			const size_t sbt_record_ambient_size = sizeof( SbtRecordMS ) ;
@@ -487,7 +479,7 @@ int main() {
 				SbtRecordHG sbt_record_thing ;
 				sbt_record_thing.data = *things[i] ;
 				// setup SBT record header
-				OPTIX_CHECK( optixSbtRecordPackHeader( program_group_optics[things[i]->optics().type], &sbt_record_thing ) ) ;
+				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[things[i]->optics().type], &sbt_record_thing ) ) ;
 				// save thing's SBT Record to buffer
 				sbt_record_buffer[i] = sbt_record_thing ;
 			}
@@ -540,14 +532,20 @@ int main() {
 						) ) ;
 
 			const size_t lp_general_size = sizeof( LpGeneral ) ;
-			OPTIX_CHECK( optixLaunch(
+			OPTX_CHECK( optixLaunch(
 						pipeline,
 						cuda_stream,
 						d_lp_general,
 						lp_general_size,
 						&sbt,
 						w/*x*/, h/*y*/, 1/*z*/ ) ) ;
-			CUDA_SYNC_CHECK() ;
+			cudaDeviceSynchronize() ;
+			cudaError_t e = cudaGetLastError() ;
+			if ( e != cudaSuccess ) {
+				std::ostringstream comment ;                   \
+				comment << "CUDA error: " << cudaGetErrorString( e ) << "\n" ; \
+				throw std::runtime_error( comment.str() ) ;    \
+			}
 		}
 		auto t1 = std::chrono::high_resolution_clock::now() ;
 		long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
@@ -593,18 +591,18 @@ int main() {
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ; // force thing's dtor
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image       ) ) ) ;
 
-			OPTIX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFLECT] ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFRACT] ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_ambient   ) ) ;
-			OPTIX_CHECK( optixProgramGroupDestroy( program_group_camera    ) ) ;
-			OPTIX_CHECK( optixModuleDestroy      ( module_camera              ) ) ;
-			OPTIX_CHECK( optixModuleDestroy      ( module_optics              ) ) ;
+			OPTX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFLECT] ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFRACT] ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_ambient ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_camera  ) ) ;
+			OPTX_CHECK( optixModuleDestroy      ( module_camera         ) ) ;
+			OPTX_CHECK( optixModuleDestroy      ( module_optics         ) ) ;
 
-			OPTIX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
+			OPTX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
 		}
-	} catch( std::exception& e ) {
+	} catch ( std::exception& e ) {
 		std::cerr << "exception: " << e.what() << "\n" ;
 
 		return 1 ;
