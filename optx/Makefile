@@ -17,19 +17,14 @@ endif
 
 OBJ = \
 	rtwo.o \
+	sphere.o \
 	camera.o \
 	optics.o \
-	sphere.o \
+	glad.o \
+	frag.o \
+	vert.o \
 
 IMG = rtwo.png
-
-SHD = \
-	camera.cu \
-	optics.cu \
-
-PTX = \
-	camera.ptx \
-	optics.ptx \
 
 OPTIX_CACHE_PATH = ./OptixCache_$$USER
 
@@ -89,6 +84,12 @@ LIB = \
 	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.3.0_465.89_win10/cuda_cudart/cudart/lib/x64) \
 
 LD = nvcc
+
+glxview.exe: stb_image.h glad.o vert.o frag.o
+	g++ -o $@ glxview.cxx $^ -g \
+		-I. -I/usr/local/include \
+		-L/usr/local/lib -lglfw3 \
+
 else
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG
 NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
@@ -104,11 +105,14 @@ LIB = \
 LD = g++
 endif
 
+vpath glad.c glad
+
 .PHONY: all clean tidy
-.SUFFIXES: .cxx .cu .png .ptx
+.SUFFIXES: .cxx .cu .glsl .png .ptx
 
 .c.o:
-	gcc -c $< -o $@
+	gcc -c $< -o $@ \
+		-I. \
 
 .cxx.o:
 	nvcc -c $< -o $@ \
@@ -122,6 +126,9 @@ endif
 
 .ptx.c:
 	bin2c -c -p 0 -n $(basename $<)_ptx $< > $@
+
+.glsl.c:
+	bin2c -c -p 0 -n $(basename $<)_glsl $< > $@
 
 all: $(EXE) $(IMG)
 
@@ -137,9 +144,37 @@ ifdef winos
 endif
 	rm -f $(OBJ)
 
-tidy: clean
+eclean: clean
 	rm -f $(EXE) $(IMG)
 	rm -rf $(OPTIX_CACHE_PATH)
+
+lclean: eclean
+	rm -rf glad KHR
+
+rclean: lclean
+	rm -f glad.zip stb_image.h
+
+tidy: rclean
+
+# setup GLAD
+glad/glad.c: glad/glad.h
+	unzip -pq glad.zip src/$(@F) >$@
+glad/glad.h: KHR/khrplatform.h
+	mkdir -p $(@D)
+	unzip -pq glad.zip include/$@ >$@
+KHR/khrplatform.h: glad.zip
+	mkdir -p $(@D)
+	unzip -pq $< include/$@ >$@
+glad.zip:
+	@echo "*** 1. open GLAD in browser and click generation button:"
+	@echo "***        https://glad.dav1d.de/#profile=core&language=c&specification=gl&loader=on&api=gl%3D3.3"
+	@echo "*** 2. download ZIP archive and copy into $$(pwd) (this) folder"
+	@echo '*** 3. re-run `make´'
+	@false
+
+# setup STBI
+stb_image.h:
+	wget -q https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
 
 
 
