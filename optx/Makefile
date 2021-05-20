@@ -20,7 +20,8 @@ OBJ = \
 	sphere.o \
 	camera.o \
 	optics.o \
-	glad.o \
+
+#	glad.o \
 	frag.o \
 	vert.o \
 

@@ -6,8 +6,9 @@ struct LpGeneral { // launch parameter
 	unsigned int           image_w ;
 	unsigned int           image_h ;
 
-	unsigned int           spp ;   // samples per pixel
+	Camera                 camera ;
 
+	unsigned int           spp ;   // samples per pixel
 	unsigned int           depth ; // recursion depth
 
 	OptixTraversableHandle as_handle ;
@@ -20,7 +21,6 @@ struct SbtRecord {
 	T data ;
 } ;
 
-typedef SbtRecord<Camera> SbtRecordRG ; // Ray Generation program group SBT record type
 typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
 typedef SbtRecord<Thing>  SbtRecordHG ; // Hit Group program group SBT record type
 
