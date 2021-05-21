@@ -1,16 +1,16 @@
 #include <iostream>
 #include <sstream>
 
-#ifdef __NVCC__
-#include <cuda_runtime_api.h>
-#include <cuda_gl_interop.h>
-#endif // __NVCC__
-
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#ifdef __NVCC__
+#include <cuda.h>
+#include <cuda_gl_interop.h>
+#endif // __NVCC__
 
 #include "util.h"
 
@@ -182,7 +182,7 @@ int main( const int argc, const char** argv ) {
 		GLuint tex = 0 ;
 		GLuint ibo = 0 ;
 #ifdef __NVCC__
-		cudaGraphicsResource* cgr = nullptr ;
+		cudaGraphicsResource* glx = nullptr ;
 #endif // __NVCC__
 		{
 			GL_CHECK( glGenTextures( 1, &tex ) ) ;
@@ -202,7 +202,7 @@ int main( const int argc, const char** argv ) {
 				GL_STATIC_DRAW
 				) ) ;
 			// register ibo for CUDA
-			CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &cgr, ibo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
+			CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &glx, ibo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 #else
 			GL_CHECK( glBufferData(
@@ -221,19 +221,19 @@ int main( const int argc, const char** argv ) {
 #ifdef __NVCC__
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-			CUDA_CHECK( cudaGraphicsMapResources ( 1, &cgr, cuda_stream ) ) ;
+			CUDA_CHECK( cudaGraphicsMapResources ( 1, &glx, cuda_stream ) ) ;
 			unsigned char* d_image ;
 			size_t d_image_size ;
-			CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &d_image ), &d_image_size, cgr ) ) ;
+			CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &d_image ), &d_image_size, glx ) ) ;
 			// populate interop'ed device memory, actually by kernel or optixLaunch
 			CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( d_image ),
-				&image,
+				image,
 				c*w*h,
 				cudaMemcpyHostToDevice
 				) ) ;
 			// populating interop'ed device memory finished
-			CUDA_CHECK( cudaGraphicsUnmapResources ( 1, &cgr,  cuda_stream ) ) ;
+			CUDA_CHECK( cudaGraphicsUnmapResources ( 1, &glx,  cuda_stream ) ) ;
 #endif // __NVCC__
 			/*** in case been set off-screen elsewhere 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
@@ -290,7 +290,7 @@ int main( const int argc, const char** argv ) {
 		// cleanup
 		{
 #ifdef __NVCC__
-			CUDA_CHECK( cudaGraphicsUnregisterResource( ibo ) ) ) ;
+			CUDA_CHECK( cudaGraphicsUnregisterResource( glx ) ) ) ;
 #endif // __NVCC__
 			GL_CHECK( glDeleteTextures( 1, &tex ) ) ;
 			GL_CHECK( glDeleteBuffers( 1, &ibo ) ) ;
