@@ -9,7 +9,7 @@
 
 #ifdef __NVCC__
 #include <cuda.h>
-#include <cuda_gl_interop.h>
+#include <cuda_gl_interop.h> // must follow glad.h
 #endif // __NVCC__
 
 #include "util.h"
@@ -18,12 +18,8 @@
 extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
-void onkey( GLFWwindow* window, const int keyname, const int keycode, const int keyact, const int keymod ) {
+static void onkey( GLFWwindow* window, const int keyname, const int keycode, const int keyact, const int keymod ) {
 	glfwSetWindowShouldClose( window, GLFW_TRUE ) ;
-}
-
-void onresize( GLFWwindow* window, const int w, const int h ) {
-	glViewport( 0, 0, w, h ) ;
 }
 
 int main( const int argc, const char** argv ) {
@@ -51,10 +47,9 @@ int main( const int argc, const char** argv ) {
 			GLFW_CHECK( glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE ) ) ;
 
 			GLFW_CHECK( window = glfwCreateWindow( w, h, "RTWO", nullptr, nullptr ) ) ;
+			GLFW_CHECK( glfwMakeContextCurrent( window ) ) ;
 
 			GLFW_CHECK( glfwSetKeyCallback( window, onkey ) ) ;
-
-			GLFW_CHECK( glfwMakeContextCurrent( window ) ) ;
 
 			// GLAD
 			if ( ! gladLoadGLLoader( (GLADloadproc) glfwGetProcAddress ) ) {
@@ -225,20 +220,25 @@ int main( const int argc, const char** argv ) {
 			unsigned char* d_image ;
 			size_t d_image_size ;
 			CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &d_image ), &d_image_size, glx ) ) ;
-			// populate interop'ed device memory, actually by kernel or optixLaunch
-			CUDA_CHECK( cudaMemcpy(
-				reinterpret_cast<void*>( d_image ),
-				image,
-				c*w*h,
-				cudaMemcpyHostToDevice
-				) ) ;
-			// populating interop'ed device memory finished
+			// optixLaunch
+			{
+				CUDA_CHECK( cudaMemcpy(
+					reinterpret_cast<void*>( d_image ),
+					image,
+					c*w*h,
+					cudaMemcpyHostToDevice
+					) ) ;
+			}
 			CUDA_CHECK( cudaGraphicsUnmapResources ( 1, &glx,  cuda_stream ) ) ;
 #endif // __NVCC__
+
 			/*** in case been set off-screen elsewhere 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
 			***/
 			GL_CHECK( glViewport( 0, 0, w, h ) ) ;
+
+			// OpenGL logo color
+			GL_CHECK( glClearColor( .333f, .525f, .643f, 1.f ) ) ;
 			GL_CHECK( glClear( GL_COLOR_BUFFER_BIT ) ) ;
 
 			GL_CHECK( glUseProgram( program ) ) ;
