@@ -522,12 +522,14 @@ int main() {
 						lp_general_size,
 						&sbt,
 						w/*x*/, h/*y*/, 1/*z*/ ) ) ;
-			cudaDeviceSynchronize() ;
+			CUDA_CHECK( cudaDeviceSynchronize() ) ;
+
+			CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 			cudaError_t e = cudaGetLastError() ;
 			if ( e != cudaSuccess ) {
-				std::ostringstream comment ;                   \
-				comment << "CUDA error: " << cudaGetErrorString( e ) << "\n" ; \
-				throw std::runtime_error( comment.str() ) ;    \
+				std::ostringstream comment ;
+				comment << "CUDA error: " << cudaGetErrorString( e ) << "\n" ;
+				throw std::runtime_error( comment.str() ) ;
 			}
 		}
 		auto t1 = std::chrono::high_resolution_clock::now() ;
