@@ -86,8 +86,9 @@ LIB = \
 
 LD = nvcc
 
-glxview.exe: stb_image.h glad.o vert.o frag.o
-	g++ -o $@ glxview.cxx $^ -g \
+# native OpenGL image viewer
+glxview.exe: glad.o vert.o frag.o | stb_image.h
+	g++ -o $@ glxview.cxx $^ \
 		-I. -I/usr/local/include \
 		-L/usr/local/lib -lglfw3 \
 
@@ -98,12 +99,22 @@ NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma)
 INC = \
 	-I/usr/local/cuda/include \
 	-I/usr/local/optix/include \
+	-I/usr/local/include \
 
 LIB = \
 	-L/usr/local/cuda/lib64 -lcudart -lpthread -lrt -ldl \
+	-L/usr/local/lib -lglfw3 \
 	-lm \
 
 LD = g++
+
+# interop'ed OpenGL image viewer
+glxview: glad.o vert.o frag.o | stb_image.h
+	nvcc -o $@ glxview.cxx $^ \
+		$(NVCCFLAGS) \
+		-I. $(INC) \
+		$(LIB) \
+
 endif
 
 vpath glad.c glad

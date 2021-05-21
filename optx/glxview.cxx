@@ -1,32 +1,18 @@
 #include <iostream>
 #include <sstream>
 
+#ifdef __NVCC__
+#include <cuda_runtime_api.h>
+#include <cuda_gl_interop.h>
+#endif // __NVCC__
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define GLFWOK( api )                                      \
-	if ( true ) {                                          \
-		api ;                                              \
-		const char* m ;                                    \
-		if ( glfwGetError( &m ) != GLFW_NO_ERROR ) {       \
-			std::ostringstream comment ;                   \
-			comment << "GLFW error: " << m << std::endl ;  \
-			throw std::runtime_error( comment.str() ) ;    \
-		}                                                  \
-	} else
-
-#define GLOK( api )                                        \
-	if ( true ) {                                          \
-		api ;                                              \
-		if ( glGetError() != GL_NO_ERROR ) {               \
-			std::ostringstream comment ;                   \
-			comment << "GL error: " << #api << std::endl ; \
-			throw std::runtime_error( comment.str() ) ;    \
-		}                                                  \
-	} else
+#include "util.h"
 
 // GLSL sources of shaders
 extern "C" const char vert_glsl[] ;
@@ -54,27 +40,42 @@ int main( const int argc, const char** argv ) {
 	}
 
 	try {
-		// initialize GLFW and GLAD
+		// initialize
 		GLFWwindow* window ;
 		{
-			GLFWOK( glfwInit() ) ;
+			// GLFW
+			GLFW_CHECK( glfwInit() ) ;
 
-			GLFWOK( glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 ) ) ;
-			GLFWOK( glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 ) ) ;
-			GLFWOK( glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE ) ) ;
+			GLFW_CHECK( glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 ) ) ;
+			GLFW_CHECK( glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 ) ) ;
+			GLFW_CHECK( glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE ) ) ;
 
-			GLFWOK( window = glfwCreateWindow( w, h, "RTWO", nullptr, nullptr ) ) ;
+			GLFW_CHECK( window = glfwCreateWindow( w, h, "RTWO", nullptr, nullptr ) ) ;
 
-			GLFWOK( glfwSetKeyCallback( window, onkey ) ) ;
+			GLFW_CHECK( glfwSetKeyCallback( window, onkey ) ) ;
 
-			GLFWOK( glfwMakeContextCurrent( window ) ) ;
+			GLFW_CHECK( glfwMakeContextCurrent( window ) ) ;
 
+			// GLAD
 			if ( ! gladLoadGLLoader( (GLADloadproc) glfwGetProcAddress ) ) {
 				std::ostringstream comment ;
 				
 				comment << "GLAD error: gladLoadGLLoader failed" << std::endl ;
 				throw std::runtime_error( comment.str() ) ;
 			}
+
+#ifdef __NVCC__
+			// CUDA
+			CUDA_CHECK( cudaSetDevice( 0 ) ) ; // 1st GPU assumed Turing
+
+			int cdev, ddev ;
+			// check if X server executes on current device (SO #17994896)
+			// if true current is display device as required for GL interop
+			CUDA_CHECK( cudaGetDevice( &cdev ) ) ;
+			CUDA_CHECK( cudaDeviceGetAttribute( &ddev, cudaDevAttrKernelExecTimeout, cdev ) ) ;
+			if ( !ddev )
+				throw std::runtime_error( "RTWO error: current not display device\n" ) ;
+#endif // __NVCC__
 		}
 
 
@@ -84,12 +85,12 @@ int main( const int argc, const char** argv ) {
 		GLuint f_shader = 0 ;
 		{
 			// vertex shader
-			GLOK( v_shader = glCreateShader( GL_VERTEX_SHADER ) ) ;
+			GL_CHECK( v_shader = glCreateShader( GL_VERTEX_SHADER ) ) ;
 			const GLchar* src = reinterpret_cast<const GLchar*>( vert_glsl ) ;
-			GLOK( glShaderSource( v_shader, 1, &src, nullptr ) ) ;
-			GLOK( glCompileShader( v_shader ) ) ;
+			GL_CHECK( glShaderSource( v_shader, 1, &src, nullptr ) ) ;
+			GL_CHECK( glCompileShader( v_shader ) ) ;
 			GLint success = 0 ;
-			GLOK( glGetShaderiv( v_shader, GL_COMPILE_STATUS, &success ) ) ;
+			GL_CHECK( glGetShaderiv( v_shader, GL_COMPILE_STATUS, &success ) ) ;
 			if ( success == GL_FALSE ) {
 				char log[512] ;
 				glGetShaderInfoLog( v_shader, 512, nullptr, log ) ;
@@ -101,11 +102,11 @@ int main( const int argc, const char** argv ) {
 				throw std::runtime_error( comment.str() ) ;
 			}
 			// fragment shader
-			GLOK( f_shader = glCreateShader( GL_FRAGMENT_SHADER ) ) ;
+			GL_CHECK( f_shader = glCreateShader( GL_FRAGMENT_SHADER ) ) ;
 			src = reinterpret_cast<const GLchar*>( frag_glsl ) ;
-			GLOK( glShaderSource( f_shader, 1, &src, nullptr ) ) ;
-			GLOK( glCompileShader( f_shader ) ) ;
-			GLOK( glGetShaderiv( f_shader, GL_COMPILE_STATUS, &success ) ) ;
+			GL_CHECK( glShaderSource( f_shader, 1, &src, nullptr ) ) ;
+			GL_CHECK( glCompileShader( f_shader ) ) ;
+			GL_CHECK( glGetShaderiv( f_shader, GL_COMPILE_STATUS, &success ) ) ;
 			if ( success == GL_FALSE ) {
 				char log[512] ;
 				glGetShaderInfoLog( f_shader, 512, nullptr, log ) ;
@@ -122,15 +123,16 @@ int main( const int argc, const char** argv ) {
 
 		// create program
 		GLuint program = 0 ;
+		GLint uniform = 0 ;
 		{
-			GLOK( program = glCreateProgram() ) ;
-			GLOK( glAttachShader( program, v_shader ) ) ;
-			GLOK( glAttachShader( program, f_shader ) ) ;
-			GLOK( glLinkProgram( program ) ) ;
-			GLOK( glDetachShader( program, v_shader ) ) ;
-			GLOK( glDetachShader( program, f_shader ) ) ;
+			GL_CHECK( program = glCreateProgram() ) ;
+			GL_CHECK( glAttachShader( program, v_shader ) ) ;
+			GL_CHECK( glAttachShader( program, f_shader ) ) ;
+			GL_CHECK( glLinkProgram( program ) ) ;
+			GL_CHECK( glDetachShader( program, v_shader ) ) ;
+			GL_CHECK( glDetachShader( program, f_shader ) ) ;
 			GLint success = 0 ;
-			GLOK( glGetProgramiv( program, GL_LINK_STATUS, &success ) ) ;
+			GL_CHECK( glGetProgramiv( program, GL_LINK_STATUS, &success ) ) ;
 			if ( success == GL_FALSE ) {
 				char log[512] ;
 				glGetProgramInfoLog( v_shader, 512, nullptr, log ) ;
@@ -143,6 +145,7 @@ int main( const int argc, const char** argv ) {
 					<< log << std::endl ;
 				throw std::runtime_error( comment.str() ) ;
 			}
+			GL_CHECK( uniform = glGetUniformLocation( program, "t" ) ) ;
 		}
 
 
@@ -151,8 +154,8 @@ int main( const int argc, const char** argv ) {
 		GLuint vao = 0 ;
 		GLuint vbo = 0 ;
 		{
-			GLOK( glGenVertexArrays( 1, &vao ) ) ;
-			GLOK( glBindVertexArray( vao ) ) ;
+			GL_CHECK( glGenVertexArrays( 1, &vao ) ) ;
+			GL_CHECK( glBindVertexArray( vao ) ) ;
 			// square of two triangles spanning the viewport (NDC).
 			static const GLfloat viewport[] = {
 				-1.f, -1.f, .0f,
@@ -163,9 +166,9 @@ int main( const int argc, const char** argv ) {
 				 1.f, -1.f, .0f,
 				 1.f,  1.f, .0f,
 			} ;
-			GLOK( glGenBuffers( 1, &vbo ) ) ;
-			GLOK( glBindBuffer( GL_ARRAY_BUFFER, vbo ) ) ;
-			GLOK( glBufferData(
+			GL_CHECK( glGenBuffers( 1, &vbo ) ) ;
+			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, vbo ) ) ;
+			GL_CHECK( glBufferData(
 				GL_ARRAY_BUFFER,
 				sizeof( viewport ),
 				viewport,
@@ -178,40 +181,74 @@ int main( const int argc, const char** argv ) {
 		// setup texture (image)
 		GLuint tex = 0 ;
 		GLuint ibo = 0 ;
+#ifdef __NVCC__
+		cudaGraphicsResource* cgr = nullptr ;
+#endif // __NVCC__
 		{
-			GLOK( glGenTextures( 1, &tex ) ) ;
-			GLOK( glBindTexture( GL_TEXTURE_2D, tex ) ) ;
-			GLOK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ) ) ;
-			GLOK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ) ) ;
-			GLOK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) ) ;
-			GLOK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ) ) ;
-			GLOK( glGenBuffers( 1, &ibo ) ) ;
-			GLOK( glBindBuffer( GL_ARRAY_BUFFER, ibo ) ) ;
-			GLOK( glBufferData(
+			GL_CHECK( glGenTextures( 1, &tex ) ) ;
+			GL_CHECK( glBindTexture( GL_TEXTURE_2D, tex ) ) ;
+			GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ) ) ;
+			GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ) ) ;
+			GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) ) ;
+			GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ) ) ;
+			// create image buffer object
+			GL_CHECK( glGenBuffers( 1, &ibo ) ) ;
+			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, ibo ) ) ;
+#ifdef __NVCC__
+			GL_CHECK( glBufferData(
+				GL_ARRAY_BUFFER,
+				c*w*h,
+				nullptr,
+				GL_STATIC_DRAW
+				) ) ;
+			// register ibo for CUDA
+			CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &cgr, ibo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
+			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
+#else
+			GL_CHECK( glBufferData(
 				GL_ARRAY_BUFFER,
 				c*w*h,
 				image,
 				GL_STATIC_DRAW
 				) ) ;
+#endif // __NVCC__
 		}
 
 
 
 		// render loop
 		do {
+#ifdef __NVCC__
+			CUstream cuda_stream ;
+			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+			CUDA_CHECK( cudaGraphicsMapResources ( 1, &cgr, cuda_stream ) ) ;
+			unsigned char* d_image ;
+			size_t d_image_size ;
+			CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &d_image ), &d_image_size, cgr ) ) ;
+			// populate interop'ed device memory, actually by kernel or optixLaunch
+			CUDA_CHECK( cudaMemcpy(
+				reinterpret_cast<void*>( d_image ),
+				&image,
+				c*w*h,
+				cudaMemcpyHostToDevice
+				) ) ;
+			// populating interop'ed device memory finished
+			CUDA_CHECK( cudaGraphicsUnmapResources ( 1, &cgr,  cuda_stream ) ) ;
+#endif // __NVCC__
 			/*** in case been set off-screen elsewhere 
-			GLOK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
+			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
 			***/
-			GLOK( glViewport( 0, 0, w, h ) ) ;
-			GLOK( glClear( GL_COLOR_BUFFER_BIT ) ) ;
+			GL_CHECK( glViewport( 0, 0, w, h ) ) ;
+			GL_CHECK( glClear( GL_COLOR_BUFFER_BIT ) ) ;
 
-			GLOK( glUseProgram( program ) ) ;
+			GL_CHECK( glUseProgram( program ) ) ;
+			GL_CHECK( glUniform1i( uniform , 0 ) ) ;
 
-			GLOK( glActiveTexture( GL_TEXTURE0 ) ) ;
-			GLOK( glBindTexture( GL_TEXTURE_2D, tex ) ) ;
-			GLOK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, ibo ) ) ;
-			GLOK( glPixelStorei( GL_UNPACK_ALIGNMENT, 1 ) ) ;
-			GLOK( glTexImage2D(
+			GL_CHECK( glActiveTexture( GL_TEXTURE0 ) ) ;
+			GL_CHECK( glBindTexture( GL_TEXTURE_2D, tex ) ) ;
+			GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, ibo ) ) ;
+			GL_CHECK( glPixelStorei( GL_UNPACK_ALIGNMENT, 1 ) ) ;
+			GL_CHECK( glTexImage2D(
 				GL_TEXTURE_2D,
 				0,                // for mipmap level
 				GL_RGB8,          // texture color components
@@ -222,11 +259,11 @@ int main( const int argc, const char** argv ) {
 				GL_UNSIGNED_BYTE, // pixel data type
 				nullptr           // data in GL_PIXEL_UNPACK_BUFFER (ibo)
 				) ) ;
-			GLOK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 ) ) ;
+			GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 ) ) ;
 
-			GLOK( glEnableVertexAttribArray( 0 ) ) ;
-			GLOK( glBindBuffer( GL_ARRAY_BUFFER, vbo ) ) ;
-			GLOK( glVertexAttribPointer(
+			GL_CHECK( glEnableVertexAttribArray( 0 ) ) ;
+			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, vbo ) ) ;
+			GL_CHECK( glVertexAttribPointer(
 				0,        // attribute index
 				3,        // attribute components
 				GL_FLOAT, // attribute components type
@@ -236,31 +273,34 @@ int main( const int argc, const char** argv ) {
 				) ) ;
 
 			/*** apply gamma correction
-			GLOK( glEnable( GL_FRAMEBUFFER_SRGB ) ) ;
+			GL_CHECK( glEnable( GL_FRAMEBUFFER_SRGB ) ) ;
 			***/
-			GLOK( glDrawArrays( GL_TRIANGLES, 0, 6 ) ) ;
-			GLOK( glDisableVertexAttribArray( 0 ) ) ;
+			GL_CHECK( glDrawArrays( GL_TRIANGLES, 0, 6 ) ) ;
+			GL_CHECK( glDisableVertexAttribArray( 0 ) ) ;
 			/***
-			GLOK( glDisable( GL_FRAMEBUFFER_SRGB ) ) ;
+			GL_CHECK( glDisable( GL_FRAMEBUFFER_SRGB ) ) ;
 			***/
 
-			GLFWOK( glfwSwapBuffers( window ) ) ;
-			GLFWOK( glfwPollEvents() ) ;
+			GLFW_CHECK( glfwSwapBuffers( window ) ) ;
+			GLFW_CHECK( glfwPollEvents() ) ;
 		} while ( ! glfwWindowShouldClose( window ) ) ;
 
 
 
 		// cleanup
 		{
-			GLOK( glDeleteTextures( 1, &tex ) ) ;
-			GLOK( glDeleteBuffers( 1, &ibo ) ) ;
-			GLOK( glDeleteVertexArrays( 1, &vao ) ) ;
-			GLOK( glDeleteBuffers( 1, &vbo ) ) ;
-			GLOK( glDeleteShader( v_shader ) ) ;
-			GLOK( glDeleteShader( f_shader ) ) ;
-			GLOK( glDeleteProgram( program ) ) ;
-			GLFWOK( glfwDestroyWindow( window ) ) ;
-			GLFWOK( glfwTerminate() ) ;
+#ifdef __NVCC__
+			CUDA_CHECK( cudaGraphicsUnregisterResource( ibo ) ) ) ;
+#endif // __NVCC__
+			GL_CHECK( glDeleteTextures( 1, &tex ) ) ;
+			GL_CHECK( glDeleteBuffers( 1, &ibo ) ) ;
+			GL_CHECK( glDeleteVertexArrays( 1, &vao ) ) ;
+			GL_CHECK( glDeleteBuffers( 1, &vbo ) ) ;
+			GL_CHECK( glDeleteShader( v_shader ) ) ;
+			GL_CHECK( glDeleteShader( f_shader ) ) ;
+			GL_CHECK( glDeleteProgram( program ) ) ;
+			GLFW_CHECK( glfwDestroyWindow( window ) ) ;
+			GLFW_CHECK( glfwTerminate() ) ;
 			stbi_image_free( image ) ;
 		}
 	} catch ( std::exception& e ) {

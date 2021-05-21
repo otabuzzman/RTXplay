@@ -39,6 +39,27 @@
 				}                                               \
 			} else
 
+#define GLFW_CHECK( api )                                       \
+	if ( true ) {                                               \
+		api ;                                                   \
+		const char* m ;                                         \
+		if ( glfwGetError( &m ) != GLFW_NO_ERROR ) {            \
+			std::ostringstream comment ;                        \
+			comment << "GLFW error: " << m << std::endl ;       \
+			throw std::runtime_error( comment.str() ) ;         \
+		}                                                       \
+	} else
+
+#define GL_CHECK( api )                                         \
+	if ( true ) {                                               \
+		api ;                                                   \
+		if ( glGetError() != GL_NO_ERROR ) {                    \
+			std::ostringstream comment ;                        \
+			comment << "GL error: " << #api << std::endl ;      \
+			throw std::runtime_error( comment.str() ) ;         \
+		}                                                       \
+	} else
+
 namespace util {
 
 inline float rnd()                                   { return static_cast<float>( rand() )/( static_cast<float>( RAND_MAX )+1.f ) ; }
