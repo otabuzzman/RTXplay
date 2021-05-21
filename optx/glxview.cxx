@@ -290,7 +290,7 @@ int main( const int argc, const char** argv ) {
 		// cleanup
 		{
 #ifdef __NVCC__
-			CUDA_CHECK( cudaGraphicsUnregisterResource( glx ) ) ) ;
+			CUDA_CHECK( cudaGraphicsUnregisterResource( glx ) ) ;
 #endif // __NVCC__
 			GL_CHECK( glDeleteTextures( 1, &tex ) ) ;
 			GL_CHECK( glDeleteBuffers( 1, &ibo ) ) ;
