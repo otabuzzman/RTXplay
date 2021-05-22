@@ -169,6 +169,7 @@ int main( const int argc, const char** argv ) {
 				viewport,
 				GL_STATIC_DRAW
 				) ) ;
+			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 		}
 
 
@@ -198,7 +199,6 @@ int main( const int argc, const char** argv ) {
 				) ) ;
 			// register ibo for CUDA
 			CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &glx, ibo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
-			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 #else
 			GL_CHECK( glBufferData(
 				GL_ARRAY_BUFFER,
@@ -207,6 +207,7 @@ int main( const int argc, const char** argv ) {
 				GL_STATIC_DRAW
 				) ) ;
 #endif // __NVCC__
+			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 		}
 
 
@@ -235,7 +236,11 @@ int main( const int argc, const char** argv ) {
 			/*** in case been set off-screen elsewhere 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
 			***/
-			GL_CHECK( glViewport( 0, 0, w, h ) ) ;
+			int fb_w = w, fb_h = h ;
+			/*** let viewport equal framebuffer size
+			GL_CHECK( glfwGetFramebufferSize( window, &fb_w, &fb_h ) ) ;
+			***/
+			GL_CHECK( glViewport( 0, 0, fb_w, fb_h ) ) ;
 
 			// OpenGL logo color
 			GL_CHECK( glClearColor( .333f, .525f, .643f, 1.f ) ) ;
