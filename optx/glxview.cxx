@@ -151,8 +151,8 @@ int main( const int argc, const char** argv ) {
 		{
 			GL_CHECK( glGenVertexArrays( 1, &vao ) ) ;
 			GL_CHECK( glBindVertexArray( vao ) ) ;
-			// square of two triangles spanning the viewport (NDC).
-			static const GLfloat viewport[] = {
+			// vertices of two triangles forming a rectangle and spanning the viewport (NDC)
+			static const GLfloat vces[] = {
 				-1.f, -1.f, .0f,
 				 1.f, -1.f, .0f,
 				-1.f,  1.f, .0f,
@@ -165,8 +165,8 @@ int main( const int argc, const char** argv ) {
 			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, vbo ) ) ;
 			GL_CHECK( glBufferData(
 				GL_ARRAY_BUFFER,
-				sizeof( viewport ),
-				viewport,
+				sizeof( vces ),
+				vces,
 				GL_STATIC_DRAW
 				) ) ;
 			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
@@ -176,7 +176,7 @@ int main( const int argc, const char** argv ) {
 
 		// setup texture (image)
 		GLuint tex = 0 ;
-		GLuint ibo = 0 ;
+		GLuint pbo = 0 ;
 #ifdef __NVCC__
 		cudaGraphicsResource* glx = nullptr ;
 #endif // __NVCC__
@@ -187,9 +187,9 @@ int main( const int argc, const char** argv ) {
 			GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST ) ) ;
 			GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ) ) ;
 			GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ) ) ;
-			// create image buffer object
-			GL_CHECK( glGenBuffers( 1, &ibo ) ) ;
-			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, ibo ) ) ;
+			// create pixel (image) buffer object
+			GL_CHECK( glGenBuffers( 1, &pbo ) ) ;
+			GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, pbo ) ) ;
 #ifdef __NVCC__
 			GL_CHECK( glBufferData(
 				GL_ARRAY_BUFFER,
@@ -197,8 +197,8 @@ int main( const int argc, const char** argv ) {
 				nullptr,
 				GL_STATIC_DRAW
 				) ) ;
-			// register ibo for CUDA
-			CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &glx, ibo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
+			// register pbo for CUDA
+			CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &glx, pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 #else
 			GL_CHECK( glBufferData(
 				GL_ARRAY_BUFFER,
@@ -236,11 +236,7 @@ int main( const int argc, const char** argv ) {
 			/*** in case been set off-screen elsewhere 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
 			***/
-			int fb_w = w, fb_h = h ;
-			/*** let viewport equal framebuffer size
-			GL_CHECK( glfwGetFramebufferSize( window, &fb_w, &fb_h ) ) ;
-			***/
-			GL_CHECK( glViewport( 0, 0, fb_w, fb_h ) ) ;
+			GL_CHECK( glViewport( 0, 0, w, h ) ) ;
 
 			// OpenGL logo color
 			GL_CHECK( glClearColor( .333f, .525f, .643f, 1.f ) ) ;
@@ -251,7 +247,7 @@ int main( const int argc, const char** argv ) {
 
 			GL_CHECK( glActiveTexture( GL_TEXTURE0 ) ) ;
 			GL_CHECK( glBindTexture( GL_TEXTURE_2D, tex ) ) ;
-			GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, ibo ) ) ;
+			GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, pbo ) ) ;
 			GL_CHECK( glPixelStorei( GL_UNPACK_ALIGNMENT, 1 ) ) ;
 			GL_CHECK( glTexImage2D(
 				GL_TEXTURE_2D,
@@ -262,7 +258,7 @@ int main( const int argc, const char** argv ) {
 				0,
 				GL_RGB,           // pixel data format
 				GL_UNSIGNED_BYTE, // pixel data type
-				nullptr           // data in GL_PIXEL_UNPACK_BUFFER (ibo)
+				nullptr           // data in GL_PIXEL_UNPACK_BUFFER (pbo)
 				) ) ;
 			GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 ) ) ;
 
@@ -298,7 +294,7 @@ int main( const int argc, const char** argv ) {
 			CUDA_CHECK( cudaGraphicsUnregisterResource( glx ) ) ;
 #endif // __NVCC__
 			GL_CHECK( glDeleteTextures( 1, &tex ) ) ;
-			GL_CHECK( glDeleteBuffers( 1, &ibo ) ) ;
+			GL_CHECK( glDeleteBuffers( 1, &pbo ) ) ;
 			GL_CHECK( glDeleteVertexArrays( 1, &vao ) ) ;
 			GL_CHECK( glDeleteBuffers( 1, &vbo ) ) ;
 			GL_CHECK( glDeleteShader( v_shader ) ) ;
