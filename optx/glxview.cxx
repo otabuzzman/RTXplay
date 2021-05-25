@@ -19,7 +19,10 @@ extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
 static void onkey( GLFWwindow* window, const int keyname, const int keycode, const int keyact, const int keymod ) {
-	glfwSetWindowShouldClose( window, GLFW_TRUE ) ;
+	GLFW_CHECK( glfwSetWindowShouldClose( window, GLFW_TRUE ) ) ;
+}
+static void onresize( GLFWwindow* window, const int w, const int h ) {
+	GL_CHECK( glViewport( 0, 0, w, h ) ) ;
 }
 
 int main( const int argc, const char** argv ) {
@@ -49,7 +52,8 @@ int main( const int argc, const char** argv ) {
 			GLFW_CHECK( window = glfwCreateWindow( w, h, "RTWO", nullptr, nullptr ) ) ;
 			GLFW_CHECK( glfwMakeContextCurrent( window ) ) ;
 
-			GLFW_CHECK( glfwSetKeyCallback( window, onkey ) ) ;
+			GLFW_CHECK( glfwSetKeyCallback            ( window, onkey ) ) ;
+			GLFW_CHECK( glfwSetFramebufferSizeCallback( window, onresize ) ) ;
 
 			// GLAD
 			if ( ! gladLoadGLLoader( (GLADloadproc) glfwGetProcAddress ) ) {
@@ -236,7 +240,10 @@ int main( const int argc, const char** argv ) {
 			/*** in case been set off-screen elsewhere 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
 			***/
-			GL_CHECK( glViewport( 0, 0, w, h ) ) ;
+			int fb_w = w ;
+			int fb_h = h ;
+			GL_CHECK( glfwGetFramebufferSize( window, &fb_w, &fb_h ) ) ;
+			GL_CHECK( glViewport( 0, 0, fb_w, fb_h ) ) ;
 
 			// OpenGL logo color
 			GL_CHECK( glClearColor( .333f, .525f, .643f, 1.f ) ) ;
@@ -273,7 +280,7 @@ int main( const int argc, const char** argv ) {
 				nullptr   // data in GL_ARRAY_BUFFER (vbo)
 				) ) ;
 
-			/*** apply gamma correction
+			/*** apply gamma correction if necessary
 			GL_CHECK( glEnable( GL_FRAMEBUFFER_SRGB ) ) ;
 			***/
 			GL_CHECK( glDrawArrays( GL_TRIANGLES, 0, 6 ) ) ;
@@ -283,7 +290,7 @@ int main( const int argc, const char** argv ) {
 			***/
 
 			GLFW_CHECK( glfwSwapBuffers( window ) ) ;
-			GLFW_CHECK( glfwPollEvents() ) ;
+			GLFW_CHECK( glfwWaitEvents() ) ;
 		} while ( ! glfwWindowShouldClose( window ) ) ;
 
 
