@@ -18,11 +18,20 @@
 extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
+static double aspratio = 0. ;
+
 static void onkey( GLFWwindow* window, const int keyname, const int keycode, const int keyact, const int keymod ) {
 	GLFW_CHECK( glfwSetWindowShouldClose( window, GLFW_TRUE ) ) ;
 }
 static void onresize( GLFWwindow* window, const int w, const int h ) {
-	GL_CHECK( glViewport( 0, 0, w, h ) ) ;
+	const double r = static_cast<double>( w )/h ;
+
+	// new aspect ratio more landscape than image thus w follows h
+	if ( r>aspratio )
+		GL_CHECK( glViewport( 0, 0, h*aspratio, h ) ) ;
+	// new aspect ratio less landscape than image thus h follows w
+	else
+		GL_CHECK( glViewport( 0, 0, w, w/aspratio ) ) ;
 }
 
 int main( const int argc, const char** argv ) {
@@ -37,6 +46,7 @@ int main( const int argc, const char** argv ) {
 
 		return( 1 ) ;
 	}
+	aspratio = static_cast<double>( w )/h ;
 
 	try {
 		// initialize
@@ -240,12 +250,6 @@ int main( const int argc, const char** argv ) {
 			/*** in case been set off-screen elsewhere 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
 			***/
-			int fb_w = w ;
-			int fb_h = h ;
-			GL_CHECK( glfwGetFramebufferSize( window, &fb_w, &fb_h ) ) ;
-			GL_CHECK( glViewport( 0, 0, fb_w, fb_h ) ) ;
-
-			// OpenGL logo color
 			GL_CHECK( glClearColor( .333f, .525f, .643f, 1.f ) ) ;
 			GL_CHECK( glClear( GL_COLOR_BUFFER_BIT ) ) ;
 
