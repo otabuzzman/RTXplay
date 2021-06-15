@@ -231,7 +231,7 @@ int main( const int argc, const char** argv ) {
 #ifdef __NVCC__
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-			CUDA_CHECK( cudaGraphicsMapResources ( 1, &glx, cuda_stream ) ) ;
+			CUDA_CHECK( cudaGraphicsMapResources( 1, &glx, cuda_stream ) ) ;
 			unsigned char* d_image ;
 			size_t d_image_size ;
 			CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &d_image ), &d_image_size, glx ) ) ;
@@ -240,16 +240,15 @@ int main( const int argc, const char** argv ) {
 				CUDA_CHECK( cudaMemcpy(
 					reinterpret_cast<void*>( d_image ),
 					image,
-					c*w*h,
+					d_image_size, // c*w*h
 					cudaMemcpyHostToDevice
 					) ) ;
 			}
-			CUDA_CHECK( cudaGraphicsUnmapResources ( 1, &glx,  cuda_stream ) ) ;
+			CUDA_CHECK( cudaGraphicsUnmapResources( 1, &glx,  cuda_stream ) ) ;
 #endif // __NVCC__
 
-			/*** in case been set off-screen elsewhere 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
-			***/
+
 			GL_CHECK( glClearColor( .333f, .525f, .643f, 1.f ) ) ;
 			GL_CHECK( glClear( GL_COLOR_BUFFER_BIT ) ) ;
 
