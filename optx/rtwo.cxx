@@ -510,7 +510,7 @@ int main() {
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), w*h*sizeof( uchar4 ) ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), w*h*sizeof( uchar4 ) ) ) ;
 			lp_general.image_w   = w ;
 			lp_general.image_h   = h ;
 
@@ -546,7 +546,6 @@ int main() {
 				comment << "CUDA error: " << cudaGetErrorString( e ) << "\n" ;
 				throw std::runtime_error( comment.str() ) ;
 			}
-		}
 		}
 		auto t1 = std::chrono::high_resolution_clock::now() ;
 		long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
