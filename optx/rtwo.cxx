@@ -510,10 +510,7 @@ int main() {
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-			CUDA_CHECK( cudaMalloc(
-						reinterpret_cast<void**>( &lp_general.image ),
-						w*h*sizeof( uchar4 )
-						) ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), w*h*sizeof( uchar4 ) ) ;
 			lp_general.image_w   = w ;
 			lp_general.image_h   = h ;
 
@@ -524,14 +521,15 @@ int main() {
 			lp_general.as_handle = as_handle ;
 
 			CUdeviceptr d_lp_general ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
+			const size_t lp_general_size = sizeof( LpGeneral ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
 			CUDA_CHECK( cudaMemcpy(
 						reinterpret_cast<void*>( d_lp_general ),
-						&lp_general, sizeof( lp_general ),
+						&lp_general,
+						lp_general_size,
 						cudaMemcpyHostToDevice
 						) ) ;
 
-			const size_t lp_general_size = sizeof( LpGeneral ) ;
 			OPTX_CHECK( optixLaunch(
 						pipeline,
 						cuda_stream,
