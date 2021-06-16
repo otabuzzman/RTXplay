@@ -244,7 +244,7 @@ int main( const int argc, const char** argv ) {
 					cudaMemcpyHostToDevice
 					) ) ;
 			}
-			CUDA_CHECK( cudaGraphicsUnmapResources( 1, &glx,  cuda_stream ) ) ;
+			CUDA_CHECK( cudaGraphicsUnmapResources( 1, &glx, cuda_stream ) ) ;
 #endif // __NVCC__
 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;

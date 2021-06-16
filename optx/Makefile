@@ -29,6 +29,8 @@ IMG = rtwo.png
 
 OPTIX_CACHE_PATH = ./OptixCache_$$USER
 
+all: $(EXE) $(IMG)
+
 ifdef winos
 # prerequisites:
 # install VS2017 (Community)
@@ -141,8 +143,6 @@ vpath glad.c glad
 
 .glsl.c:
 	bin2c -c -p 0 -n $(basename $<)_glsl $< > $@
-
-all: $(EXE) $(IMG)
 
 $(EXE): $(OBJ)
 	$(LD) -o $@ $^ \
