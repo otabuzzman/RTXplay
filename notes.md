@@ -87,7 +87,7 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
 3. Check configuration
   ```
   # start X server
-  sudo X -config /etc/X11/xorg-nvidia.conf &
+  sudo X -ac -config /etc/X11/xorg-nvidia.conf &
 
   # start VNC server
   export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
