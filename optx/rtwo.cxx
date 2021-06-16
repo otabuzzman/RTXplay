@@ -494,10 +494,7 @@ int main() {
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-			CUDA_CHECK( cudaMalloc(
-						reinterpret_cast<void**>( &lp_general.image ),
-						w*h*sizeof( uchar4 )
-						) ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), w*h*sizeof( uchar4 ) ) ) ;
 			lp_general.image_w   = w ;
 			lp_general.image_h   = h ;
 
