@@ -7,7 +7,7 @@
 #include <sstream>
 
 #define CUDA_CHECK( api ) \
-			if ( true ) {                                       \
+			do {                                                \
 				cudaError_t e = api ;                           \
 				if ( e != cudaSuccess ) {                       \
 					std::ostringstream comment ;                \
@@ -16,19 +16,19 @@
 						<< cudaGetErrorString( e ) << "\n" ;    \
 					throw std::runtime_error( comment.str() ) ; \
 				}                                               \
-			} else
+			} while ( false )
 
 #define OPTX_CHECK( api )                                       \
-			if ( true ) {                                       \
+			do {                                                \
 				if ( api != OPTIX_SUCCESS ) {                   \
 					std::ostringstream comment ;                \
 					comment << "OPTX error: " << #api << "\n" ; \
 					throw std::runtime_error( comment.str() ) ; \
 				}                                               \
-			} else
+			} while ( false )
 
 #define OPTX_CHECK_LOG( api )                                   \
-			if ( true ) {                                       \
+			do {                                                \
 				char   log[512] ;                               \
 				size_t sizeof_log = sizeof( log ) ;             \
 				if ( api != OPTIX_SUCCESS ) {                   \
@@ -37,7 +37,7 @@
 					<< log << "\n" ;                            \
 					throw std::runtime_error( comment.str() ) ; \
 				}                                               \
-			} else
+			} while ( false )
 
 namespace util {
 
