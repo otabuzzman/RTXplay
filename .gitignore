@@ -1,5 +1,7 @@
 .vscode/
+KHR/
 OptixCache_ec2-user/
+glad/
 tmp/
 *.docx
 *.exe
@@ -15,3 +17,4 @@ tmp/
 *.zip
 rtow
 rtwo
+stb_image.h

@@ -52,11 +52,8 @@ extern "C" __global__ void __raygen__camera() {
 		const float s = 2.f*static_cast<float>( idx.x+util::rnd( &state ) )/static_cast<float>( dim.x )-1.f ;
 		const float t = 2.f*static_cast<float>( idx.y+util::rnd( &state ) )/static_cast<float>( dim.y )-1.f ;
 
-		// get Camera class instance from SBT
-		const Camera* camera  = reinterpret_cast<Camera*>( optixGetSbtDataPointer() ) ;
-
 		float3 ori, dir ;
-		camera->ray( s, t, ori, dir, &state ) ;
+		lp_general.camera.ray( s, t, ori, dir, &state ) ;
 
 		// shoot initial ray
 		optixTrace(

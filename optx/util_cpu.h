@@ -7,37 +7,58 @@
 #include <sstream>
 
 #define CUDA_CHECK( api ) \
-			do {                                                \
-				cudaError_t e = api ;                           \
-				if ( e != cudaSuccess ) {                       \
-					std::ostringstream comment ;                \
-					comment                                     \
-						<< "CUDA error: " << #api << " : "      \
-						<< cudaGetErrorString( e ) << "\n" ;    \
-					throw std::runtime_error( comment.str() ) ; \
-				}                                               \
-			} while ( false )
+	do {                                                   \
+		cudaError_t e = api ;                              \
+		if ( e != cudaSuccess ) {                          \
+			std::ostringstream comment ;                   \
+			comment                                        \
+				<< "CUDA error: " << #api << " : "         \
+				<< cudaGetErrorString( e ) << "\n" ;       \
+			throw std::runtime_error( comment.str() ) ;    \
+		}                                                  \
+	} while ( false )
 
-#define OPTX_CHECK( api )                                       \
-			do {                                                \
-				if ( api != OPTIX_SUCCESS ) {                   \
-					std::ostringstream comment ;                \
-					comment << "OPTX error: " << #api << "\n" ; \
-					throw std::runtime_error( comment.str() ) ; \
-				}                                               \
-			} while ( false )
+#define OPTX_CHECK( api )                                  \
+	do {                                                   \
+		if ( api != OPTIX_SUCCESS ) {                      \
+			std::ostringstream comment ;                   \
+			comment << "OPTX error: " << #api << "\n" ;    \
+			throw std::runtime_error( comment.str() ) ;    \
+		}                                                  \
+	} while ( false )
 
-#define OPTX_CHECK_LOG( api )                                   \
-			do {                                                \
-				char   log[512] ;                               \
-				size_t sizeof_log = sizeof( log ) ;             \
-				if ( api != OPTIX_SUCCESS ) {                   \
-					std::ostringstream comment ;                \
-					comment << "OPTX error: " << #api << " : "  \
-					<< log << "\n" ;                            \
-					throw std::runtime_error( comment.str() ) ; \
-				}                                               \
-			} while ( false )
+#define OPTX_CHECK_LOG( api )                              \
+	do {                                                   \
+		char   log[512] ;                                  \
+		size_t sizeof_log = sizeof( log ) ;                \
+		if ( api != OPTIX_SUCCESS ) {                      \
+			std::ostringstream comment ;                   \
+			comment << "OPTX error: " << #api << " : "     \
+			<< log << "\n" ;                               \
+			throw std::runtime_error( comment.str() ) ;    \
+		}                                                  \
+	} while ( false )
+
+#define GLFW_CHECK( api )                                  \
+	do {                                                   \
+		api ;                                              \
+		const char* m ;                                    \
+		if ( glfwGetError( &m ) != GLFW_NO_ERROR ) {       \
+			std::ostringstream comment ;                   \
+			comment << "GLFW error: " << m << std::endl ;  \
+			throw std::runtime_error( comment.str() ) ;    \
+		}                                                  \
+	} while ( false )
+
+#define GL_CHECK( api )                                    \
+	do {                                                   \
+		api ;                                              \
+		if ( glGetError() != GL_NO_ERROR ) {               \
+			std::ostringstream comment ;                   \
+			comment << "GL error: " << #api << std::endl ; \
+			throw std::runtime_error( comment.str() ) ;    \
+		}                                                  \
+	} while ( false )
 
 namespace util {
 

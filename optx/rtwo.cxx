@@ -80,8 +80,8 @@ int main() {
 
 	float aspratio = 3.f/2.f ;
 
-	SbtRecordRG sbt_record_camera ;
-	sbt_record_camera.data.set(
+	LpGeneral lp_general ;
+	lp_general.camera.set(
 		{13.f, 2.f, 3.f} /*eye*/,
 		{ 0.f, 0.f, 0.f} /*pat*/,
 		{ 0.f, 1.f, 0.f} /*vup*/,
@@ -436,21 +436,6 @@ int main() {
 		// build shader binding table
 		OptixShaderBindingTable sbt = {} ;
 		{
-			// Ray Generation program group SBT record header
-			OPTX_CHECK( optixSbtRecordPackHeader( program_group_camera, &sbt_record_camera ) ) ;
-			// copy SBT record to GPU
-			CUdeviceptr  d_sbt_record_camera ;
-			const size_t sbt_record_camera_size = sizeof( SbtRecordRG ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_camera ), sbt_record_camera_size ) ) ;
-			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( d_sbt_record_camera ),
-						&sbt_record_camera,
-						sbt_record_camera_size,
-						cudaMemcpyHostToDevice
-						) ) ;
-			// set SBT Ray Generation section to point at record
-			sbt.raygenRecord = d_sbt_record_camera ;
-
 			// Miss program group SBT record header
 			OPTX_CHECK( optixSbtRecordPackHeader( program_group_ambient, &sbt_record_ambient ) ) ;
 			// copy SBT record to GPU
@@ -505,7 +490,6 @@ int main() {
 
 		auto t0 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
-		LpGeneral lp_general ;
 		{
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
@@ -515,7 +499,6 @@ int main() {
 			lp_general.image_h   = h ;
 
 			lp_general.spp       = spp ;
-
 			lp_general.depth     = depth ;
 
 			lp_general.as_handle = as_handle ;
@@ -583,7 +566,6 @@ int main() {
 
 		// cleanup
 		{
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.raygenRecord       ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
