@@ -21,10 +21,6 @@ OBJ = \
 	camera.o \
 	optics.o \
 
-#	glad.o \
-	frag.o \
-	vert.o \
-
 IMG = rtwo.png
 
 OPTIX_CACHE_PATH = ./OptixCache_$$USER

@@ -231,11 +231,12 @@ int main( const int argc, const char** argv ) {
 #ifdef __NVCC__
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+
 			CUDA_CHECK( cudaGraphicsMapResources( 1, &glx, cuda_stream ) ) ;
 			unsigned char* d_image ;
 			size_t d_image_size ;
 			CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &d_image ), &d_image_size, glx ) ) ;
-			// optixLaunch
+
 			{
 				CUDA_CHECK( cudaMemcpy(
 					reinterpret_cast<void*>( d_image ),
@@ -244,7 +245,10 @@ int main( const int argc, const char** argv ) {
 					cudaMemcpyHostToDevice
 					) ) ;
 			}
+
 			CUDA_CHECK( cudaGraphicsUnmapResources( 1, &glx, cuda_stream ) ) ;
+
+			CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 #endif // __NVCC__
 
 			GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
