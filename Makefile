@@ -53,3 +53,33 @@ $(IMG): $(EXE)
 ifdef winos
 	cmd /c $@
 endif
+
+malen-nach-strahlen.tar.gz:
+	tar zcf $@ \
+		camera.h \
+		Makefile \
+		ray.h \
+		rtow.cxx \
+		sphere.h \
+		thing.h \
+		things.h \
+		util.h \
+		v.h \
+		optics.h \
+		optx/ \
+		optx/camera.cu \
+		optx/camera.h \
+		optx/Makefile \
+		optx/optics.cu \
+		optx/optics.h \
+		optx/rtwo.cxx \
+		optx/rtwo.h \
+		optx/sphere.cxx \
+		optx/sphere.h \
+		optx/thing.h \
+		optx/things.h \
+		optx/util.h \
+		optx/util_cpu.h \
+		optx/util_gpu.h \
+		optx/v.h \
+		--transform 's,^,malen-nach-strahlen/,' \
