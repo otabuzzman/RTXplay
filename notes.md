@@ -4,7 +4,6 @@
 - `frand48` - replace for NVIDIA's curand RNG
 - `hitcorr` - calculate real intersection point on sphere
 - `objout` - provide triangle mesh inspection support
-- `simpleui` - simple OpenGL UI for RTWO
 
 ### Compile OptiX 7 course
 Steps below assume a working instance of the [RTXplay](https://github.com/otabuzzman/RTXplay) repository.
