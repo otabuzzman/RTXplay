@@ -170,7 +170,7 @@ git remote prune origin # clean tracking
 ```
 
 #### Rename older merge with conflicts
-Dangerous and therefore tricky but if you dare this [SO answer](https://stackoverflow.com/questions/22993597/git-changing-an-old-commit-message-without-creating-conflicts?answertab=active#tab-top) will most likely help.
+Dangerous and therefore tricky but if you dare this [SO answer](https://stackoverflow.com/questions/22993597/git-changing-an-old-commit-message-without-creating-conflicts?answertab=active#tab-top) will most likely help. Mind that renaming effectively creates new commits and abandons old ones.
 
 1. Create git command
   ```
