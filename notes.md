@@ -169,10 +169,28 @@ git branch -d <branch>  # local remove
 git remote prune origin # clean tracking
 ```
 
+#### Rename older merge with conflicts
+Dangerous and therefore tricky but if you dare this [SO answer](https://stackoverflow.com/questions/22993597/git-changing-an-old-commit-message-without-creating-conflicts?answertab=active#tab-top) will most likely help.
+
+1. Create git command
+  ```
+  cat >/usr/local/bin/git-reword-commit <<-EOF
+  SHA=$1
+  MSG=$2
+  FLT="test $(echo '$GIT_COMMIT') = $(git rev-parse $SHA) && echo $MSG || cat"
+  git filter-branch --msg-filter "$FLT" -- --all
+  EOF
+
+  chmod 775 /usr/local/bin/git-reword-commit
+  ```
+2. Run (and delete) git command
+  ```
+  git reword-commit <sha> '<message>'
+
+  rm /usr/local/bin/git-reword-commit
+  ```
+
 ### GL interop handling in OptiX SDK samples
-Manually compiled listing of code executed by `optixMeshViewer` to utilize GPU simultaneously for display and calculation device.
-
-
 Files
 - `SDK/optixMeshViewer/optixMeshViewer.cpp`
 - `SDK/sutil/CUDAOutputBuffer.h`
@@ -180,7 +198,7 @@ Files
 - `SDK/sutil/sutil.cpp`
 
 
-Listing
+Manually compiled listing of code executed by `optixMeshViewer` to utilize GPU simultaneously for display and calculation.
 ```
 #CUDAOutputBuffer GL_INTEROP
 ->ctor()
