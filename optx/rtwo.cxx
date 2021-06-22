@@ -15,6 +15,7 @@
 
 #include "camera.h"
 #include "optics.h"
+#include "simpleui.h"
 #include "sphere.h"
 #include "things.h"
 #include "util.h"
@@ -90,10 +91,10 @@ int main() {
 		.1f  /*aperture*/,
 		10.f /*distance*/ ) ;
 
-	const int w = 1200 ;                           // image width in pixels
-	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
-	const int spp = 50 ;                           // samples per pixel
-	const int depth = 16 ;                         // recursion depth
+	lp_general.image_w = 1200 ;                                            // image width in pixels
+	lp_general.image_h = static_cast<int>( lp_general.image_w/aspratio ) ; // image height in pixels
+	lp_general.spp = 50 ;                                                  // samples per pixel
+	lp_general.depth = 16 ;                                                // recursion depth
 
 	SbtRecordMS sbt_record_ambient ;
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
@@ -117,7 +118,6 @@ int main() {
 
 
 		// build acceleration structure
-		OptixTraversableHandle   as_handle ;
 		CUdeviceptr              d_as_outbuf ;
 		// acceleration structure compaction buffer
 //		CUdeviceptr              d_as_zipbuf ;
@@ -199,7 +199,7 @@ int main() {
 						as_buffer_sizes.tempSizeInBytes,
 						d_as_outbuf,
 						as_buffer_sizes.outputSizeInBytes,
-						&as_handle,
+						&lp_general.as_handle,
 						nullptr, 0
 						// acceleration structure compaction (must comment previous line)
 //						&oas_request, 1
@@ -220,10 +220,10 @@ int main() {
 //			OPTX_CHECK( optixAccelCompact(
 //						optixContext,
 //						0,
-//						as_handle,
+//						lp_general.as_handle,
 //						d_as_zipbuf,
 //						d_as_zipbuf_size,
-//						&as_handle) ) ;
+//						&lp_general.as_handle) ) ;
 
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
 			// free GPU memory for acceleration structure compaction buffer
@@ -347,7 +347,7 @@ int main() {
 		// link pipeline
 		OptixPipeline pipeline = nullptr ;
 		{
-			const unsigned int max_trace_depth  = depth ;
+			const unsigned int max_trace_depth  = lp_general.depth ;
 			OptixProgramGroup program_groups[]  = {
 				program_group_camera,
 				program_group_ambient,
@@ -488,76 +488,81 @@ int main() {
 
 
 
-		auto t0 = std::chrono::high_resolution_clock::now() ;
-		// launch pipeline
-		{
-			CUstream cuda_stream ;
-			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+		int current_dev, display_dev ;
+		// check if X server executes on current device (SO #17994896)
+		// if true current is display device as required for GL interop
+		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
+		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
+		if ( display_dev>0 ) {
+			SimpleUI simpleui( lp_general ) ;
+			simpleui.render( pipeline, sbt ) ;
+		} else {
+			auto t0 = std::chrono::high_resolution_clock::now() ;
+			// launch pipeline
+			{
+				CUstream cuda_stream ;
+				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), w*h*sizeof( uchar4 ) ) ) ;
-			lp_general.image_w   = w ;
-			lp_general.image_h   = h ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*lp_general.image_w*lp_general.image_h ) ) ;
 
-			lp_general.spp       = spp ;
-			lp_general.depth     = depth ;
+				CUdeviceptr d_lp_general ;
+				const size_t lp_general_size = sizeof( LpGeneral ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
+				CUDA_CHECK( cudaMemcpy(
+							reinterpret_cast<void*>( d_lp_general ),
+							&lp_general,
+							lp_general_size,
+							cudaMemcpyHostToDevice
+							) ) ;
 
-			lp_general.as_handle = as_handle ;
+				OPTX_CHECK( optixLaunch(
+							pipeline,
+							cuda_stream,
+							d_lp_general,
+							lp_general_size,
+							&sbt,
+							lp_general.image_w/*x*/, lp_general.image_h/*y*/, 1/*z*/ ) ) ;
+				CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
-			CUdeviceptr d_lp_general ;
-			const size_t lp_general_size = sizeof( LpGeneral ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
-			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( d_lp_general ),
-						&lp_general,
-						lp_general_size,
-						cudaMemcpyHostToDevice
-						) ) ;
-
-			OPTX_CHECK( optixLaunch(
-						pipeline,
-						cuda_stream,
-						d_lp_general,
-						lp_general_size,
-						&sbt,
-						w/*x*/, h/*y*/, 1/*z*/ ) ) ;
-			CUDA_CHECK( cudaDeviceSynchronize() ) ;
-
-			CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
-			cudaError_t e = cudaGetLastError() ;
-			if ( e != cudaSuccess ) {
-				std::ostringstream comment ;
-				comment << "CUDA error: " << cudaGetErrorString( e ) << "\n" ;
-				throw std::runtime_error( comment.str() ) ;
+				CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
+				cudaError_t e = cudaGetLastError() ;
+				if ( e != cudaSuccess ) {
+					std::ostringstream comment ;
+					comment << "CUDA error: " << cudaGetErrorString( e ) << "\n" ;
+					throw std::runtime_error( comment.str() ) ;
+				}
 			}
-		}
-		auto t1 = std::chrono::high_resolution_clock::now() ;
-		long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-		fprintf( stderr, "OptiX pipeline for RTWO ran %lld milliseconds\n", dt ) ;
+			auto t1 = std::chrono::high_resolution_clock::now() ;
+			long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+			fprintf( stderr, "OptiX pipeline for RTWO ran %lld milliseconds\n", dt ) ;
 
 
 
-		// output image
-		std::vector<uchar4> image ;
-		{
-			image.resize( w*h ) ;
-			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( image.data() ),
-						lp_general.image,
-						w*h*sizeof( uchar4 ),
-						cudaMemcpyDeviceToHost
-						) ) ;
+			// output image
+			std::vector<uchar4> image ;
+			{
+				const int w = lp_general.image_w ;
+				const int h = lp_general.image_h ;
+				image.resize( w*h ) ;
+				CUDA_CHECK( cudaMemcpy(
+							reinterpret_cast<void*>( image.data() ),
+							lp_general.image,
+							w*h*sizeof( uchar4 ),
+							cudaMemcpyDeviceToHost
+							) ) ;
 
-			std::cout
-				<< "P3\n" // magic PPM header
-				<< w << ' ' << h << '\n' << 255 << '\n' ;
+				std::cout
+					<< "P3\n" // magic PPM header
+					<< w << ' ' << h << '\n' << 255 << '\n' ;
 
-			for ( int y = h-1 ; y>=0 ; --y ) {
-				for ( int x = 0 ; x<w ; ++x ) {
-					auto p = image.data()[w*y+x] ;
-					std::cout
-						<< static_cast<int>( p.x ) << ' '
-						<< static_cast<int>( p.y ) << ' '
-						<< static_cast<int>( p.z ) << '\n' ;
+				for ( int y = h-1 ; y>=0 ; --y ) {
+					for ( int x = 0 ; x<w ; ++x ) {
+						auto p = image.data()[w*y+x] ;
+						std::cout
+							<< static_cast<int>( p.x ) << ' '
+							<< static_cast<int>( p.y ) << ' '
+							<< static_cast<int>( p.z ) << '\n' ;
+					}
 				}
 			}
 		}

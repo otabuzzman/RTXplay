@@ -16,10 +16,14 @@ EXE = rtwo
 endif
 
 OBJ = \
+	glad.o \
 	rtwo.o \
 	sphere.o \
 	camera.o \
 	optics.o \
+	simpleui.o \
+	vert.o \
+	frag.o \
 
 IMG = rtwo.png
 
@@ -55,6 +59,7 @@ ifdef winos
 
 IGNORED_WARNINGS = \
 	/wd4061 \
+	/wd4191 \
 	/wd4245 \
 	/wd4365 \
 	/wd4514 \
@@ -78,6 +83,7 @@ INC = \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.3.1_465.89_win10/cuda_cudart/cudart/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.3.1_465.89_win10/libcurand/curand_dev/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/include) \
+	-I$$(cygpath -w /usr/local/include) \
 
 LIB = \
 	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.3.1_465.89_win10/cuda_cudart/cudart/lib/x64) \
@@ -127,7 +133,7 @@ vpath glad.c glad
 .cxx.o:
 	nvcc -c $< -o $@ \
 		$(NVCCFLAGS) \
-		$(INC) \
+		-I. $(INC) \
 
 .cu.ptx:
 	nvcc -ptx $< -o $@ \
