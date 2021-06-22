@@ -21,6 +21,9 @@ struct SbtRecord {
 	T data ;
 } ;
 
+struct NoData {} ;
+
+typedef SbtRecord<NoData> SbtRecordRG ; // Ray Generation program group SBT record type
 typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
 typedef SbtRecord<Thing>  SbtRecordHG ; // Hit Group program group SBT record type
 

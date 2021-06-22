@@ -436,6 +436,22 @@ int main() {
 		// build shader binding table
 		OptixShaderBindingTable sbt = {} ;
 		{
+			// Ray Generation program group SBT record header
+			SbtRecordRG sbt_record_nodata ;
+			OPTX_CHECK( optixSbtRecordPackHeader( program_group_camera, &sbt_record_nodata ) ) ;
+			// copy SBT record to GPU
+			CUdeviceptr  d_sbt_record_nodata ;
+			const size_t sbt_record_nodata_size = sizeof( SbtRecordRG ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_sbt_record_nodata ), sbt_record_nodata_size ) ) ;
+			CUDA_CHECK( cudaMemcpy(
+						reinterpret_cast<void*>( d_sbt_record_nodata ),
+						&sbt_record_nodata,
+						sbt_record_nodata_size,
+						cudaMemcpyHostToDevice
+						) ) ;
+			// set SBT Ray Generation section to point at record
+			sbt.raygenRecord = d_sbt_record_nodata ;
+
 			// Miss program group SBT record header
 			OPTX_CHECK( optixSbtRecordPackHeader( program_group_ambient, &sbt_record_ambient ) ) ;
 			// copy SBT record to GPU
