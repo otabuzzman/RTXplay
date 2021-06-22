@@ -1,4 +1,5 @@
 #include <optix.h>
+#include <optix_stubs.h>
 
 #include "simpleui.h"
 
@@ -18,6 +19,7 @@ SimpleUI::SimpleUI( LpGeneral& lp_general ) {
 	GLFW_CHECK( glfwMakeContextCurrent( window_ ) ) ;
 
 	GLFW_CHECK( glfwSetWindowUserPointer( window_, reinterpret_cast<void*>( &lp_general ) ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
 
 	// initialize GLAD
 	if ( ! gladLoadGLLoader( (GLADloadproc) glfwGetProcAddress ) ) {
@@ -142,7 +144,7 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 	GLFW_CHECK( glfwTerminate() ) ;
 }
 
-void SimpleUI::render( const OptixPipeline& pipeline, const OptixShaderBindingTable& sbt ) {
+void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) {
 	do {
 		// launch pipeline
 		CUstream cuda_stream ;
@@ -153,15 +155,15 @@ void SimpleUI::render( const OptixPipeline& pipeline, const OptixShaderBindingTa
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &glx_, cuda_stream ) ) ;
 		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, glx_ ) ) ;
 		CUDA_CHECK( cudaMemcpy(
-			reinterpret_cast<void*>( lp_general ),
-			&lp_general,
+			reinterpret_cast<void*>( d_lp_general ),
+			lp_general,
 			lp_general_size,
 			cudaMemcpyHostToDevice
 			) ) ;
 		OPTX_CHECK( optixLaunch(
 			pipeline,
 			cuda_stream,
-			reinterpret_cast<CUdeviceptr>( lp_general ),
+			reinterpret_cast<CUdeviceptr>( d_lp_general ),
 			lp_general_size,
 			&sbt,
 			lp_general->image_w/*x*/, lp_general->image_h/*y*/, 1/*z*/ ) ) ;
@@ -191,7 +193,7 @@ void SimpleUI::render( const OptixPipeline& pipeline, const OptixShaderBindingTa
 			lp_general->image_w,
 			lp_general->image_h,
 			0,
-			GL_RGB,           // pixel data format
+			GL_RGBA,          // pixel data format
 			GL_UNSIGNED_BYTE, // pixel data type
 			nullptr           // data in GL_PIXEL_UNPACK_BUFFER (pbo)
 			) ) ;

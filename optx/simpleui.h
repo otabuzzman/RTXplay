@@ -15,7 +15,7 @@ class SimpleUI {
 		SimpleUI( LpGeneral& lp_general ) ;
 		~SimpleUI() noexcept ( false ) ;
 
-		void render( const OptixPipeline& pipeline, const OptixShaderBindingTable& sbt ) ;
+		void render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) ;
 
 	private:
 		GLFWwindow* window_ ;
@@ -28,6 +28,7 @@ class SimpleUI {
 		GLuint tex_ ;
 		GLuint pbo_ ;
 		cudaGraphicsResource* glx_ ;
+		CUdeviceptr d_lp_general ;
 } ;
 
 #endif // SIMPLEUI_H
