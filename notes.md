@@ -169,6 +169,81 @@ git branch -d <branch>  # local remove
 git remote prune origin # clean tracking
 ```
 
+### GL interop handling in OptiX SDK samples
+Manually compiled listing of code executed by `optixMeshViewer` to utilize GPU simultaneously for display and calculation device.
+
+
+Files
+- `SDK/optixMeshViewer/optixMeshViewer.cpp`
+- `SDK/sutil/CUDAOutputBuffer.h`
+- `SDK/sutil/GLDisplay.cpp`
+- `SDK/sutil/sutil.cpp`
+
+
+Listing
+```
+#CUDAOutputBuffer GL_INTEROP
+->ctor()
+check x/y > 0/0
+check disp == curr device
+
+->resize(m_width,m_height)
+cudaSetDevice(0)
+
+glGenBuffers( 1, &m_pbo ) );
+glBindBuffer( GL_ARRAY_BUFFER, m_pbo ) );
+glBufferData( GL_ARRAY_BUFFER, sizeof(PIXEL_FORMAT)*m_width*m_height, nullptr, GL_STREAM_DRAW ) );
+glBindBuffer( GL_ARRAY_BUFFER, 0u ) );
+
+cudaGraphicsGLRegisterBuffer( &m_cuda_gfx_resource, m_pbo, cudaGraphicsMapFlagsWriteDiscard ) );
+<-resize()
+<-ctor()
+
+(anticipated)  ->dtor()
+               cudaGraphicsUnregisterResource(m_pbo));
+               glDeleteBuffers( 1, &m_pbo ) );
+               <-dtor()
+
+
+
+#GLDisplay
+->ctor()
+glxview:from init to loop
+<-ctor()
+
+(anticipated)  ->dtor()
+               glxview:cleanup
+               <-dtor()
+
+#optixMeshViewer
+->loop
+->launchSubframe()
+->CUDAOutputBuffer.map()
+cudaSetDevice(0)
+
+cudaGraphicsMapResources ( 1, &m_cuda_gfx_resource, m_stream ) );
+cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &m_device_pixels ),
+                    &buffer_size, m_cuda_gfx_resource ) );
+#params.frame_buffer ^= GL_ARRAY_BUFFER
+<-CUDAOutputBuffer.map()
+cudaMemcpyAsync( &params, ... );
+optixLaunch( scene.pipeline(), ... );
+cudaGraphicsUnmapResources ( 1, &m_cuda_gfx_resource,  m_stream ) );
+cudaDeviceSynchronize();
+<-launchSubframe()
+->displayhSubframe()
+glfwGetFramebufferSize( window, &framebuf_res_x, &framebuf_res_y );
+->GLDisplay.display(m_pbo)
+glxview:loop
+<-GLDisplay.display()
+<-displayhSubframe()
+<-loop
+```
+
+### GL interop handling in CUDA samples
+Files
+- `cuda_samples/cuda_samples/2_Graphics/simpleGL/simpleGL.cu`
+
 ### Links
 RTOW
 - The RTOW books on [GitHub](https://github.com/RayTracing/raytracing.github.io) and [Amazon](https://www.amazon.de/gp/product/B0785N5QTC/ref=series_rw_dp_sw)
