@@ -163,7 +163,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		OPTX_CHECK( optixLaunch(
 			pipeline,
 			cuda_stream,
-			reinterpret_cast<CUdeviceptr>( d_lp_general ),
+			d_lp_general,
 			lp_general_size,
 			&sbt,
 			lp_general->image_w/*x*/, lp_general->image_h/*y*/, 1/*z*/ ) ) ;
