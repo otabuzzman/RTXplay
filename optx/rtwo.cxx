@@ -13,6 +13,8 @@
 #include <vector_functions.h>
 #include <vector_types.h>
 
+#include <GLFW/glfw3.h>
+
 #include "camera.h"
 #include "optics.h"
 #include "simpleui.h"
@@ -510,7 +512,7 @@ int main() {
 		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
 		if ( display_dev>0 ) {
-			SimpleUI simpleui( lp_general ) ;
+			SimpleUI simpleui( "RTWO", lp_general ) ;
 			simpleui.render( pipeline, sbt ) ;
 		} else {
 			auto t0 = std::chrono::high_resolution_clock::now() ;

@@ -21,9 +21,11 @@ OBJ = \
 	sphere.o \
 	camera.o \
 	optics.o \
+	paddle.o \
 	simpleui.o \
-	vert.o \
+	simplesm.o \
 	frag.o \
+	vert.o \
 
 IMG = rtwo.png
 

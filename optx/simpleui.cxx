@@ -1,13 +1,27 @@
 #include <optix.h>
 #include <optix_stubs.h>
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include <cuda_gl_interop.h> // must follow glad.h
+
+#include "simplesm.h"
+
 #include "simpleui.h"
+
+// event callback table
+static void mousecliqCb( GLFWwindow* window, int key, int act, int mod )                       ;
+static void mousemoveCb( GLFWwindow* window, double x, double y )                              ;
+static void resizeCb   ( GLFWwindow* window, int w, int h )                                    ;
+static void scrollCb   ( GLFWwindow* window, double x, double y )                              ;
+static void keyCb      ( GLFWwindow* window, int key, int /*scancode*/, int act, int /*mod*/ ) ;
 
 // GLSL sources of shaders
 extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
-SimpleUI::SimpleUI( LpGeneral& lp_general ) {
+SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) : lp_general_( lp_general ) {
 	// initialize GLFW
 	GLFW_CHECK( glfwInit() ) ;
 
@@ -15,11 +29,10 @@ SimpleUI::SimpleUI( LpGeneral& lp_general ) {
 	GLFW_CHECK( glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 ) ) ;
 	GLFW_CHECK( glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE ) ) ;
 
-	GLFW_CHECK( window_ = glfwCreateWindow( lp_general.image_w, lp_general.image_h, "RTWO", nullptr, nullptr ) ) ;
+	const int w = lp_general_.image_w ;
+	const int h = lp_general_.image_h ;
+	GLFW_CHECK( window_ = glfwCreateWindow( w, h, name.data(), nullptr, nullptr ) ) ;
 	GLFW_CHECK( glfwMakeContextCurrent( window_ ) ) ;
-
-	GLFW_CHECK( glfwSetWindowUserPointer( window_, reinterpret_cast<void*>( &lp_general ) ) ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
 
 	// initialize GLAD
 	if ( ! gladLoadGLLoader( (GLADloadproc) glfwGetProcAddress ) ) {
@@ -28,6 +41,17 @@ SimpleUI::SimpleUI( LpGeneral& lp_general ) {
 		comment << "GLAD error: gladLoadGLLoader failed" << std::endl ;
 		throw std::runtime_error( comment.str() ) ;
 	}
+
+	// register finite state machine
+	SimpleSM simplesm( window_, &lp_general_ ) ;
+	GLFW_CHECK( glfwSetWindowUserPointer( window_, reinterpret_cast<void*>( &simplesm ) ) ) ;
+
+	// register event callback table
+	GLFW_CHECK( glfwSetMouseButtonCallback( window_, mousecliqCb ) ) ;
+	GLFW_CHECK( glfwSetCursorPosCallback  ( window_, mousemoveCb ) ) ;
+	GLFW_CHECK( glfwSetWindowSizeCallback ( window_, resizeCb    ) ) ;
+	GLFW_CHECK( glfwSetScrollCallback     ( window_, scrollCb    ) ) ;
+	GLFW_CHECK( glfwSetKeyCallback        ( window_, keyCb       ) ) ;
 
 	// compile vertex shader
 	GL_CHECK( v_shader_ = glCreateShader( GL_VERTEX_SHADER ) ) ;
@@ -122,10 +146,11 @@ SimpleUI::SimpleUI( LpGeneral& lp_general ) {
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, pbo_ ) ) ;
 	GL_CHECK( glBufferData(
 		GL_ARRAY_BUFFER,
-		sizeof( uchar4 )*lp_general.image_w*lp_general.image_h,
+		sizeof( uchar4 )*w*h,
 		nullptr,
 		GL_STATIC_DRAW
 		) ) ;
+
 	// register pbo for CUDA
 	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &glx_, pbo_, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
@@ -145,13 +170,17 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 }
 
 void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) {
+	LpGeneral* lp_general = &lp_general_ ;
+	size_t lp_general_size = sizeof( LpGeneral ), lp_general_image_size ;
+
+	CUdeviceptr d_lp_general ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
+
 	do {
 		// launch pipeline
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-		LpGeneral* lp_general = reinterpret_cast<LpGeneral*>( glfwGetWindowUserPointer( window_ ) ) ;
-		size_t lp_general_size = sizeof( LpGeneral ), lp_general_image_size ;
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &glx_, cuda_stream ) ) ;
 		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, glx_ ) ) ;
 		CUDA_CHECK( cudaMemcpy(
@@ -160,13 +189,15 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			lp_general_size,
 			cudaMemcpyHostToDevice
 			) ) ;
+		const int w = lp_general->image_w ;
+		const int h = lp_general->image_h ;
 		OPTX_CHECK( optixLaunch(
 			pipeline,
 			cuda_stream,
 			d_lp_general,
 			lp_general_size,
 			&sbt,
-			lp_general->image_w/*x*/, lp_general->image_h/*y*/, 1/*z*/ ) ) ;
+			w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &glx_, cuda_stream ) ) ;
@@ -190,8 +221,8 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			GL_TEXTURE_2D,
 			0,                // for mipmap level
 			GL_RGBA8,         // texture color components
-			lp_general->image_w,
-			lp_general->image_h,
+			w,
+			h,
 			0,
 			GL_RGBA,          // pixel data format
 			GL_UNSIGNED_BYTE, // pixel data type
@@ -222,4 +253,55 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
 		GLFW_CHECK( glfwWaitEvents() ) ;
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
+}
+
+// event callback table
+static void mousecliqCb( GLFWwindow* window, int key, int act, int /*mod*/ ) {
+	SimpleSM* simplesm ;
+	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
+
+	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::POS ) ; return ; }
+	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::DIR ) ; return ; }
+	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::RET ) ; return ; }
+	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::RET ) ; return ; }
+}
+
+static void mousemoveCb( GLFWwindow* window, double /*x*/, double /*y*/ ) {
+	SimpleSM* simplesm ;
+	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
+
+	simplesm->transition( Event::MOV ) ;
+}
+
+static void resizeCb( GLFWwindow* window, int /*w*/, int /*h*/ ) {
+	SimpleSM* simplesm ;
+	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
+
+	simplesm->transition( Event::RSZ ) ;
+}
+
+static void scrollCb( GLFWwindow* window, double /*x*/, double /*y*/ ) {
+	SimpleSM* simplesm ;
+	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
+
+	simplesm->transition( Event::SCR ) ;
+}
+
+static void keyCb( GLFWwindow* window, int key, int /*scancode*/, int act, int /*mod*/ ) {
+	SimpleSM* simplesm ;
+	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
+
+	if ( act != GLFW_PRESS )
+		return ;
+	switch ( key ) {
+		case GLFW_KEY_Z:
+			simplesm->transition( Event::ZOM ) ; break ;
+		case GLFW_KEY_B:
+			simplesm->transition( Event::BLR ) ; break ;
+		case GLFW_KEY_F:
+			simplesm->transition( Event::FOC ) ; break ;
+		case GLFW_KEY_Q:
+		case GLFW_KEY_ESCAPE:
+			simplesm->transition( Event::RET ) ; break ;
+	}
 }

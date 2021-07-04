@@ -82,7 +82,7 @@ int main( const int argc, const char** argv ) {
 			// if true current is display device as required for GL interop
 			CUDA_CHECK( cudaGetDevice( &cdev ) ) ;
 			CUDA_CHECK( cudaDeviceGetAttribute( &ddev, cudaDevAttrKernelExecTimeout, cdev ) ) ;
-			if ( !ddev )
+			if ( ! ddev )
 				throw std::runtime_error( "RTWO error: current not display device\n" ) ;
 #endif // __NVCC__
 		}
