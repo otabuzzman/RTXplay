@@ -10,6 +10,8 @@
 
 #include "simpleui.h"
 
+// finite state machine
+static SimpleSM* simplesm ;
 // event callback table
 static void mousecliqCb( GLFWwindow* window, int key, int act, int mod )                       ;
 static void mousemoveCb( GLFWwindow* window, double x, double y )                              ;
@@ -42,11 +44,9 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) : lp_genera
 		throw std::runtime_error( comment.str() ) ;
 	}
 
-	// register finite state machine
-	SimpleSM simplesm( window_, &lp_general_ ) ;
-	GLFW_CHECK( glfwSetWindowUserPointer( window_, reinterpret_cast<void*>( &simplesm ) ) ) ;
-
-	// register event callback table
+	// initialize FSM
+	simplesm = new SimpleSM( window_, &lp_general_ ) ;
+	// initialize CBT
 	GLFW_CHECK( glfwSetMouseButtonCallback( window_, mousecliqCb ) ) ;
 	GLFW_CHECK( glfwSetCursorPosCallback  ( window_, mousemoveCb ) ) ;
 	GLFW_CHECK( glfwSetWindowSizeCallback ( window_, resizeCb    ) ) ;
@@ -256,41 +256,26 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 }
 
 // event callback table
-static void mousecliqCb( GLFWwindow* window, int key, int act, int /*mod*/ ) {
-	SimpleSM* simplesm ;
-	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
-
+static void mousecliqCb( GLFWwindow* /*window*/, int key, int act, int /*mod*/ ) {
 	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::POS ) ; return ; }
 	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::DIR ) ; return ; }
 	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::RET ) ; return ; }
 	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::RET ) ; return ; }
 }
 
-static void mousemoveCb( GLFWwindow* window, double /*x*/, double /*y*/ ) {
-	SimpleSM* simplesm ;
-	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
-
+static void mousemoveCb( GLFWwindow* /*window*/, double /*x*/, double /*y*/ ) {
 	simplesm->transition( Event::MOV ) ;
 }
 
-static void resizeCb( GLFWwindow* window, int /*w*/, int /*h*/ ) {
-	SimpleSM* simplesm ;
-	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
-
+static void resizeCb( GLFWwindow* /*window*/, int /*w*/, int /*h*/ ) {
 	simplesm->transition( Event::RSZ ) ;
 }
 
-static void scrollCb( GLFWwindow* window, double /*x*/, double /*y*/ ) {
-	SimpleSM* simplesm ;
-	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
-
+static void scrollCb( GLFWwindow* /*window*/, double /*x*/, double /*y*/ ) {
 	simplesm->transition( Event::SCR ) ;
 }
 
-static void keyCb( GLFWwindow* window, int key, int /*scancode*/, int act, int /*mod*/ ) {
-	SimpleSM* simplesm ;
-	GLFW_CHECK( simplesm = reinterpret_cast<SimpleSM*>( glfwGetWindowUserPointer( window ) ) ) ;
-
+static void keyCb( GLFWwindow* /*window*/, int key, int /*scancode*/, int act, int /*mod*/ ) {
 	if ( act != GLFW_PRESS )
 		return ;
 	switch ( key ) {
