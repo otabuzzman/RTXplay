@@ -13,18 +13,20 @@ SimpleSM::SimpleSM( GLFWwindow* window, LpGeneral* lp_general ) : window_( windo
 	paddle.set( V::unitV( lp_general_->camera.eye()-lp_general_->camera.pat() ) ) ;
 }
 
-void SimpleSM::transition( const Event event ) {
-	std::cerr << "SM transition " << eventName[static_cast<int>( event )] << " ... " ;
+void SimpleSM::transition( const Event& event ) {
+	const int s = static_cast<int>( h_state_.top() ) ;
+	const int e = static_cast<int>( event ) ;
+
+	std::cerr << "SM transition " << eventName[e] << " ... " ;
 
 	h_event_.push( event ) ;
-	( this->*EATab[static_cast<int>( h_state_.top() )][static_cast<int>( event )] )() ;
+	( this->*EATab[s][e] )() ;
 }
 
 void SimpleSM::eaCtlRet() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -36,10 +38,9 @@ void SimpleSM::eaCtlRet() {
 }
 
 void SimpleSM::eaCtlDir() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::DIR ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -51,10 +52,9 @@ void SimpleSM::eaCtlDir() {
 }
 
 void SimpleSM::eaDirScr() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::DIR ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -66,10 +66,9 @@ void SimpleSM::eaDirScr() {
 }
 
 void SimpleSM::eaDirMov() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::DIR ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -81,10 +80,9 @@ void SimpleSM::eaDirMov() {
 }
 
 void SimpleSM::eaDirRet() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -96,10 +94,9 @@ void SimpleSM::eaDirRet() {
 }
 
 void SimpleSM::eaCtlPos() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::POS ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -111,10 +108,9 @@ void SimpleSM::eaCtlPos() {
 }
 
 void SimpleSM::eaPosMov() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::POS ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -126,10 +122,9 @@ void SimpleSM::eaPosMov() {
 }
 
 void SimpleSM::eaPosRet() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -141,10 +136,9 @@ void SimpleSM::eaPosRet() {
 }
 
 void SimpleSM::eaCtlRsz() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -156,10 +150,9 @@ void SimpleSM::eaCtlRsz() {
 }
 
 void SimpleSM::eaCtlZom() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::ZOM ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -171,10 +164,9 @@ void SimpleSM::eaCtlZom() {
 }
 
 void SimpleSM::eaCtlBlr() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::BLR ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -186,10 +178,9 @@ void SimpleSM::eaCtlBlr() {
 }
 
 void SimpleSM::eaCtlFoc() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::FOC ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -201,10 +192,9 @@ void SimpleSM::eaCtlFoc() {
 }
 
 void SimpleSM::eaZomScr() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::ZOM ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -216,10 +206,9 @@ void SimpleSM::eaZomScr() {
 }
 
 void SimpleSM::eaZomRet() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -231,10 +220,9 @@ void SimpleSM::eaZomRet() {
 }
 
 void SimpleSM::eaBlrScr() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::BLR ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -246,10 +234,9 @@ void SimpleSM::eaBlrScr() {
 }
 
 void SimpleSM::eaBlrRet() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -261,10 +248,9 @@ void SimpleSM::eaBlrRet() {
 }
 
 void SimpleSM::eaFocScr() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::FOC ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -276,10 +262,9 @@ void SimpleSM::eaFocScr() {
 }
 
 void SimpleSM::eaFocRet() {
+	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;
-	std::cerr
-		<< "from " << stateName[static_cast<int>( h_state_.top() )]
-		<< " to "  << stateName[static_cast<int>( next )] ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 	}
 	// set history
@@ -291,6 +276,8 @@ void SimpleSM::eaFocRet() {
 }
 
 void SimpleSM::eaReject() {
-	std::cerr << "rejected in " << stateName[static_cast<int>( h_state_.top() )] << std::endl ;
+	const int s = static_cast<int>( h_state_.top() ) ;
+
+	std::cerr << "rejected in " << stateName[s] << std::endl ;
 	h_event_.pop() ;
 }

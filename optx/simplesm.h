@@ -8,16 +8,16 @@
 #include "thing.h"
 #include "rtwo.h"
 
-const enum class State { BLR, CTL, DIR, FOC, POS, ZOM, n } ;
+enum class State { BLR, CTL, DIR, FOC, POS, ZOM, n } ;
 const std::string stateName[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
-const enum class Event { BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
+enum class Event { BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
 const std::string eventName[] = { "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
 class SimpleSM {
 	public:
 		SimpleSM( GLFWwindow* window, LpGeneral* lp_general ) ;
 
-		void transition( const Event event ) ;
+		void transition( const Event& event ) ;
 
 		// event/ action implementations
 		void eaCtlRet() ;
