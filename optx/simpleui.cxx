@@ -157,6 +157,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) : lp_genera
 }
 
 SimpleUI::~SimpleUI() noexcept ( false ) {
+	delete simplesm ; simplesm = nullptr ;
 	CUDA_CHECK( cudaGraphicsUnregisterResource( glx_ ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &pbo_ ) ) ;
@@ -285,7 +286,6 @@ static void keyCb( GLFWwindow* /*window*/, int key, int /*scancode*/, int act, i
 			simplesm->transition( Event::BLR ) ; break ;
 		case GLFW_KEY_F:
 			simplesm->transition( Event::FOC ) ; break ;
-		case GLFW_KEY_Q:
 		case GLFW_KEY_ESCAPE:
 			simplesm->transition( Event::RET ) ; break ;
 	}

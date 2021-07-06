@@ -9,7 +9,7 @@
 using V::operator+ ;
 using V::operator* ;
 
-void Paddle::set( const float3& hand ) {
+Paddle::Paddle( const float3& hand ) {
 	const float x = V::dot( hand, u_ ) ;
 	const float y = V::dot( hand, v_ ) ;
 	const float z = V::dot( hand, w_ ) ;

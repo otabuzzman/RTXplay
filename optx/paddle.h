@@ -5,7 +5,8 @@
 
 class Paddle {
 	public:
-		void set( const float3& hand ) ;
+		Paddle( const float3& hand ) ;
+
 		void start( const int x, const int y ) ;
 		void track( const int x, const int y ) ;
 		float3 hand() const ;

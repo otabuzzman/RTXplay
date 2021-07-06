@@ -10,7 +10,11 @@
 SimpleSM::SimpleSM( GLFWwindow* window, LpGeneral* lp_general ) : window_( window ), lp_general_( lp_general ) {
 	h_state_.push( State::CTL ) ;
 
-	paddle.set( V::unitV( lp_general_->camera.eye()-lp_general_->camera.pat() ) ) ;
+	paddle_ = new Paddle( V::unitV( lp_general_->camera.eye()-lp_general_->camera.pat() ) ) ;
+}
+
+SimpleSM::~SimpleSM() {
+	delete paddle_ ; paddle_ = nullptr ;
 }
 
 void SimpleSM::transition( const Event& event ) {
@@ -28,6 +32,7 @@ void SimpleSM::eaCtlRet() {
 	const State next = State::CTL ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		GLFW_CHECK( glfwSetWindowShouldClose( window_, true ) ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -42,6 +47,9 @@ void SimpleSM::eaCtlDir() {
 	const State next = State::DIR ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		double x, y ;
+		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -70,6 +78,13 @@ void SimpleSM::eaDirMov() {
 	const State next = State::DIR ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		double x, y ;
+		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		// update camera
+		const float3 eye = lp_general_->camera.eye() ;
+		const float  len = V::len( eye-lp_general_->camera.pat() ) ;
+		lp_general_->camera.pat( eye-len*paddle_->hand() ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -98,6 +113,9 @@ void SimpleSM::eaCtlPos() {
 	const State next = State::POS ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		double x, y ;
+		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -112,6 +130,13 @@ void SimpleSM::eaPosMov() {
 	const State next = State::POS ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		double x, y ;
+		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		// update camera
+		const float3 pat = lp_general_->camera.pat() ;
+		const float  len = V::len( lp_general_->camera.eye()-pat ) ;
+		lp_general_->camera.eye( pat+len*paddle_->hand() ) ;
 	}
 	// set history
 	h_state_.pop() ;

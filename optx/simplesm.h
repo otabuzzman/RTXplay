@@ -16,6 +16,7 @@ const std::string eventName[] = { "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ
 class SimpleSM {
 	public:
 		SimpleSM( GLFWwindow* window, LpGeneral* lp_general ) ;
+		~SimpleSM() ;
 
 		void transition( const Event& event ) ;
 
@@ -44,7 +45,7 @@ class SimpleSM {
 		LpGeneral* lp_general_ ;
 		std::stack<State> h_state_ ; // state history
 		std::stack<Event> h_event_ ; // event history
-		Paddle paddle ;
+		Paddle* paddle_ ;
 
 		// event/ action table
 		typedef void ( SimpleSM::*EAImp )() ;
