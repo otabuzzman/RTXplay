@@ -542,8 +542,6 @@ int main() {
 							lp_general.image_w/*x*/, lp_general.image_h/*y*/, 1/*z*/ ) ) ;
 				CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
-				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
-
 				CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 				cudaError_t e = cudaGetLastError() ;
 				if ( e != cudaSuccess ) {
@@ -570,6 +568,7 @@ int main() {
 							w*h*sizeof( uchar4 ),
 							cudaMemcpyDeviceToHost
 							) ) ;
+				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
 
 				std::cout
 					<< "P3\n" // magic PPM header
