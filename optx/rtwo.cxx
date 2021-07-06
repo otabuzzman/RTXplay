@@ -542,6 +542,8 @@ int main() {
 							lp_general.image_w/*x*/, lp_general.image_h/*y*/, 1/*z*/ ) ) ;
 				CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
+				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
+
 				CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 				cudaError_t e = cudaGetLastError() ;
 				if ( e != cudaSuccess ) {
@@ -594,7 +596,6 @@ int main() {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ; // force thing's dtor
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image       ) ) ) ;
 
 			OPTX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;

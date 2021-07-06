@@ -27,8 +27,8 @@ void Paddle::track( const int x, const int y ) {
 	const int dy = y-y_ ;
 	x_ = x ;
 	y_ = y ;
-	lo_ = util::rad( fmod( util::deg( lo_ )+dx, 360.f ) ) ;
-	la_ = util::rad( std::min( 89.999f, util::deg( std::max( -89.999f, util::deg( la_ )+dy ) ) ) ) ;
+	lo_ = util::rad( fmod( util::deg( lo_ )-.25f*dx, 360.f ) ) ;
+	la_ = util::rad( std::min( 89.999f, std::max( -89.999f, util::deg( la_ )+.25f*dy ) ) ) ;
 }
 
 float3 Paddle::hand() const {
