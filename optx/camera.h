@@ -34,12 +34,14 @@ class Camera {
 			wvec_ = wlen*u_ ;
 		} ;
 
-		float3 eye()              const { return eye_ ; }
-		void   eye( const float3& eye ) { set( eye, pat_, vup_, fov_, aspratio_, aperture_, distance_ ) ; }
-		float3 pat()              const { return pat_ ; }
-		void   pat( const float3& pat ) { set( eye_, pat, vup_, fov_, aspratio_, aperture_, distance_ ) ; }
-		float  fov()            const { return fov_ ; }
-		void   fov( const float fov ) { set( eye_, pat_, vup_, fov, aspratio_, aperture_, distance_ ) ; }
+		float3 eye()                      const { return eye_ ; }
+		void   eye( const float3& eye )         { set( eye, pat_, vup_, fov_, aspratio_, aperture_, distance_ ) ; }
+		float3 pat()                      const { return pat_ ; }
+		void   pat( const float3& pat )         { set( eye_, pat, vup_, fov_, aspratio_, aperture_, distance_ ) ; }
+		float  fov()                      const { return fov_ ; }
+		void   fov( const float fov )           { set( eye_, pat_, vup_, fov, aspratio_, aperture_, distance_ ) ; }
+		float  aperture()                 const { return fov_ ; }
+		void   aperture( const float aperture ) { set( eye_, pat_, vup_, fov_, aspratio_, aperture, distance_ ) ; }
 
 #ifdef __CUDACC__
 

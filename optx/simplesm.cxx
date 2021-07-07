@@ -225,8 +225,8 @@ void SimpleSM::eaZomScr() {
 		glfwGetScroll( window_, &x, &y ) ;
 		// update camera
 		const float fov = lp_general_->camera.fov() ;
-		const float zom = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
-		lp_general_->camera.fov( fov ) ;
+		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
+		lp_general_->camera.fov( adj*fov ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -283,6 +283,12 @@ void SimpleSM::eaFocScr() {
 	const State next = State::FOC ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
+		// update camera
+		const float apt = lp_general_->camera.aperture() ;
+		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
+		lp_general_->camera.aperture( adj*apt ) ;
 	}
 	// set history
 	h_state_.pop() ;
