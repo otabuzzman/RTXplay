@@ -10,6 +10,12 @@
 
 #include "simpleui.h"
 
+// missing in GLFW
+void glfwSetScroll( GLFWwindow* window, const double xscroll, const double yscroll ) ;
+void glfwGetScroll( GLFWwindow* window, double* xscroll, double* yscroll ) ;
+static double xscroll_ = 0. ;
+static double yscroll_ = 0. ;
+
 // finite state machine
 static SimpleSM* simplesm ;
 // event callback table
@@ -272,7 +278,8 @@ static void resizeCb( GLFWwindow* /*window*/, int /*w*/, int /*h*/ ) {
 	simplesm->transition( Event::RSZ ) ;
 }
 
-static void scrollCb( GLFWwindow* /*window*/, double /*x*/, double /*y*/ ) {
+static void scrollCb( GLFWwindow* window, double x, double y ) {
+	glfwSetScroll( window, x, y ) ;
 	simplesm->transition( Event::SCR ) ;
 }
 
@@ -289,4 +296,14 @@ static void keyCb( GLFWwindow* /*window*/, int key, int /*scancode*/, int act, i
 		case GLFW_KEY_ESCAPE:
 			simplesm->transition( Event::RET ) ; break ;
 	}
+}
+
+void glfwSetScroll( GLFWwindow* /*window*/, const double x, const double y ) {
+	xscroll_ = x ;
+	yscroll_ = y ;
+}
+
+void glfwGetScroll( GLFWwindow* /*window*/, double* x, double* y ) {
+	*x = xscroll_ ;
+	*y = yscroll_ ;
 }

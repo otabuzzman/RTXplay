@@ -32,7 +32,7 @@ void SimpleSM::eaCtlRet() {
 	const State next = State::CTL ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
-		GLFW_CHECK( glfwSetWindowShouldClose( window_, true ) ) ;
+		glfwSetWindowShouldClose( window_, true ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -48,7 +48,7 @@ void SimpleSM::eaCtlDir() {
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 		double x, y ;
-		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	}
 	// set history
@@ -79,7 +79,7 @@ void SimpleSM::eaDirMov() {
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 		double x, y ;
-		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
 		// update camera
 		const float3 eye = lp_general_->camera.eye() ;
@@ -114,7 +114,7 @@ void SimpleSM::eaCtlPos() {
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 		double x, y ;
-		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	}
 	// set history
@@ -131,7 +131,7 @@ void SimpleSM::eaPosMov() {
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
 		double x, y ;
-		GLFW_CHECK( glfwGetCursorPos( window_, &x, &y ) ) ;
+		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
 		// update camera
 		const float3 pat = lp_general_->camera.pat() ;
@@ -221,6 +221,12 @@ void SimpleSM::eaZomScr() {
 	const State next = State::ZOM ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
+		// update camera
+		const float fov = lp_general_->camera.fov() ;
+		const float zom = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
+		lp_general_->camera.fov( fov ) ;
 	}
 	// set history
 	h_state_.pop() ;
