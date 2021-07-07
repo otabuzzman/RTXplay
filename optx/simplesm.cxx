@@ -287,7 +287,7 @@ void SimpleSM::eaFocScr() {
 		glfwGetScroll( window_, &x, &y ) ;
 		// update camera
 		const float apt = lp_general_->camera.aperture() ;
-		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
+		const float adj = ( static_cast<float>( y )>0 ) ? 1.25f : 1/1.25f ;
 		lp_general_->camera.aperture( adj*apt ) ;
 	}
 	// set history
