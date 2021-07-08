@@ -20,7 +20,6 @@ class SimpleUI {
 		GLuint vbo_ ;
 		GLuint tex_ ;
 		GLuint pbo_ ;
-		SmParam smparam_ ;
 } ;
 
 #endif // SIMPLEUI_H

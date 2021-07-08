@@ -195,25 +195,6 @@ void SimpleSM::eaCtlRsz() {
 	const State next = State::CTL ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
-		int w, h ;
-		glfwGetWindowSize( window_, &w, &h ) ;
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		// resize pixel (image) buffer object
-		GLuint pbo ;
-		GL_CHECK( glGenBuffers( 1, &pbo ) ) ;
-		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, pbo ) ) ;
-		GL_CHECK( glBufferData(
-			GL_ARRAY_BUFFER,
-			sizeof( uchar4 )*w*h,
-			nullptr,
-			GL_STATIC_DRAW
-			) ) ;
-		// register pbo for CUDA
-		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
-		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
-		// update OptiX launch parameter
-		smparam->lp_general.image_w = w ;
-		smparam->lp_general.image_h = h ;
 	}
 	// set history
 	h_state_.pop() ;

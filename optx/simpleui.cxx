@@ -16,6 +16,7 @@ static double yscroll_ = 0. ;
 
 // finite state machine
 static SimpleSM* simplesm ;
+static SmParam   smparam  ;
 // event callback table
 static void mousecliqCb( GLFWwindow* window, int key, int act, int mod )                       ;
 static void mousemoveCb( GLFWwindow* window, double x, double y )                              ;
@@ -147,13 +148,13 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 		) ) ;
 
 	// register pbo for CUDA
-	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam_.glx, pbo_, cudaGraphicsMapFlagsWriteDiscard ) ) ;
+	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam.glx, pbo_, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 
 	// initialize FSM
-	smparam_.lp_general = lp_general ;
+	glfwSetWindowUserPointer( window_, &smparam ) ;
+	smparam.lp_general = lp_general ;
 	simplesm = new SimpleSM( window_ ) ;
-	glfwSetWindowUserPointer( window_, &smparam_ ) ;
 	// initialize CBT
 	GLFW_CHECK( glfwSetMouseButtonCallback( window_, mousecliqCb ) ) ;
 	GLFW_CHECK( glfwSetCursorPosCallback  ( window_, mousemoveCb ) ) ;
@@ -164,7 +165,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 
 SimpleUI::~SimpleUI() noexcept ( false ) {
 	delete simplesm ; simplesm = nullptr ;
-	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam_.glx ) ) ;
+	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam.glx ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &pbo_ ) ) ;
 	GL_CHECK( glDeleteVertexArrays( 1, &vao_ ) ) ;
@@ -177,7 +178,7 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 }
 
 void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) {
-	LpGeneral* lp_general = &smparam_.lp_general ;
+	LpGeneral* lp_general = &smparam.lp_general ;
 	size_t lp_general_size = sizeof( LpGeneral ), lp_general_image_size ;
 
 	CUdeviceptr d_lp_general ;
@@ -188,8 +189,8 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam_.glx, cuda_stream ) ) ;
-		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, smparam_.glx ) ) ;
+		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam.glx, cuda_stream ) ) ;
+		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, smparam.glx ) ) ;
 		CUDA_CHECK( cudaMemcpy(
 			reinterpret_cast<void*>( d_lp_general ),
 			lp_general,
@@ -207,7 +208,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
-		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam_.glx, cuda_stream ) ) ;
+		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 
 		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 
