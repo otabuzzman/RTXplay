@@ -1,9 +1,7 @@
 #ifndef SIMPLEUI_H
 #define SIMPLEUI_H
 
-#include "camera.h"
-#include "thing.h"
-#include "rtwo.h"
+#include "simplesm.h"
 
 class SimpleUI {
 	public:
@@ -13,7 +11,6 @@ class SimpleUI {
 		void render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) ;
 
 	private:
-		LpGeneral lp_general_ ;
 		GLFWwindow* window_ ;
 		GLuint v_shader_ ;
 		GLuint f_shader_ ;
@@ -23,7 +20,7 @@ class SimpleUI {
 		GLuint vbo_ ;
 		GLuint tex_ ;
 		GLuint pbo_ ;
-		cudaGraphicsResource* glx_ ;
+		SmParam smparam_ ;
 } ;
 
 #endif // SIMPLEUI_H

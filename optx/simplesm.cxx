@@ -1,16 +1,20 @@
 #include <optix.h>
 #include <optix_stubs.h>
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <cuda_gl_interop.h> // must follow glad.h
 
 #include "v.h"
 
 #include "simplesm.h"
 
-SimpleSM::SimpleSM( GLFWwindow* window, LpGeneral* lp_general ) : window_( window ), lp_general_( lp_general ) {
+SimpleSM::SimpleSM( GLFWwindow* window ) : window_( window ) {
 	h_state_.push( State::CTL ) ;
 
-	paddle_ = new Paddle( V::unitV( lp_general_->camera.eye()-lp_general_->camera.pat() ) ) ;
+	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+	paddle_ = new Paddle( smparam->lp_general.camera.eye()-smparam->lp_general.camera.pat() ) ;
 }
 
 SimpleSM::~SimpleSM() {
@@ -50,6 +54,12 @@ void SimpleSM::eaCtlDir() {
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// reduce RT quality while moving
+		i_sexchg_.push( smparam->lp_general.spp ) ;
+		i_sexchg_.push( smparam->lp_general.depth ) ;
+		smparam->lp_general.spp = 1 ;
+		smparam->lp_general.depth = 1 ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -81,10 +91,11 @@ void SimpleSM::eaDirMov() {
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
-		const float3 eye = lp_general_->camera.eye() ;
-		const float  len = V::len( eye-lp_general_->camera.pat() ) ;
-		lp_general_->camera.pat( eye-len*paddle_->hand() ) ;
+		const float3 eye = smparam->lp_general.camera.eye() ;
+		const float  len = V::len( eye-smparam->lp_general.camera.pat() ) ;
+		smparam->lp_general.camera.pat( eye-len*paddle_->hand() ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -99,6 +110,12 @@ void SimpleSM::eaDirRet() {
 	const State next = State::CTL ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// restore RT quality after moving
+		smparam->lp_general.depth = i_sexchg_.top() ;
+		i_sexchg_.pop() ;
+		smparam->lp_general.spp = i_sexchg_.top() ;
+		i_sexchg_.pop() ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -116,6 +133,12 @@ void SimpleSM::eaCtlPos() {
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// reduce RT quality while moving
+		i_sexchg_.push( smparam->lp_general.spp ) ;
+		i_sexchg_.push( smparam->lp_general.depth ) ;
+		smparam->lp_general.spp = 1 ;
+		smparam->lp_general.depth = 1 ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -133,10 +156,11 @@ void SimpleSM::eaPosMov() {
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
 		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
-		const float3 pat = lp_general_->camera.pat() ;
-		const float  len = V::len( lp_general_->camera.eye()-pat ) ;
-		lp_general_->camera.eye( pat+len*paddle_->hand() ) ;
+		const float3 pat = smparam->lp_general.camera.pat() ;
+		const float  len = V::len( smparam->lp_general.camera.eye()-pat ) ;
+		smparam->lp_general.camera.eye( pat+len*paddle_->hand() ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -151,6 +175,12 @@ void SimpleSM::eaPosRet() {
 	const State next = State::CTL ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// restore RT quality after moving
+		smparam->lp_general.depth = i_sexchg_.top() ;
+		i_sexchg_.pop() ;
+		smparam->lp_general.spp = i_sexchg_.top() ;
+		i_sexchg_.pop() ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -165,6 +195,25 @@ void SimpleSM::eaCtlRsz() {
 	const State next = State::CTL ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] ;
 	{ // perform action
+		int w, h ;
+		glfwGetWindowSize( window_, &w, &h ) ;
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// resize pixel (image) buffer object
+		GLuint pbo ;
+		GL_CHECK( glGenBuffers( 1, &pbo ) ) ;
+		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, pbo ) ) ;
+		GL_CHECK( glBufferData(
+			GL_ARRAY_BUFFER,
+			sizeof( uchar4 )*w*h,
+			nullptr,
+			GL_STATIC_DRAW
+			) ) ;
+		// register pbo for CUDA
+		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
+		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
+		// update OptiX launch parameter
+		smparam->lp_general.image_w = w ;
+		smparam->lp_general.image_h = h ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -223,10 +272,11 @@ void SimpleSM::eaZomScr() {
 	{ // perform action
 		double x, y ;
 		glfwGetScroll( window_, &x, &y ) ;
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
-		const float fov = lp_general_->camera.fov() ;
+		const float fov = smparam->lp_general.camera.fov() ;
 		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
-		lp_general_->camera.fov( adj*fov ) ;
+		smparam->lp_general.camera.fov( adj*fov ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -286,9 +336,10 @@ void SimpleSM::eaFocScr() {
 		double x, y ;
 		glfwGetScroll( window_, &x, &y ) ;
 		// update camera
-		const float apt = lp_general_->camera.aperture() ;
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		const float apt = smparam->lp_general.camera.aperture() ;
 		const float adj = ( static_cast<float>( y )>0 ) ? 1.25f : 1/1.25f ;
-		lp_general_->camera.aperture( adj*apt ) ;
+		smparam->lp_general.camera.aperture( adj*apt ) ;
 	}
 	// set history
 	h_state_.pop() ;

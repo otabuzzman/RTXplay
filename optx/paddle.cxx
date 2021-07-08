@@ -10,9 +10,10 @@ using V::operator+ ;
 using V::operator* ;
 
 Paddle::Paddle( const float3& hand ) {
-	const float x = V::dot( hand, u_ ) ;
-	const float y = V::dot( hand, v_ ) ;
-	const float z = V::dot( hand, w_ ) ;
+	const float3 h = V::unitV( hand ) ;
+	const float x = V::dot( h, u_ ) ;
+	const float y = V::dot( h, v_ ) ;
+	const float z = V::dot( h, w_ ) ;
 	lo_ = atan2( x, y ) ;
 	la_ = asin ( z ) ;
 }

@@ -4,9 +4,9 @@
 #include <stack>
 
 #include "camera.h"
-#include "paddle.h"
 #include "thing.h"
 #include "rtwo.h"
+#include "paddle.h"
 
 // missing in GLFW
 extern "C" void glfwGetScroll( GLFWwindow* /*window*/, double* xscroll, double* yscroll ) ;
@@ -16,9 +16,14 @@ const std::string stateName[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
 enum class Event { BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
 const std::string eventName[] = { "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
+struct SmParam {
+	LpGeneral             lp_general ;
+	cudaGraphicsResource* glx ;
+} ;
+
 class SimpleSM {
 	public:
-		SimpleSM( GLFWwindow* window, LpGeneral* lp_general ) ;
+		SimpleSM( GLFWwindow* window ) ;
 		~SimpleSM() ;
 
 		void transition( const Event& event ) ;
@@ -45,10 +50,16 @@ class SimpleSM {
 
 	private:
 		GLFWwindow* window_ ;
-		LpGeneral* lp_general_ ;
-		std::stack<State> h_state_ ; // state history
-		std::stack<Event> h_event_ ; // event history
 		Paddle* paddle_ ;
+
+		// state/ event history
+		std::stack<State> h_state_ ;
+		std::stack<Event> h_event_ ;
+
+		// inter-state exchange
+		std::stack<int>   i_sexchg_ ;
+		// std::stack<float> f_sexchg_ ;
+		// std::stack<void*> p_sexchg_ ;
 
 		// event/ action table
 		typedef void ( SimpleSM::*EAImp )() ;
