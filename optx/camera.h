@@ -28,10 +28,8 @@ class Camera {
 
 			float hlen  = 2.f*tanf( .5f*util::rad( fov_ ) ) ;
 			float wlen  = hlen*aspratio_ ;
-
-			lens_ = aperture_/2.f ;
-			hvec_ = hlen*v_ ;
-			wvec_ = wlen*u_ ;
+			hvec_ = distance_*hlen/2.f*v_ ;
+			wvec_ = distance_*wlen/2.f*u_ ;
 		} ;
 
 		float3 eye()                      const { return eye_ ; }
@@ -46,11 +44,11 @@ class Camera {
 #ifdef __CUDACC__
 
 		__device__ void ray( const float s, const float t, float3& ori, float3& dir, curandState* state ) const {
-			const float3 r = lens_*V::rndVin1disk( state ) ;
+			const float3 r = aperture_/2.f*V::rndVin1disk( state ) ;
 			const float3 o = eye_+r.x*u_+r.y*v_ ;
 
 			ori = o ;
-			dir = distance_*( s*wvec_+t*hvec_ )-o ;
+			dir = s*wvec_+t*hvec_-eye_ ;
 		} ;
 
 #endif
@@ -65,7 +63,6 @@ class Camera {
 		float  distance_ ;
 
 		float3 u_, v_, w_ ;
-		float  lens_ ;
 		float3 hvec_ ;
 		float3 wvec_ ;
 } ;

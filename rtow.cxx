@@ -99,15 +99,15 @@ int main() {
 	P pat( 0, 0, 0 ) ;
 	V vup( 0, 1, 0 ) ;
 	double aperture = .1 ;
-	double distance = 10. ;
+	double distance = 20. ;
 
 	Camera camera ;
 	camera.set( eye, pat, vup, 20., aspratio, aperture, distance ) ;
 
-	const int w = 1200 ;                           // image width in pixels
+	const int w = 320 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
-	const int spp = 10 ;                           // samples per pixel
-	const int depth = 50 ;                         // recursion depth
+	const int spp = 1 ;                           // samples per pixel
+	const int depth = 1 ;                         // recursion depth
 
 	std::cout
 		<< "P3\n"	// magic PPM header

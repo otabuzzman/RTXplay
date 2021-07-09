@@ -91,7 +91,7 @@ int main() {
 		20.f /*fov*/,
 		aspratio,
 		.1f  /*aperture*/,
-		10.f /*distance*/ ) ;
+		20.f /*distance*/ ) ;
 
 	lp_general.image_w = 1200 ;                                            // image width in pixels
 	lp_general.image_h = static_cast<int>( lp_general.image_w/aspratio ) ; // image height in pixels
