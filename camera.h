@@ -8,7 +8,8 @@ class Camera {
 		Camera() {} ;
 
 		void set( const P& eye, const P& pat, const V& vup, const double fov, const double aspratio, const double aperture, const double distance ) {
-			eye_  = eye ;
+			eye_       = eye ;
+			aperture_  = aperture ;
 
 			w_ = unitV( eye-pat ) ;
 			u_ = unitV( cross( vup, w_ ) ) ;
@@ -18,23 +19,22 @@ class Camera {
 			auto wlen = hlen*aspratio ;             // virtual viewport width
 			hvec_ = distance*hlen/2.*v_ ;
 			wvec_ = distance*wlen/2.*u_ ;
-
-			lens_ = aperture/2. ;
 		}
 
 		Ray ray( const double s, const double t ) const {
-			V r = lens_*rndVin1disk() ;
+			V r = aperture_/2.*rndVin1disk() ;
 			V o = eye_+r.x()*u_+r.y()*v_ ;
 
-			return Ray( o, s*wvec_+t*hvec_-eye_ ) ;
+			return Ray( o, s*wvec_+t*hvec_-o ) ;
 		}
 
 	private:
-		V u_, v_, w_ ; // camera coordinate system
-		P eye_ ;       // camera origin
-		double lens_ ; // lens radius
-		V hvec_ ;      // virtual viewport height vector
-		V wvec_ ;      // virtual viewport width vector
+		P eye_ ;           // camera origin
+		double aperture_ ;
+
+		V u_, v_, w_ ;     // camera coordinate system
+		V hvec_ ;          // virtual viewport height vector
+		V wvec_ ;          // virtual viewport width vector
 } ;
 
 #endif // CAMERA_H
