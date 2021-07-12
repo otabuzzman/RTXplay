@@ -18,6 +18,7 @@ const std::string eventName[] = { "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ
 
 struct SmParam {
 	LpGeneral             lp_general ;
+	GLuint                pbo ;
 	cudaGraphicsResource* glx ;
 } ;
 

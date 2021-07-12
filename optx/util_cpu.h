@@ -50,14 +50,26 @@
 		}                                                  \
 	} while ( false )
 
-#define GL_CHECK( api )                                    \
-	do {                                                   \
-		api ;                                              \
-		if ( glGetError() != GL_NO_ERROR ) {               \
-			std::ostringstream comment ;                   \
-			comment << "GL error: " << #api << std::endl ; \
-			throw std::runtime_error( comment.str() ) ;    \
-		}                                                  \
+#define GL_CHECK( api )                                     \
+	do {                                                    \
+		api ;                                               \
+		GLenum e ;                                          \
+		if ( ( e = glGetError() ) != GL_NO_ERROR ) {        \
+			std::ostringstream comment ;                    \
+			comment << "GL error: " << #api << " :" ;       \
+			do {                                                                                                    \
+				switch ( e ) {                                                                                      \
+					case GL_INVALID_ENUM:                  comment << " GL_INVALID_ENUM" ; break ;                  \
+					case GL_INVALID_VALUE:                 comment << " GL_INVALID_VALUE" ; break ;                 \
+					case GL_INVALID_OPERATION:             comment << " GL_INVALID_OPERATION" ; break ;             \
+					case GL_INVALID_FRAMEBUFFER_OPERATION: comment << " GL_INVALID_FRAMEBUFFER_OPERATION" ; break ; \
+					case GL_OUT_OF_MEMORY:                 comment << " GL_OUT_OF_MEMORY" ; break ;                 \
+					default:                               comment << " " << e << " (undefined)" ; break ;          \
+				}                                                                                                   \
+			} while ( ( e = glGetError() ) != GL_NO_ERROR ) ;                                                       \
+			comment << std::endl ;                                                                                  \
+			throw std::runtime_error( comment.str() ) ;     \
+		}                                                   \
 	} while ( false )
 
 namespace util {

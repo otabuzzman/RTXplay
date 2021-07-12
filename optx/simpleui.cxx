@@ -138,8 +138,8 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 	GL_CHECK( glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ) ) ;
 
 	// create pixel (image) buffer object
-	GL_CHECK( glGenBuffers( 1, &pbo_ ) ) ;
-	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, pbo_ ) ) ;
+	GL_CHECK( glGenBuffers( 1, &smparam.pbo ) ) ;
+	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam.pbo ) ) ;
 	GL_CHECK( glBufferData(
 		GL_ARRAY_BUFFER,
 		sizeof( uchar4 )*w*h,
@@ -148,7 +148,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 		) ) ;
 
 	// register pbo for CUDA
-	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam.glx, pbo_, cudaGraphicsMapFlagsWriteDiscard ) ) ;
+	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam.glx, smparam.pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 
 	// initialize FSM
@@ -167,7 +167,7 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 	delete simplesm ; simplesm = nullptr ;
 	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam.glx ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
-	GL_CHECK( glDeleteBuffers( 1, &pbo_ ) ) ;
+	GL_CHECK( glDeleteBuffers( 1, &smparam.pbo ) ) ;
 	GL_CHECK( glDeleteVertexArrays( 1, &vao_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &vbo_ ) ) ;
 	GL_CHECK( glDeleteShader( v_shader_ ) ) ;
@@ -214,6 +214,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 
 		// display result
 		GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
+		glViewport( 0, 0, w, h ) ;
 
 		GL_CHECK( glClearColor( .333f, .525f, .643f, 1.f ) ) ;
 		GL_CHECK( glClear( GL_COLOR_BUFFER_BIT ) ) ;
@@ -223,7 +224,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 
 		GL_CHECK( glActiveTexture( GL_TEXTURE0 ) ) ;
 		GL_CHECK( glBindTexture( GL_TEXTURE_2D, tex_ ) ) ;
-		GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, pbo_ ) ) ;
+		GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, smparam.pbo ) ) ;
 		GL_CHECK( glPixelStorei( GL_UNPACK_ALIGNMENT, 1 ) ) ;
 		GL_CHECK( glTexImage2D(
 			GL_TEXTURE_2D,

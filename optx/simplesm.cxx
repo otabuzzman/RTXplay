@@ -199,27 +199,24 @@ void SimpleSM::eaCtlRsz() {
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
 		int w, h ;
-		glfwGetFramebufferSize( window_, &w, &h ) ;
-		glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ;
-		glViewport( 0, 0, w, h ) ;
+		GLFW_CHECK( glfwGetFramebufferSize( window_, &w, &h ) ) ;
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		smparam->lp_general.image_w = w ;
 		smparam->lp_general.image_h = h ;
 		Camera* camera = &smparam->lp_general.camera ;
 		camera->aspratio( static_cast<float>( w )/static_cast<float>( h ) ) ;
 		// resize pixel (image) buffer object
-		GLuint pbo ;
-		glGenBuffers( 1, &pbo ) ;
-		glBindBuffer( GL_ARRAY_BUFFER, pbo ) ;
-		glBufferData(
+		GL_CHECK( glGenBuffers( 1, &smparam->pbo ) ) ;
+		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam->pbo ) ) ;
+		GL_CHECK( glBufferData(
 			GL_ARRAY_BUFFER,
 			sizeof( uchar4 )*w*h,
 			nullptr,
 			GL_STATIC_DRAW
-			) ;
+			) ) ;
 		// register pbo for CUDA
-		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
-		glBindBuffer( GL_ARRAY_BUFFER, 0 ) ;
+		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, smparam->pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
+		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 	}
 	// set history
 	h_state_.pop() ;
