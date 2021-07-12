@@ -17,7 +17,7 @@ enum class Event { BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
 const std::string eventName[] = { "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
 struct SmParam {
-	LpGeneral*            lp_general ;
+	LpGeneral             lp_general ;
 	cudaGraphicsResource* glx ;
 } ;
 
