@@ -153,7 +153,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 
 	// initialize FSM
 	glfwSetWindowUserPointer( window_, &smparam ) ;
-	smparam.lp_general = &lp_general ;
+	smparam.lp_general = lp_general ;
 	simplesm = new SimpleSM( window_ ) ;
 	// initialize CBT
 	GLFW_CHECK( glfwSetMouseButtonCallback( window_, mousecliqCb ) ) ;
@@ -178,6 +178,7 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 }
 
 void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) {
+	LpGeneral* lp_general = &smparam.lp_general ;
 	size_t lp_general_size = sizeof( LpGeneral ), lp_general_image_size ;
 
 	CUdeviceptr d_lp_general ;
@@ -189,15 +190,15 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam.glx, cuda_stream ) ) ;
-		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &smparam.lp_general->image ), &lp_general_image_size, smparam.glx ) ) ;
+		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, smparam.glx ) ) ;
 		CUDA_CHECK( cudaMemcpy(
 			reinterpret_cast<void*>( d_lp_general ),
-			&smparam.lp_general,
+			lp_general,
 			lp_general_size,
 			cudaMemcpyHostToDevice
 			) ) ;
-		const int w = smparam.lp_general->image_w ;
-		const int h = smparam.lp_general->image_h ;
+		const int w = lp_general->image_w ;
+		const int h = lp_general->image_h ;
 		OPTX_CHECK( optixLaunch(
 			pipeline,
 			cuda_stream,

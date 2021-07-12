@@ -48,7 +48,7 @@ class Camera {
 			const float3 o = eye_+r.x*u_+r.y*v_ ;
 
 			ori = o ;
-			dir = s*wvec_+t*hvec_-eye_ ;
+			dir = s*wvec_+t*hvec_-o ;
 		} ;
 
 #endif
