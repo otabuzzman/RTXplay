@@ -9,6 +9,7 @@ class SimpleUI {
 		~SimpleUI() noexcept ( false ) ;
 
 		void render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) ;
+		void usage() const ;
 
 	private:
 		GLFWwindow* window_ ;

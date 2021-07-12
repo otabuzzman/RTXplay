@@ -308,3 +308,17 @@ void glfwGetScroll( GLFWwindow* /*window*/, double* x, double* y ) {
 	*x = xscroll_ ;
 	*y = yscroll_ ;
 }
+
+void SimpleUI::usage() const {
+	std::cerr << "*** UI usage:\n\
+  window resize        - change viewport dimensions\n\
+  left button + move   - change camera position\n\
+  right button + move  - change camera direction\n\
+  right button + scoll - roll camera\n\
+  'z' key              - enter zoom mode (<ESC> to leave)\n\
+      scroll           - zoom in and out\n\
+  'f' key              - enter focus mode (<ESC> to leave)\n\
+      scroll           - change aperture\n\
+  <ESC> key            - leave RTWO\n\
+" ;
+}

@@ -513,6 +513,8 @@ int main() {
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
 		if ( display_dev>0 ) {
 			SimpleUI simpleui( "RTWO", lp_general ) ;
+			simpleui.usage() ;
+
 			simpleui.render( pipeline, sbt ) ;
 		} else {
 			auto t0 = std::chrono::high_resolution_clock::now() ;
