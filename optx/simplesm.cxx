@@ -75,6 +75,13 @@ void SimpleSM::eaDirScr() {
 	const State next = State::DIR ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// update camera
+		Camera* camera = &smparam->lp_general.camera ;
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
+		const float len = V::len( camera->vup() ) ;
+		camera->vup( len*paddle_->roll( static_cast<int>( y ) ) ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -271,11 +278,11 @@ void SimpleSM::eaZomScr() {
 	const State next = State::ZOM ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
-		double x, y ;
-		glfwGetScroll( window_, &x, &y ) ;
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
 		Camera* camera = &smparam->lp_general.camera ;
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
 		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
 		const float fov = camera->fov() ;
 		camera->fov( adj*fov ) ;
@@ -335,11 +342,11 @@ void SimpleSM::eaFocScr() {
 	const State next = State::FOC ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
-		double x, y ;
-		glfwGetScroll( window_, &x, &y ) ;
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
 		Camera* camera = &smparam->lp_general.camera ;
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
 		const float adj = ( static_cast<float>( y )>0 ) ? 1.25f : 1/1.25f ;
 		const float apt = camera->aperture() ;
 		camera->aperture( adj*apt ) ;

@@ -9,18 +9,21 @@ class Paddle {
 
 		void start( const int x, const int y ) ;
 		float3 move( const int x, const int y ) ;
+		float3 roll( const int s ) ;
 
 	private:
 		// reference frame coordinate system
 		const float3 u_ = { 1.f, 0.f, 0.f } ;
 		const float3 v_ = { 0.f, 0.f, 1.f } ;
 		const float3 w_ = { 0.f, 1.f, 0.f } ;
-		// polar coords of Veye-Vpat position
+		// move memory
 		float lo_ ;
 		float la_ ;
-		// x/ y memory
 		int x_ ;
 		int y_ ;
+		// roll memory
+		float3 vup_ ;
+		float  phi_ ;
 } ;
 
 #endif // PADDLE_H
