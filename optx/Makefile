@@ -58,6 +58,7 @@ ifdef winos
 # C5026: shift constructor defined as deleted
 # C5027: shift constructor defined as deleted
 # C5039: risk of undefined behaviour on exception
+# C5045: Spectre mitigation inserted
 
 IGNORED_WARNINGS = \
 	/wd4061 \
@@ -77,6 +78,7 @@ IGNORED_WARNINGS = \
 	/wd5026 \
 	/wd5027 \
 	/wd5039 \
+	/wd5045 \
 
 CXXFLAGS = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG
 NVCCFLAGS = -rdc true -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
