@@ -15,7 +15,7 @@ SimpleSM::SimpleSM( GLFWwindow* window ) : window_( window ) {
 
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 	Camera* camera = &smparam->lp_general.camera ;
-	paddle_ = new Paddle( camera->eye()-camera->pat() ) ;
+	paddle_ = new Paddle( camera->eye(), camera->pat(), camera->vup() ) ;
 }
 
 SimpleSM::~SimpleSM() {
@@ -89,15 +89,14 @@ void SimpleSM::eaDirMov() {
 	const State next = State::DIR ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
-		double x, y ;
-		glfwGetCursorPos( window_, &x, &y ) ;
-		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
 		Camera* camera = &smparam->lp_general.camera ;
 		const float3 eye = camera->eye() ;
 		const float  len = V::len( eye-camera->pat() ) ;
-		camera->pat( eye-len*paddle_->hand() ) ;
+		double x, y ;
+		glfwGetCursorPos( window_, &x, &y ) ;
+		camera->pat( eye-len*paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -155,15 +154,14 @@ void SimpleSM::eaPosMov() {
 	const State next = State::POS ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
-		double x, y ;
-		glfwGetCursorPos( window_, &x, &y ) ;
-		paddle_->track( static_cast<int>( x ), static_cast<int>( y ) ) ;
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
 		Camera* camera = &smparam->lp_general.camera ;
 		const float3 pat = camera->pat() ;
 		const float  len = V::len( camera->eye()-pat ) ;
-		camera->eye( pat+len*paddle_->hand() ) ;
+		double x, y ;
+		glfwGetCursorPos( window_, &x, &y ) ;
+		camera->eye( pat+len*paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
 	}
 	// set history
 	h_state_.pop() ;

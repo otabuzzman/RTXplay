@@ -36,6 +36,8 @@ class Camera {
 		void   eye( const float3& eye )         { set( eye,  pat_, vup_, fov_, aspratio_, aperture_, distance_ ) ; }
 		float3 pat()                      const { return pat_ ; }
 		void   pat( const float3& pat )         { set( eye_, pat,  vup_, fov_, aspratio_, aperture_, distance_ ) ; }
+		float3 vup()                      const { return vup_ ; }
+		void   vup( const float3& vup )         { set( eye_, pat_, vup,  fov_, aspratio_, aperture_, distance_ ) ; }
 		float  fov()                      const { return fov_ ; }
 		void   fov( const float fov )           { set( eye_, pat_, vup_, fov,  aspratio_, aperture_, distance_ ) ; }
 		void   aspratio( const float aspratio ) { set( eye_, pat_, vup_, fov_, aspratio,  aperture_, distance_ ) ; }
