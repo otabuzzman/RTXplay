@@ -79,10 +79,10 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 
 |RTWO (Raytracing with OptiX) samples|   |
 |:---|:---|
-|1 spp (samples per pixel) in 3348 milliseconds|50 spp in 3850 milliseconds|
-|![1 spp in 3348 milliseconds](./optx/img/rtwo-1spp-3348.png)|![50 spp in 3850 milliseconds](./optx/img/rtwo-50spp-3850.png)|
-|500 spp (default) in 7110 milliseconds|no defocus blur|
-|![500 spp in 7110 milliseconds](./optx/img/rtwo-500spp-7110.png)|![no defocus blur](./optx/img/rtwo-noblur.png)|
+|1 spp (samples per pixel) in 189 milliseconds|50 spp in 776 milliseconds|
+|![1 spp in 189 milliseconds](./optx/img/rtwo-1spp-189.png)|![50 spp in 776 milliseconds](./optx/img/rtwo-50spp-776.png)|
+|500 spp (default) in 5586 milliseconds|no defocus blur|
+|![500 spp in 5586 milliseconds](./optx/img/rtwo-500spp-5586.png)|![no defocus blur](./optx/img/rtwo-noblur.png)|
 
 |RTWO samples with experimental|triangle hit correction|made with branch `hitcorr`|
 |:---|:---|:---|
