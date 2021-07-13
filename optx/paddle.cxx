@@ -47,9 +47,9 @@ float3 Paddle::move( const int x, const int y ) {
 }
 
 float3 Paddle::roll( const int s ) {
-	phi_ = util::rad( fmod( util::deg( phi_ )+.25f*s, 360.f ) ) ;
-	const float x = asin( phi_ ) ;
-	const float y = acos( phi_ ) ;
+	phi_ = util::rad( fmod( util::deg( phi_ )+s, 360.f ) ) ;
+	const float x = cos( phi_ ) ;
+	const float y = sin( phi_ ) ;
 	const float z = vup_.z ;
 
 	return make_float3( x, y, z ) ;
