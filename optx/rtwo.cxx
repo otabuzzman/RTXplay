@@ -82,9 +82,9 @@ int main() {
 
 	SbtRecordRG sbt_record_camera ;
 	sbt_record_camera.data.set(
-		{13.f, 2.f, 3.f} /*eye*/,
-		{ 0.f, 0.f, 0.f} /*pat*/,
-		{ 0.f, 1.f, 0.f} /*vup*/,
+		{ 13.f, 2.f, 3.f } /*eye*/,
+		{  0.f, 0.f, 0.f } /*pat*/,
+		{  0.f, 1.f, 0.f } /*vup*/,
 		20.f /*fov*/,
 		aspratio,
 		.1f  /*aperture*/,
