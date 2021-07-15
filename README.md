@@ -11,7 +11,7 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 #### Windows (Development)
 - Install Cygwin with development tools (GCC, make etc.)
 - Install Visual Studio 2017 Community
-- Unpack CUDA Toolkit 11 somewhere, e.g. `/usr/lab/cudacons/cuda_11.3.1_465.89_win10` (Cygwin)
+- Unpack CUDA Toolkit 11 somewhere, e.g. `/usr/lab/cudacons/cuda_11.4.0_471.11_win10` (Cygwin)
 - Unpack Optix 7 SDK somewhere, e.g. `/usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64` (Cygwin)
 - Add `nvcc.exe` and `cl.exe` to PATH
 - Install ImageMagick 7 (Windows installer)
@@ -31,8 +31,8 @@ Due to lack of appropriate hardware development and tests had been split on Wind
   # prerequisites
   sudo yum group install "Development Tools"
 
-  wget https://developer.download.nvidia.com/compute/cuda/11.3.1/local_installers/cuda_11.3.1_465.19.01_linux.run
-  sudo sh cuda_11.3.1_465.19.01_linux.run
+  wget https://developer.download.nvidia.com/compute/cuda/11.4.0/local_installers/cuda_11.4.0_470.42.01_linux.run
+  sudo sh cuda_11.4.0_470.42.01_linux.run
 
   # environment (~/.bashrc)
   export PATH=/usr/local/cuda/bin:$PATH
@@ -42,7 +42,7 @@ Due to lack of appropriate hardware development and tests had been split on Wind
   nvidia-smi
 
   # check toolkit
-  cd NVIDIA_CUDA-11.3_Samples/1_Utilities/deviceQuery
+  cd NVIDIA_CUDA-11.4_Samples/1_Utilities/deviceQuery
   make ; ../../bin/x86_64/linux/release/deviceQuery ; cd
   ```
 

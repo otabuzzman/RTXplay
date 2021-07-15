@@ -81,12 +81,12 @@ CXXFLAGS = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG
 NVCCFLAGS = -rdc true -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
 
 INC = \
-	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.3.1_465.89_win10/cuda_cudart/cudart/include) \
-	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.3.1_465.89_win10/libcurand/curand_dev/include) \
+	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/include) \
+	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/libcurand/curand_dev/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/include) \
 
 LIB = \
-	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.3.1_465.89_win10/cuda_cudart/cudart/lib/x64) \
+	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/lib/x64) \
 
 LD = nvcc
 else
