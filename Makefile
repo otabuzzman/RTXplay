@@ -66,7 +66,6 @@ malen-nach-strahlen.tar.gz:
 		util.h \
 		v.h \
 		optics.h \
-		optx/ \
 		optx/camera.cu \
 		optx/camera.h \
 		optx/Makefile \
