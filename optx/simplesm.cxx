@@ -236,6 +236,10 @@ void SimpleSM::eaCtlZom() {
 	const State next = State::ZOM ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
+		i_sexchg_.push( smparam->lp_general.spp ) ;
+		i_sexchg_.push( smparam->lp_general.depth ) ;
+		smparam->lp_general.spp = 1 ;
+		smparam->lp_general.depth = 1 ;
 	}
 	// set history
 	h_state_.pop() ;
@@ -300,6 +304,12 @@ void SimpleSM::eaZomRet() {
 	const State next = State::CTL ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// restore RT quality after moving
+		smparam->lp_general.depth = i_sexchg_.top() ;
+		i_sexchg_.pop() ;
+		smparam->lp_general.spp = i_sexchg_.top() ;
+		i_sexchg_.pop() ;
 	}
 	// set history
 	h_state_.pop() ;
