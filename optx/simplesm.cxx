@@ -236,6 +236,8 @@ void SimpleSM::eaCtlZom() {
 	const State next = State::ZOM ;
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// reduce RT quality while zooming
 		i_sexchg_.push( smparam->lp_general.spp ) ;
 		i_sexchg_.push( smparam->lp_general.depth ) ;
 		smparam->lp_general.spp = 1 ;
@@ -305,7 +307,7 @@ void SimpleSM::eaZomRet() {
 	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		// restore RT quality after moving
+		// restore RT quality after zooming
 		smparam->lp_general.depth = i_sexchg_.top() ;
 		i_sexchg_.pop() ;
 		smparam->lp_general.spp = i_sexchg_.top() ;
