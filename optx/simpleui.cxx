@@ -260,7 +260,20 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		***/
 
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
-		GLFW_CHECK( glfwWaitEvents() ) ;
+		if ( smparam.options|SM_OPTION_ANIMATE ) {
+			// rotate eye around y (WCS)
+			Camera* camera = &lp_general->camera ;
+			const float3 eye = camera->eye() ;
+			const float3 pat = camera->pat() ;
+			const float  len = V::len( eye-pat ) ;
+			Paddle paddle( eye, pat, camera->vup() ) ;
+
+			paddle.start( 0, 0 ) ;
+			camera->eye( pat+len*paddle.move( -1, 0 ) ) ;
+
+			GLFW_CHECK( glfwPollEvents() ) ;
+		} else
+			GLFW_CHECK( glfwWaitEvents() ) ;
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
 }
 
@@ -289,6 +302,8 @@ static void keyCb( GLFWwindow* /*window*/, int key, int /*scancode*/, int act, i
 	if ( act != GLFW_PRESS )
 		return ;
 	switch ( key ) {
+		case GLFW_KEY_A:
+			simplesm->transition( Event::ANM ) ; break ;
 		case GLFW_KEY_Z:
 			simplesm->transition( Event::ZOM ) ; break ;
 		case GLFW_KEY_B:
@@ -316,6 +331,7 @@ void SimpleUI::usage() const {
   left button + move   - change camera position\n\
   right button + move  - change camera direction\n\
   right button + scoll - roll camera\n\
+  'a' key              - toggle scene animation\n\
   'z' key              - enter zoom mode (<ESC> to leave)\n\
       scroll           - zoom in and out\n\
   'f' key              - enter focus mode (<ESC> to leave)\n\

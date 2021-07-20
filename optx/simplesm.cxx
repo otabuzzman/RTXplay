@@ -32,6 +32,23 @@ void SimpleSM::transition( const Event& event ) {
 	( this->*EATab[s][e] )() ;
 }
 
+void SimpleSM::eaCtlAnm() {
+	const int s = static_cast<int>( h_state_.top() ) ;
+	const State next = State::CTL ;
+	std::cerr << "from " << stateName[s] << " to "  << stateName[static_cast<int>( next )] << " ... " ;
+	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		// toggle animation
+		smparam->options ^= 1ULL << SM_OPTION_ANIMATE ;
+	}
+	// set history
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	h_state_.push( next ) ;
+	std::cerr << "finished" << std::endl ;
+}
+
 void SimpleSM::eaCtlRet() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const State next = State::CTL ;

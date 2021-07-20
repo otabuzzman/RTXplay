@@ -13,13 +13,17 @@ extern "C" void glfwGetScroll( GLFWwindow* /*window*/, double* xscroll, double* 
 
 enum class State { BLR, CTL, DIR, FOC, POS, ZOM, n } ;
 const std::string stateName[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
-enum class Event { BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
-const std::string eventName[] = { "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
+enum class Event { ANM, BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
+const std::string eventName[] = { "ANM", "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
 struct SmParam {
-	LpGeneral             lp_general ;
-	GLuint                pbo ;
-	cudaGraphicsResource* glx ;
+	LpGeneral              lp_general ;
+	GLuint                 pbo ;
+	cudaGraphicsResource*  glx ;
+
+#define SM_OPTION_NONE    0 // default
+#define SM_OPTION_ANIMATE 2 // rotate scene around y (WCS)
+	unsigned long long int options = SM_OPTION_NONE ;
 } ;
 
 class SimpleSM {
@@ -30,6 +34,7 @@ class SimpleSM {
 		void transition( const Event& event ) ;
 
 		// event/ action implementations
+		void eaCtlAnm() ;
 		void eaCtlRet() ;
 		void eaCtlDir() ;
 		void eaDirScr() ;
@@ -65,13 +70,13 @@ class SimpleSM {
 		// event/ action table
 		typedef void ( SimpleSM::*EAImp )() ;
 		EAImp EATab[static_cast<int>( State::n )][static_cast<int>( Event::n )] = {
-			/* S/ E BLR                  DIR                  FOC                  MOV                  POS                  RET                  RSZ                  SCR                  ZOM               */
-			/*BLR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaBlrRet, &SimpleSM::eaReject, &SimpleSM::eaBlrScr, &SimpleSM::eaReject,
-			/*CTL*/ &SimpleSM::eaCtlBlr, &SimpleSM::eaCtlDir, &SimpleSM::eaCtlFoc, &SimpleSM::eaReject, &SimpleSM::eaCtlPos, &SimpleSM::eaCtlRet, &SimpleSM::eaCtlRsz, &SimpleSM::eaReject, &SimpleSM::eaCtlZom,
-			/*DIR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirMov, &SimpleSM::eaReject, &SimpleSM::eaDirRet, &SimpleSM::eaReject, &SimpleSM::eaDirScr, &SimpleSM::eaReject,
-			/*FOC*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocRet, &SimpleSM::eaReject, &SimpleSM::eaFocScr, &SimpleSM::eaReject,
-			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject,
-			/*ZOM*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaZomRet, &SimpleSM::eaReject, &SimpleSM::eaZomScr, &SimpleSM::eaReject
+			/* S/ E ANM                  BLR                  DIR                  FOC                  MOV                  POS                  RET                  RSZ                  SCR                  ZOM               */
+			/*BLR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaBlrRet, &SimpleSM::eaReject, &SimpleSM::eaBlrScr, &SimpleSM::eaReject,
+			/*CTL*/ &SimpleSM::eaCtlAnm, &SimpleSM::eaCtlBlr, &SimpleSM::eaCtlDir, &SimpleSM::eaCtlFoc, &SimpleSM::eaReject, &SimpleSM::eaCtlPos, &SimpleSM::eaCtlRet, &SimpleSM::eaCtlRsz, &SimpleSM::eaReject, &SimpleSM::eaCtlZom,
+			/*DIR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirMov, &SimpleSM::eaReject, &SimpleSM::eaDirRet, &SimpleSM::eaReject, &SimpleSM::eaDirScr, &SimpleSM::eaReject,
+			/*FOC*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocRet, &SimpleSM::eaReject, &SimpleSM::eaFocScr, &SimpleSM::eaReject,
+			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject,
+			/*ZOM*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaZomRet, &SimpleSM::eaReject, &SimpleSM::eaZomScr, &SimpleSM::eaReject
 		} ;
 
 		void eaReject() ;
