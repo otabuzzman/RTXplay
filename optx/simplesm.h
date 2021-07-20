@@ -12,9 +12,15 @@
 extern "C" void glfwGetScroll( GLFWwindow* /*window*/, double* xscroll, double* yscroll ) ;
 
 enum class State { BLR, CTL, DIR, FOC, POS, ZOM, n } ;
-const std::string stateName[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
+static const std::string stateName[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
 enum class Event { ANM, BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
-const std::string eventName[] = { "ANM", "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
+static const std::string eventName[] = { "ANM", "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
+
+#ifdef SMTRACE
+static const bool smtrace = true ;
+#else
+static const bool smtrace = false ;
+#endif // SMTRACE
 
 struct SmParam {
 	LpGeneral              lp_general ;
