@@ -153,6 +153,9 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam.glx, smparam.pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 
+	// setup rays per pixel buffer
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
+
 	// initialize FSM
 	glfwSetWindowUserPointer( window_, &smparam ) ;
 	smparam.lp_general = lp_general ;
@@ -167,6 +170,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 
 SimpleUI::~SimpleUI() noexcept ( false ) {
 	delete simplesm ; simplesm = nullptr ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.rpp ) ) ) ;
 	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam.glx ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &smparam.pbo ) ) ;
@@ -213,8 +217,21 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
 		auto t1 = std::chrono::high_resolution_clock::now() ;
-		long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-		fprintf( stderr, "OptiX pipeline took %lld milliseconds\n", dt ) ;
+
+		{ // output statistics
+			long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+			std::vector<unsigned int> rpp ;
+			rpp.resize( w*h ) ;
+			CUDA_CHECK( cudaMemcpy(
+						reinterpret_cast<void*>( rpp.data() ),
+						lp_general->rpp,
+						w*h*sizeof( unsigned int ),
+						cudaMemcpyDeviceToHost
+						) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general->rpp ) ) ) ;
+			long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // sum rays per pixel
+			fprintf( stderr, "OptiX pipeline took %lld milliseconds for %lld rays\n", dt, sr ) ;
+		}
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 

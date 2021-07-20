@@ -239,6 +239,9 @@ void SimpleSM::eaCtlRsz() {
 		// register pbo for CUDA
 		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, smparam->pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
+		// realloc rays per pixel buffer
+		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.rpp ) ) ) ;
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 	}
 	// set history
 	h_state_.pop() ;

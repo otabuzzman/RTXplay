@@ -516,55 +516,60 @@ int main() {
 			simpleui.usage() ;
 
 			simpleui.render( pipeline, sbt ) ;
-		} else { // launch pipeline
-			CUstream cuda_stream ;
-			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-
+		} else {
 			const int w = lp_general.image_w ;
 			const int h = lp_general.image_h ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
-			CUdeviceptr d_lp_general ;
-			const size_t lp_general_size = sizeof( LpGeneral ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
-			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( d_lp_general ),
-						&lp_general,
-						lp_general_size,
-						cudaMemcpyHostToDevice
-						) ) ;
+			{ // launch pipeline
+				CUstream cuda_stream ;
+				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-			auto t0 = std::chrono::high_resolution_clock::now() ;
-			OPTX_CHECK( optixLaunch(
-						pipeline,
-						cuda_stream,
-						d_lp_general,
-						lp_general_size,
-						&sbt,
-						w/*x*/, h/*y*/, 1/*z*/ ) ) ;
-			CUDA_CHECK( cudaDeviceSynchronize() ) ;
-			auto t1 = std::chrono::high_resolution_clock::now() ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
-			CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
-			if ( cudaGetLastError() != cudaSuccess ) {
-				std::ostringstream comment ;
-				comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
-				throw std::runtime_error( comment.str() ) ;
+				CUdeviceptr d_lp_general ;
+				const size_t lp_general_size = sizeof( LpGeneral ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
+				CUDA_CHECK( cudaMemcpy(
+							reinterpret_cast<void*>( d_lp_general ),
+							&lp_general,
+							lp_general_size,
+							cudaMemcpyHostToDevice
+							) ) ;
+
+				auto t0 = std::chrono::high_resolution_clock::now() ;
+				OPTX_CHECK( optixLaunch(
+							pipeline,
+							cuda_stream,
+							d_lp_general,
+							lp_general_size,
+							&sbt,
+							w/*x*/, h/*y*/, 1/*z*/ ) ) ;
+				CUDA_CHECK( cudaDeviceSynchronize() ) ;
+				auto t1 = std::chrono::high_resolution_clock::now() ;
+
+				{ // output statistics
+					long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+					std::vector<unsigned int> rpp ;
+					rpp.resize( w*h ) ;
+					CUDA_CHECK( cudaMemcpy(
+								reinterpret_cast<void*>( rpp.data() ),
+								lp_general.rpp,
+								w*h*sizeof( unsigned int ),
+								cudaMemcpyDeviceToHost
+								) ) ;
+					CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
+					long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // sum rays per pixel
+					fprintf( stderr, "OptiX pipeline took %lld milliseconds for %lld rays\n", dt, sr ) ;
+				}
+
+				CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
+				if ( cudaGetLastError() != cudaSuccess ) {
+					std::ostringstream comment ;
+					comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
+					throw std::runtime_error( comment.str() ) ;
+				}
 			}
-
-			long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-			std::vector<unsigned int> rpp ;
-			rpp.resize( w*h ) ;
-			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( rpp.data() ),
-						lp_general.rpp,
-						w*h*sizeof( unsigned int ),
-						cudaMemcpyDeviceToHost
-						) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
-			long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // sum rays per pixel
-			fprintf( stderr, "OptiX pipeline took %lld milliseconds for %lld rays\n", dt, sr ) ;
 
 
 
