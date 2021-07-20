@@ -554,7 +554,7 @@ int main() {
 			}
 			auto t1 = std::chrono::high_resolution_clock::now() ;
 			long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-			fprintf( stderr, "OptiX pipeline for RTWO ran %lld milliseconds\n", dt ) ;
+			fprintf( stderr, "OptiX pipeline took %lld milliseconds\n", dt ) ;
 
 
 

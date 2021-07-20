@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include <optix.h>
 #include <optix_stubs.h>
 
@@ -197,8 +199,11 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			lp_general_size,
 			cudaMemcpyHostToDevice
 			) ) ;
+
 		const int w = lp_general->image_w ;
 		const int h = lp_general->image_h ;
+
+		auto t0 = std::chrono::high_resolution_clock::now() ;
 		OPTX_CHECK( optixLaunch(
 			pipeline,
 			cuda_stream,
@@ -207,6 +212,9 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			&sbt,
 			w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
+		auto t1 = std::chrono::high_resolution_clock::now() ;
+		long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+		fprintf( stderr, "OptiX pipeline took %lld milliseconds\n", dt ) ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 
