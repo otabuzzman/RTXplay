@@ -12,6 +12,8 @@ struct LpGeneral { // launch parameter
 	unsigned int           depth ; // recursion depth
 
 	OptixTraversableHandle as_handle ;
+
+	unsigned int*          rpp ;   // rays per pixel
 } ;
 
 template <typename T>

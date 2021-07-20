@@ -247,7 +247,7 @@ int main() {
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
-			pipeline_cc_options.numPayloadValues                 = 6 ; // R, G, B, RNG (2x), depth
+			pipeline_cc_options.numPayloadValues                 = 7 ; // R, G, B, RNG (2x), depth, rpp
 			pipeline_cc_options.numAttributeValues               = 2 ;
 			pipeline_cc_options.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE ;
 			pipeline_cc_options.pipelineLaunchParamsVariableName = "lp_general" ;
@@ -516,53 +516,61 @@ int main() {
 			simpleui.usage() ;
 
 			simpleui.render( pipeline, sbt ) ;
-		} else {
+		} else { // launch pipeline
+			CUstream cuda_stream ;
+			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+
+			const int w = lp_general.image_w ;
+			const int h = lp_general.image_h ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
+
+			CUdeviceptr d_lp_general ;
+			const size_t lp_general_size = sizeof( LpGeneral ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
+			CUDA_CHECK( cudaMemcpy(
+						reinterpret_cast<void*>( d_lp_general ),
+						&lp_general,
+						lp_general_size,
+						cudaMemcpyHostToDevice
+						) ) ;
+
 			auto t0 = std::chrono::high_resolution_clock::now() ;
-			// launch pipeline
-			{
-				CUstream cuda_stream ;
-				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*lp_general.image_w*lp_general.image_h ) ) ;
-
-				CUdeviceptr d_lp_general ;
-				const size_t lp_general_size = sizeof( LpGeneral ) ;
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
-				CUDA_CHECK( cudaMemcpy(
-							reinterpret_cast<void*>( d_lp_general ),
-							&lp_general,
-							lp_general_size,
-							cudaMemcpyHostToDevice
-							) ) ;
-
-				OPTX_CHECK( optixLaunch(
-							pipeline,
-							cuda_stream,
-							d_lp_general,
-							lp_general_size,
-							&sbt,
-							lp_general.image_w/*x*/, lp_general.image_h/*y*/, 1/*z*/ ) ) ;
-				CUDA_CHECK( cudaDeviceSynchronize() ) ;
-
-				CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
-				cudaError_t e = cudaGetLastError() ;
-				if ( e != cudaSuccess ) {
-					std::ostringstream comment ;
-					comment << "CUDA error: " << cudaGetErrorString( e ) << "\n" ;
-					throw std::runtime_error( comment.str() ) ;
-				}
-			}
+			OPTX_CHECK( optixLaunch(
+						pipeline,
+						cuda_stream,
+						d_lp_general,
+						lp_general_size,
+						&sbt,
+						w/*x*/, h/*y*/, 1/*z*/ ) ) ;
+			CUDA_CHECK( cudaDeviceSynchronize() ) ;
 			auto t1 = std::chrono::high_resolution_clock::now() ;
+
+			CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
+			if ( cudaGetLastError() != cudaSuccess ) {
+				std::ostringstream comment ;
+				comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
+				throw std::runtime_error( comment.str() ) ;
+			}
+
 			long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-			fprintf( stderr, "OptiX pipeline took %lld milliseconds\n", dt ) ;
+			std::vector<unsigned int> rpp ;
+			rpp.resize( w*h ) ;
+			CUDA_CHECK( cudaMemcpy(
+						reinterpret_cast<void*>( rpp.data() ),
+						lp_general.rpp,
+						w*h*sizeof( unsigned int ),
+						cudaMemcpyDeviceToHost
+						) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
+			long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // sum rays per pixel
+			fprintf( stderr, "OptiX pipeline took %lld milliseconds for %lld rays\n", dt, sr ) ;
 
 
 
 			// output image
 			std::vector<uchar4> image ;
 			{
-				const int w = lp_general.image_w ;
-				const int h = lp_general.image_h ;
 				image.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(
 							reinterpret_cast<void*>( image.data() ),
