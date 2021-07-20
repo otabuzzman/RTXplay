@@ -60,6 +60,9 @@ extern "C" __global__ void __closesthit__diffuse() {
 		// payloads to carry back color
 		unsigned int r, g, b ;
 
+		// payloads to carry back rays per trace
+		unsigned int rpt ;
+
 		// one step beyond (recursion)
 		optixTrace(
 				lp_general.as_handle,
@@ -75,7 +78,8 @@ extern "C" __global__ void __closesthit__diffuse() {
 				0,                          // SBT related
 				r, g, b, // payload upstream propagation: color
 				sh, sl,  // payload downstream propagation: RNG state pointer
-				++depth  // payload downstream propagation: recursion depth
+				++depth, // payload downstream propagation: recursion depth
+				rpt      // payload upstream propagation: rays per trace
 				) ;
 
 		// update this ray's diffuse color according to RTOW and propagate
@@ -83,6 +87,8 @@ extern "C" __global__ void __closesthit__diffuse() {
 		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
 		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
+
+		optixSetPayload_6( rpt ) ;
 	} else {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
@@ -144,6 +150,9 @@ extern "C" __global__ void __closesthit__reflect() {
 		// payloads to carry back color
 		unsigned int r, g, b ;
 
+		// payloads to carry back rays per trace
+		unsigned int rpt ;
+
 		// one step beyond (recursion)
 		optixTrace(
 				lp_general.as_handle,
@@ -159,7 +168,8 @@ extern "C" __global__ void __closesthit__reflect() {
 				0,                          // SBT related
 				r, g, b, // payload upstream propagation: color
 				sh, sl,  // payload downstream propagation: RNG state pointer
-				++depth  // payload downstream propagation: recursion depth
+				++depth, // payload downstream propagation: recursion depth
+				rpt      // payload upstream propagation: rays per trace
 				) ;
 
 		// update this ray's reflect color according to RTOW and propagate
@@ -167,6 +177,8 @@ extern "C" __global__ void __closesthit__reflect() {
 		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
 		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
+
+		optixSetPayload_6( rpt ) ;
 	} else {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
@@ -246,6 +258,9 @@ extern "C" __global__ void __closesthit__refract() {
 		// payloads to carry back color
 		unsigned int r, g, b ;
 
+		// payloads to carry back rays per trace
+		unsigned int rpt ;
+
 		// one step beyond (recursion)
 		optixTrace(
 				lp_general.as_handle,
@@ -261,7 +276,8 @@ extern "C" __global__ void __closesthit__refract() {
 				0,                          // SBT related
 				r, g, b, // payload upstream propagation: color
 				sh, sl,  // payload downstream propagation: RNG state pointer
-				++depth  // payload downstream propagation: recursion depth
+				++depth, // payload downstream propagation: recursion depth
+				rpt      // payload upstream propagation: rays per trace
 				) ;
 
 		// update this ray's refract color according to RTOW and propagate
@@ -269,6 +285,8 @@ extern "C" __global__ void __closesthit__refract() {
 		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
 		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
+
+		optixSetPayload_6( rpt ) ;
 	} else {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
