@@ -22,7 +22,7 @@ struct SmParam {
 	cudaGraphicsResource*  glx ;
 
 #define SM_OPTION_NONE    0 // default
-#define SM_OPTION_ANIMATE 2 // rotate scene around y (WCS)
+#define SM_OPTION_ANIMATE 1 // rotate scene around y (WCS)
 	unsigned long long int options = SM_OPTION_NONE ;
 } ;
 
