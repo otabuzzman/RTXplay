@@ -39,7 +39,7 @@ void SimpleSM::eaCtlAnm() {
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// toggle animation
-		smparam->options ^= 1ULL << SM_OPTION_ANIMATE ;
+		smparam->options ^= SM_OPTION_ANIMATE ;
 	}
 	// set history
 	h_state_.pop() ;

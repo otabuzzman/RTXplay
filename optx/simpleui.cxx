@@ -260,7 +260,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		***/
 
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
-		if ( smparam.options|SM_OPTION_ANIMATE ) {
+		if ( smparam.options&SM_OPTION_ANIMATE ) {
 			// rotate eye around y (WCS)
 			Camera* camera = &lp_general->camera ;
 			const float3 eye = camera->eye() ;
