@@ -153,7 +153,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam.glx, smparam.pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 
-	// setup rays per pixel buffer
+	// setup rays per pixel (rpp) buffer
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
 	// initialize FSM
@@ -228,7 +228,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 						w*h*sizeof( unsigned int ),
 						cudaMemcpyDeviceToHost
 						) ) ;
-			long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // sum rays per pixel
+			long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
 			fprintf( stderr, "%u %llu %llu (pixel, rays, milliseconds)\n", w*h, sr, dt ) ;
 		}
 

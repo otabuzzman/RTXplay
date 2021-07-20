@@ -79,9 +79,9 @@ extern "C" __global__ void __raygen__camera() {
 				rpt      // payload upstream: rays per trace
 				) ;
 
-		// cumulate this ray's color
+		// accumulate this ray's color
 		color = color+make_float3( __uint_as_float( r ), __uint_as_float( g ), __uint_as_float( b ) ) ;
-		// cumulate rays per pixel
+		// accumulate rays per pixel
 		rpp = rpp+rpt ;
 	}
 

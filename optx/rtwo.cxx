@@ -559,7 +559,7 @@ int main() {
 								cudaMemcpyDeviceToHost
 								) ) ;
 					CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
-					long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // sum rays per pixel
+					long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
 					fprintf( stderr, "%u %llu %llu (pixel, rays, milliseconds)\n", w*h, sr, dt ) ;
 				}
 
