@@ -229,7 +229,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 						cudaMemcpyDeviceToHost
 						) ) ;
 			long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // sum rays per pixel
-			fprintf( stderr, "OptiX pipeline took %lld milliseconds for %lld rays\n", dt, sr ) ;
+			fprintf( stderr, "%u %llu %llu (pixel, rays, milliseconds)\n", w*h, sr, dt ) ;
 		}
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
