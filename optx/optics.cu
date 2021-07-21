@@ -50,7 +50,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
 		unsigned int sl = optixGetPayload_4() ;
-		curandState* state = reinterpret_cast<curandState*>( util::fit64( sl, sh ) ) ;
+		curandState* state = reinterpret_cast<curandState*>( util::fit64( sh, sl ) ) ;
 
 		// finally the diffuse reflection according to RTOW
 		// see CPU version of RTOW, optics.h: Diffuse.spray()
@@ -135,7 +135,7 @@ extern "C" __global__ void __closesthit__reflect() {
 	// assemble RNG pointer from payload
 	unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
 	unsigned int sl = optixGetPayload_4() ;
-	curandState* state = reinterpret_cast<curandState*>( util::fit64( sl, sh ) ) ;
+	curandState* state = reinterpret_cast<curandState*>( util::fit64( sh, sl ) ) ;
 
 	// finally the reflection according to RTOW
 	// see CPU version of RTOW, optics.h:  Reflect.spray()
@@ -227,7 +227,7 @@ extern "C" __global__ void __closesthit__refract() {
 		// assemble RNG pointer from payload
 		unsigned int sh = optixGetPayload_3() ; // used as well to propagate RNG further down
 		unsigned int sl = optixGetPayload_4() ;
-		curandState* state = reinterpret_cast<curandState*>( util::fit64( sl, sh ) ) ;
+		curandState* state = reinterpret_cast<curandState*>( util::fit64( sh, sl ) ) ;
 
 		// finally the refraction according to RTOW
 		// see CPU version of RTOW, optics.h: Refract.spray()
