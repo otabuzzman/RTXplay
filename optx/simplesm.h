@@ -29,7 +29,7 @@ struct SmParam {
 
 #define SM_OPTION_NONE    0 // default
 #define SM_OPTION_ANIMATE 1 // rotate scene around y (WCS)
-	unsigned long long int options = SM_OPTION_NONE ;
+	unsigned long long options = SM_OPTION_NONE ;
 } ;
 
 class SimpleSM {

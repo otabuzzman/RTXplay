@@ -219,7 +219,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		auto t1 = std::chrono::high_resolution_clock::now() ;
 
 		{ // output statistics
-			long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
@@ -228,7 +228,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 						w*h*sizeof( unsigned int ),
 						cudaMemcpyDeviceToHost
 						) ) ;
-			long long int sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
+			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
 			fprintf( stderr, "%u %llu %llu (pixel, rays, milliseconds)\n", w*h, sr, dt ) ;
 		}
 

@@ -38,8 +38,8 @@ extern "C" __global__ void __raygen__camera() {
 
 	// payloads to propagate RNG state down the trace
 	// pointer split due to 32 bit limit of payload values
-	unsigned int sh = reinterpret_cast<unsigned long long>( &state )>>32 ;
-	unsigned int sl = reinterpret_cast<unsigned long long>( &state )&0x00000000ffffffff ;
+	unsigned int sl, sh ;
+	util::cut64( &state, sl, sh ) ;
 
 	// payload to propagate depth count down the trace
 	unsigned int depth = 0 ;
