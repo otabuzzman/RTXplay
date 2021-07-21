@@ -29,8 +29,19 @@ using V::operator- ;
 using V::operator* ;
 
 // PTX sources of shaders
-extern "C" const char camera_ptx[] ;
-extern "C" const char optics_ptx[] ;
+extern "C" const char camera_r_ptx[] ; // recursive
+extern "C" const char optics_r_ptx[] ;
+extern "C" const char camera_i_ptx[] ; // iterative
+extern "C" const char optics_i_ptx[] ;
+
+#ifdef RECURSIVE
+const char* camera_ptx = &camera_r_ptx[0] ;
+const char* optics_ptx = &optics_r_ptx[0] ;
+#else
+const char* camera_ptx = &camera_i_ptx[0] ;
+const char* optics_ptx = &optics_i_ptx[0] ;
+#endif //RECURSIVE
+
 
 const Things scene() {
 	Optics o ;
@@ -96,7 +107,11 @@ int main() {
 	lp_general.image_w = 1200 ;                                            // image width in pixels
 	lp_general.image_h = static_cast<int>( lp_general.image_w/aspratio ) ; // image height in pixels
 	lp_general.spp = 50 ;                                                  // samples per pixel
+#ifdef RECURSION
 	lp_general.depth = 16 ;                                                // recursion depth
+#else
+	lp_general.depth = 1 ;
+#endif // RECURSION
 
 	SbtRecordMS sbt_record_ambient ;
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
@@ -246,31 +261,35 @@ int main() {
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
+#ifdef RECURSION
 			pipeline_cc_options.numPayloadValues                 = 7 ; // R, G, B, RNG (2x), depth, rpp
+#else
+			pipeline_cc_options.numPayloadValues                 = 2 ; // RayParam (2x)
+#endif // RECURSION
 			pipeline_cc_options.numAttributeValues               = 2 ;
 			pipeline_cc_options.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE ;
 			pipeline_cc_options.pipelineLaunchParamsVariableName = "lp_general" ;
 			pipeline_cc_options.usesPrimitiveTypeFlags           = OPTIX_PRIMITIVE_TYPE_FLAGS_TRIANGLE ;
 
 			// compile (each) shader source file into a module
-			const size_t camera_ptx_size = strlen( &camera_ptx[0] ) ;
+			const size_t camera_ptx_size = strlen( camera_ptx ) ;
 			OPTX_CHECK_LOG( optixModuleCreateFromPTX(
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
-						&camera_ptx[0],
+						camera_ptx,
 						camera_ptx_size,
 						log,
 						&sizeof_log,
 						&module_camera
 						) ) ;
 
-			const size_t optics_ptx_size = strlen( &optics_ptx[0] ) ;
+			const size_t optics_ptx_size = strlen( optics_ptx ) ;
 			OPTX_CHECK_LOG( optixModuleCreateFromPTX(
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
-						&optics_ptx[0],
+						optics_ptx,
 						optics_ptx_size,
 						log,
 						&sizeof_log,
@@ -423,6 +442,7 @@ int main() {
 
 
 			// comment if using code from comment block titled `calculate stack sizes´
+#ifdef RECURSION
 			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
 						4*1024, // direct callable stack size (called from AH and IS programs)
@@ -430,6 +450,15 @@ int main() {
 						4*1024, // continuation callable stack size
 						1       // maxTraversableGraphDepth (acceleration structure depth)
 						) ) ;
+#else
+			OPTX_CHECK( optixPipelineSetStackSize(
+						pipeline,
+						2*1024, // direct callable stack size (called from AH and IS programs)
+						2*1024, // direct callable stack size (called from RG, MS and CH programs)
+						2*1024, // continuation callable stack size
+						1       // maxTraversableGraphDepth (acceleration structure depth)
+						) ) ;
+#endif // RECURSION
 		}
 
 

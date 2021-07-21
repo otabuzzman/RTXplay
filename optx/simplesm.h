@@ -23,13 +23,13 @@ static const bool smtrace = false ;
 #endif // SMTRACE
 
 struct SmParam {
-	LpGeneral              lp_general ;
-	GLuint                 pbo ;
-	cudaGraphicsResource*  glx ;
+	LpGeneral             lp_general ;
+	GLuint                pbo ;
+	cudaGraphicsResource* glx ;
 
 #define SM_OPTION_NONE    0 // default
 #define SM_OPTION_ANIMATE 1 // rotate scene around y (WCS)
-	unsigned long long options = SM_OPTION_NONE ;
+	unsigned int          options = SM_OPTION_NONE ;
 } ;
 
 class SimpleSM {

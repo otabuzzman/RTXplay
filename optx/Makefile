@@ -19,8 +19,10 @@ OBJ = \
 	glad.o \
 	rtwo.o \
 	sphere.o \
-	camera.o \
-	optics.o \
+	camera_i.o \
+	optics_i.o \
+	camera_r.o \
+	optics_r.o \
 	paddle.o \
 	simpleui.o \
 	simplesm.o \
@@ -32,6 +34,10 @@ IMG = rtwo.png
 OPTIX_CACHE_PATH = ./OptixCache_$$USER
 
 all: $(EXE) $(IMG)
+
+# preprocessor macros:
+# -DRECURSIVE - use recursive shaders instead of iterative
+# -DSMTRACE   - log events and state changes of FSM (stderr)
 
 ifdef winos
 # prerequisites:

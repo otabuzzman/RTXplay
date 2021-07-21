@@ -29,4 +29,14 @@ typedef SbtRecord<NoData> SbtRecordRG ; // Ray Generation program group SBT reco
 typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
 typedef SbtRecord<Thing>  SbtRecordHG ; // Hit Group program group SBT record type
 
+struct RayParam {
+	float3       color ;
+	float3       hit ;
+	float3       dir ;
+
+#define RP_STAT_NONE 0 // default
+#define RP_STAT_DONE 1 // set by MS
+	unsigned int stat = RP_STAT_NONE ;
+} ;
+
 #endif // RTWO_H
