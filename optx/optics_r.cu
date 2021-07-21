@@ -241,7 +241,7 @@ extern "C" __global__ void __closesthit__refract() {
 					: optics.refract.index ;
 			const bool cannot = ratio*sin_theta>1.f ;
 
-			float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;                 // optics.h: Refract.schlick()
+			float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;                // optics.h: Refract.schlick()
 			const float schlick = r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // optics.h: Refract.schlick()
 
 			float3 dir ;

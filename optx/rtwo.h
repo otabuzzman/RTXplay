@@ -34,6 +34,8 @@ struct RayParam {
 	float3       hit ;
 	float3       dir ;
 
+	curandState  rng ;
+
 #define RP_STAT_NONE 0 // default
 #define RP_STAT_DONE 1 // set by MS
 	unsigned int stat = RP_STAT_NONE ;
