@@ -458,9 +458,9 @@ int main() {
 #else
 			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
-						2*1024, // direct callable stack size (called from AH and IS programs)
-						2*1024, // direct callable stack size (called from RG, MS and CH programs)
-						2*1024, // continuation callable stack size
+						6*1024, // direct callable stack size (called from AH and IS programs)
+						6*1024, // direct callable stack size (called from RG, MS and CH programs)
+						6*1024, // continuation callable stack size
 						1       // maxTraversableGraphDepth (acceleration structure depth)
 						) ) ;
 #endif // RECURSION
