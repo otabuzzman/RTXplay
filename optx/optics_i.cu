@@ -59,7 +59,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 	// update this ray's diffuse color according to RTOW and propagate
 	rayparam->color *= optics.diffuse.albedo ;
 
-	rayparam->stat = RP_STAT_NONE ;
+	rayparam->stat = RP_STAT_CONT ;
 }
 
 extern "C" __global__ void __closesthit__reflect() {
@@ -110,12 +110,13 @@ extern "C" __global__ void __closesthit__reflect() {
 	rayparam->dir = dir ;
 
 	// update color dependent of hit point normal and reflected ray directions.
-	if ( V::dot( dir, N )>0 )
+	if ( V::dot( dir, N )>0 ) {
 		rayparam->color *= optics.reflect.albedo ;
-	else
-		rayparam->color = { 0.f, 0.f, 0.f } ;
-
-	rayparam->stat = RP_STAT_NONE ;
+		rayparam->stat   = RP_STAT_CONT ;
+	} else {
+		rayparam->color  = { 0.f, 0.f, 0.f } ;
+		rayparam->stat   = RP_STAT_ABRT ;
+	}
 }
 
 extern "C" __global__ void __closesthit__refract() {
@@ -183,5 +184,5 @@ extern "C" __global__ void __closesthit__refract() {
 	rayparam->hit = hit ;
 	rayparam->dir = dir ;
 
-	rayparam->stat = RP_STAT_NONE ;
+	rayparam->stat = RP_STAT_CONT ;
 }

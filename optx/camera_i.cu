@@ -72,7 +72,7 @@ extern "C" __global__ void __raygen__camera() {
 					ph, pl                      // payload: ray parameter
 					) ;
 
-			if ( rayparam.stat == RP_STAT_DONE )
+			if ( rayparam.stat != RP_STAT_CONT )
 				break ;
 		}
 

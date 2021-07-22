@@ -37,7 +37,9 @@ struct RayParam {
 	curandState  rng ;
 
 #define RP_STAT_NONE 0 // default
-#define RP_STAT_DONE 1 // set by MS
+#define RP_STAT_CONT 1 // HG shader returned color
+#define RP_STAT_ABRT 2 // HG shader reached end of trace
+#define RP_STAT_MISS 4 // MS shader returned color (end of trace)
 	unsigned int stat = RP_STAT_NONE ;
 } ;
 
