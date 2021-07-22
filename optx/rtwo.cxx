@@ -126,6 +126,7 @@ int main() {
 			OptixDeviceContextOptions optx_options = {} ;
 			optx_options.logCallbackFunction       = &util::optxLogStderr ;
 			optx_options.logCallbackLevel          = 4 ;
+			optx_options.validationMode            = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL ;
 
 			// use current (0) CUDA context
 			CUcontext cuda_context = 0 ;
