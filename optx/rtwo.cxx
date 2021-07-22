@@ -107,11 +107,11 @@ int main() {
 	lp_general.image_w = 1200 ;                                            // image width in pixels
 	lp_general.image_h = static_cast<int>( lp_general.image_w/aspratio ) ; // image height in pixels
 	lp_general.spp = 50 ;                                                  // samples per pixel
-#ifdef RECURSION
+#ifdef RECURSIVE
 	lp_general.depth = 16 ;                                                // recursion depth
 #else
 	lp_general.depth = 50 ;
-#endif // RECURSION
+#endif // RECURSIVE
 
 	SbtRecordMS sbt_record_ambient ;
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
@@ -262,11 +262,11 @@ int main() {
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
-#ifdef RECURSION
+#ifdef RECURSIVE
 			pipeline_cc_options.numPayloadValues                 = 7 ; // R, G, B, RNG (2x), depth, rpp
 #else
 			pipeline_cc_options.numPayloadValues                 = 2 ; // RayParam (2x)
-#endif // RECURSION
+#endif // RECURSIVE
 			pipeline_cc_options.numAttributeValues               = 2 ;
 			pipeline_cc_options.exceptionFlags                   = OPTIX_EXCEPTION_FLAG_NONE ;
 			pipeline_cc_options.pipelineLaunchParamsVariableName = "lp_general" ;
@@ -368,11 +368,11 @@ int main() {
 		// link pipeline
 		OptixPipeline pipeline = nullptr ;
 		{
-#ifdef RECURSION
+#ifdef RECURSIVE
 			const unsigned int max_trace_depth  = lp_general.depth ;
 #else
 			const unsigned int max_trace_depth  = 1 ;
-#endif // RECURSION
+#endif // RECURSIVE
 			OptixProgramGroup program_groups[]  = {
 				program_group_camera,
 				program_group_ambient,
@@ -447,7 +447,7 @@ int main() {
 
 
 			// comment if using code from comment block titled `calculate stack sizes´
-#ifdef RECURSION
+#ifdef RECURSIVE
 			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
 						8*1024, // direct callable stack size (called from AH and IS programs)
@@ -458,12 +458,12 @@ int main() {
 #else
 			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
-						6*1024, // direct callable stack size (called from AH and IS programs)
-						6*1024, // direct callable stack size (called from RG, MS and CH programs)
-						6*1024, // continuation callable stack size
+						8*1024, // direct callable stack size (called from AH and IS programs)
+						8*1024, // direct callable stack size (called from RG, MS and CH programs)
+						8*1024, // continuation callable stack size
 						1       // maxTraversableGraphDepth (acceleration structure depth)
 						) ) ;
-#endif // RECURSION
+#endif // RECURSIVE
 		}
 
 

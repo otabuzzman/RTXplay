@@ -106,5 +106,5 @@ extern "C" __global__ void __miss__ambient() {
 
 	rayparam->color = ( 1.f-t )*white+t*ambient ;
 
-	rayparam->stat = RP_STAT_DONE ;
+	rayparam->stat = RP_STAT_MISS ;
 }
