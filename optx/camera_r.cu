@@ -75,7 +75,7 @@ extern "C" __global__ void __raygen__camera() {
 				0,                          // SBT related
 				r, g, b, // payload upstream: color
 				sh, sl,  // payload downstream: RNG state pointer
-				depth,   // payload downstream: recursion depth
+				++depth, // payload downstream: recursion depth
 				rpt      // payload upstream: rays per trace
 				) ;
 
