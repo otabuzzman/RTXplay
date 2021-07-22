@@ -110,7 +110,7 @@ int main() {
 #ifdef RECURSION
 	lp_general.depth = 16 ;                                                // recursion depth
 #else
-	lp_general.depth = 50;
+	lp_general.depth = 50 ;
 #endif // RECURSION
 
 	SbtRecordMS sbt_record_ambient ;

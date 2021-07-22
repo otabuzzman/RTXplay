@@ -94,7 +94,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
-		optixSetPayload_6( depth+1u ) ;
+		optixSetPayload_6( depth ) ;
 	}
 }
 
@@ -184,7 +184,7 @@ extern "C" __global__ void __closesthit__reflect() {
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
-		optixSetPayload_6( depth+1u ) ;
+		optixSetPayload_6( depth ) ;
 	}
 }
 
@@ -292,6 +292,6 @@ extern "C" __global__ void __closesthit__refract() {
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
-		optixSetPayload_6( depth+1u ) ;
+		optixSetPayload_6( depth ) ;
 	}
 }
