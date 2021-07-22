@@ -29,23 +29,14 @@ extern "C" __global__ void __raygen__camera() {
 	// calculate pixel index for image buffer access
 	const unsigned int pix = dim.x*idx.y+idx.x ;
 
-	// initialize random number generator
-	curandState state ;
-	curand_init( 4711, pix, 0, &state ) ;
-
-	// payloads to carry back color from abyss of trace
-	unsigned int r, g, b ;
-
-	// payloads to propagate RNG state down the trace
+	RayParam rayparam ;
+	// payload to propagate ray parameter along the trace
 	// pointer split due to 32 bit limit of payload values
-	unsigned int sh, sl ;
-	util::cut64( &state, sh, sl ) ;
+	unsigned int ph, pl ;
+	util::cut64( &rayparam, ph, pl ) ;
 
-	// payload to propagate depth count down the trace
-	unsigned int depth = 0 ;
-
-	// payload to carry back number of rays per trace
-	unsigned int rpt ;
+	// initialize random number generator
+	curand_init( 4711, pix, 0, &rayparam.rng ) ;
 
 	// color accumulator
 	float3 color = {} ;
@@ -54,35 +45,41 @@ extern "C" __global__ void __raygen__camera() {
 	for ( int i = 0 ; lp_general.spp>i ; i++ ) {
 		// transform x/y pixel coords (range 0/0 to w/h)
 		// into s/t viewport coords (range -1/-1 to 1/1)
-		const float s = 2.f*static_cast<float>( idx.x+util::rnd( &state ) )/static_cast<float>( dim.x )-1.f ;
-		const float t = 2.f*static_cast<float>( idx.y+util::rnd( &state ) )/static_cast<float>( dim.y )-1.f ;
+		const float s = 2.f*static_cast<float>( idx.x+util::rnd( &rayparam.rng ) )/static_cast<float>( dim.x )-1.f ;
+		const float t = 2.f*static_cast<float>( idx.y+util::rnd( &rayparam.rng ) )/static_cast<float>( dim.y )-1.f ;
 
 		float3 ori, dir ;
-		lp_general.camera.ray( s, t, ori, dir, &state ) ;
+		lp_general.camera.ray( s, t, ori, dir, &rayparam.rng ) ;
 
-		// shoot initial ray
-		optixTrace(
-				lp_general.as_handle,
-				ori,                        // next ray's origin
-				dir,                        // next ray's direction
-				1e-3f,                      // tmin
-				1e16f,                      // tmax
-				0.f,                        // motion
-				OptixVisibilityMask( 255 ),
-				OPTIX_RAY_FLAG_NONE,
-				0,                          // SBT related
-				1,                          // SBT related
-				0,                          // SBT related
-				r, g, b, // payload upstream: color
-				sh, sl,  // payload downstream: RNG state pointer
-				depth,   // payload downstream: recursion depth
-				rpt      // payload upstream: rays per trace
-				) ;
+		rayparam.color = { 1.f, 1.f, 1.f } ;
+		rayparam.hit = ori ;
+		rayparam.dir = dir ;
+		unsigned int depth = 0 ;
+		while ( lp_general.depth>depth++ ) {
+			// the ray gun
+			optixTrace(
+					lp_general.as_handle,
+					rayparam.hit,               // next ray's origin
+					rayparam.dir,               // next ray's direction
+					1e-3f,                      // tmin
+					1e16f,                      // tmax
+					0.f,                        // motion
+					OptixVisibilityMask( 255 ),
+					OPTIX_RAY_FLAG_NONE,
+					0,                          // SBT related
+					1,                          // SBT related
+					0,                          // SBT related
+					ph, pl                      // payload: ray parameter
+					) ;
 
-		// accumulate this ray's color
-		color = color+make_float3( __uint_as_float( r ), __uint_as_float( g ), __uint_as_float( b ) ) ;
-		// accumulate rays per pixel
-		rpp = rpp+rpt ;
+			if ( rayparam.stat == RP_STAT_DONE )
+				break ;
+		}
+
+		// accumulate this trace's color
+		color = color+rayparam.color ;
+		// accumulate rays per trace
+		rpp = rpp+depth ;
 	}
 
 	// update pixel in image buffer with mean color
@@ -92,6 +89,11 @@ extern "C" __global__ void __raygen__camera() {
 }
 
 extern "C" __global__ void __miss__ambient() {
+	// retrieve ray parameter from payload
+	unsigned int ph = optixGetPayload_0() ;
+	unsigned int pl = optixGetPayload_1() ;
+	RayParam* rayparam = reinterpret_cast<RayParam*>( util::fit64( ph, pl ) ) ;
+
 	// get ambient color from MS program group's SBT record
 	const float3 ambient = *reinterpret_cast<float3*>( optixGetSbtDataPointer() ) ;
 
@@ -101,12 +103,8 @@ extern "C" __global__ void __miss__ambient() {
 	// calculate background color according to RTOW
 	const float t        = .5f*( unit.y+1.f ) ;
 	const float3 white   = { 1.f, 1.f, 1.f } ;
-	const float3 color   = ( 1.f-t )*white+t*ambient ;
 
-	optixSetPayload_0( __float_as_uint( color.x ) ) ;
-	optixSetPayload_1( __float_as_uint( color.y ) ) ;
-	optixSetPayload_2( __float_as_uint( color.z ) ) ;
+	rayparam->color = ( 1.f-t )*white+t*ambient ;
 
-	// rays per trace equal depth when reaching MS
-	optixSetPayload_6( optixGetPayload_5() ) ;
+	rayparam->stat = RP_STAT_DONE ;
 }
