@@ -8,6 +8,7 @@
 using V::operator+ ;
 using V::operator- ;
 using V::operator* ;
+using V::operator*= ;
 
 extern "C" { __constant__ LpGeneral lp_general ; }
 
