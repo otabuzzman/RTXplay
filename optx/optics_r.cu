@@ -16,7 +16,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 	unsigned int depth = optixGetPayload_5() ;
 
 	// go deeper as long as not reaching ground
-	if ( lp_general.depth>depth ) {
+	if ( lp_general.depth>depth++ ) {
 		// retrieve data (SBT record) of thing being hit
 		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
 		const Optics optics = thing->optics() ;
@@ -78,7 +78,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 				0,                          // SBT related
 				r, g, b, // payload upstream propagation: color
 				sh, sl,  // payload downstream propagation: RNG state pointer
-				++depth, // payload downstream propagation: recursion depth
+				depth, // payload downstream propagation: recursion depth
 				rpt      // payload upstream propagation: rays per trace
 				) ;
 
@@ -94,7 +94,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
-		optixSetPayload_6( depth ) ;
+		optixSetPayload_6( depth-1u ) ;
 	}
 }
 
@@ -146,7 +146,7 @@ extern "C" __global__ void __closesthit__reflect() {
 	//
 
 	// go deeper as long as not reaching ground and same directions of hit point normal and reflected ray.
-	if ( lp_general.depth>depth && V::dot( dir, N )>0 ) {
+	if ( lp_general.depth>depth++ && V::dot( dir, N )>0 ) {
 		// payloads to carry back color
 		unsigned int r, g, b ;
 
@@ -168,7 +168,7 @@ extern "C" __global__ void __closesthit__reflect() {
 				0,                          // SBT related
 				r, g, b, // payload upstream propagation: color
 				sh, sl,  // payload downstream propagation: RNG state pointer
-				++depth, // payload downstream propagation: recursion depth
+				depth, // payload downstream propagation: recursion depth
 				rpt      // payload upstream propagation: rays per trace
 				) ;
 
@@ -184,7 +184,7 @@ extern "C" __global__ void __closesthit__reflect() {
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
-		optixSetPayload_6( depth ) ;
+		optixSetPayload_6( depth-1u ) ;
 	}
 }
 
@@ -193,7 +193,7 @@ extern "C" __global__ void __closesthit__refract() {
 	unsigned int depth = optixGetPayload_5() ;
 
 	// go deeper as long as not reaching ground
-	if ( lp_general.depth>depth ) {
+	if ( lp_general.depth>depth++ ) {
 		// retrieve data (SBT record) of thing being hit
 		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
 		const Optics optics = thing->optics() ;
@@ -276,7 +276,7 @@ extern "C" __global__ void __closesthit__refract() {
 				0,                          // SBT related
 				r, g, b, // payload upstream propagation: color
 				sh, sl,  // payload downstream propagation: RNG state pointer
-				++depth, // payload downstream propagation: recursion depth
+				depth, // payload downstream propagation: recursion depth
 				rpt      // payload upstream propagation: rays per trace
 				) ;
 
@@ -292,6 +292,6 @@ extern "C" __global__ void __closesthit__refract() {
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
-		optixSetPayload_6( depth ) ;
+		optixSetPayload_6( depth-1u ) ;
 	}
 }

@@ -42,7 +42,7 @@ extern "C" __global__ void __raygen__camera() {
 	util::cut64( &state, sh, sl ) ;
 
 	// payload to propagate depth count down the trace
-	unsigned int depth = 0 ;
+	unsigned int depth = 1 ;
 
 	// payload to carry back number of rays per trace
 	unsigned int rpt ;
@@ -75,7 +75,7 @@ extern "C" __global__ void __raygen__camera() {
 				0,                          // SBT related
 				r, g, b, // payload upstream: color
 				sh, sl,  // payload downstream: RNG state pointer
-				++depth, // payload downstream: recursion depth
+				depth, // payload downstream: recursion depth
 				rpt      // payload upstream: rays per trace
 				) ;
 

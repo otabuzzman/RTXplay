@@ -79,7 +79,7 @@ extern "C" __global__ void __raygen__camera() {
 		// accumulate this trace's color
 		color = color+rayparam.color ;
 		// accumulate rays per trace
-		rpp = rpp+depth ;
+		rpp = rpp+( depth-1u ) ;
 	}
 
 	// update pixel in image buffer with mean color
