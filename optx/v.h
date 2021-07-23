@@ -25,9 +25,7 @@ __forceinline__ __host__ __device__ float3 operator -  ( const float3& a, const 
 __forceinline__ __host__ __device__ void   operator -= ( float3& a, const float3& b )       { a.x-=b.x ; a.y-=b.y ; a.z-=b.z ; }
 
 __forceinline__ __host__ __device__ float3 operator *  ( const float a,   const float3& b ) { return make_float3( a*b.x, a*b.y, a*b.z ) ; }
-__forceinline__ __host__ __device__ float3 operator *= ( const float a,   float3& b )       { return make_float3( b.x*=a, b.y*=a, b.z*=a ) ; }
 __forceinline__ __host__ __device__ float3 operator *  ( const float3& a, const float b   ) { return make_float3( a.x*b, a.y*b, a.z*b ) ; }
-__forceinline__ __host__ __device__ float3 operator *= ( float3& a, const float b   )       { return make_float3( a.x*=b, a.y*=b, a.z*=b ) ; }
 __forceinline__ __host__ __device__ float3 operator *  ( const float3& a, const float3& b ) { return make_float3( a.x*b.x, a.y*b.y, a.z*b.z ) ; }
 __forceinline__ __host__ __device__ void   operator *= ( float3& a, const float3& b )       { a.x*=b.x ; a.y*=b.y ; a.z*=b.z ; }
 
