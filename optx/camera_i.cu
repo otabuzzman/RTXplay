@@ -56,7 +56,7 @@ extern "C" __global__ void __raygen__camera() {
 		rayparam.hit = ori ;
 		rayparam.dir = dir ;
 		unsigned int depth = 0 ;
-		while ( lp_general.depth>depth++ ) {
+		while ( lp_general.depth>depth ) {
 			// the ray gun
 			optixTrace(
 					lp_general.as_handle,
@@ -72,8 +72,9 @@ extern "C" __global__ void __raygen__camera() {
 					0,                          // SBT related
 					ph, pl                      // payload: ray parameter
 					) ;
+			depth++ ;
 
-			if ( rayparam.stat != RP_STAT_CONT )
+			if ( rayparam.stat == RP_STAT_MISS )
 				break ;
 		}
 

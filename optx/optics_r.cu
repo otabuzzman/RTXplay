@@ -173,18 +173,20 @@ extern "C" __global__ void __closesthit__reflect() {
 			optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
 			optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 			optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
-
-			optixSetPayload_5( depth ) ;
-
-			return ;
+		} else {
+			optixSetPayload_0( 0u ) ;
+			optixSetPayload_1( 0u ) ;
+			optixSetPayload_2( 0u ) ;
 		}
+
+		optixSetPayload_5( depth ) ;
+	} else {
+		optixSetPayload_0( 0u ) ;
+		optixSetPayload_1( 0u ) ;
+		optixSetPayload_2( 0u ) ;
+
+		optixSetPayload_5( depth-1u ) ;
 	}
-
-	optixSetPayload_0( 0u ) ;
-	optixSetPayload_1( 0u ) ;
-	optixSetPayload_2( 0u ) ;
-
-	optixSetPayload_5( depth-1u ) ;
 }
 
 extern "C" __global__ void __closesthit__refract() {

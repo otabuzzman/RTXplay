@@ -42,9 +42,9 @@ extern "C" __global__ void __raygen__camera() {
 	util::cut64( &state, sh, sl ) ;
 
 	// payload to propagate depth count down the trace
-	unsigned int depth = 1 ;
+	unsigned int depth ;
 
-	// color accumulator
+	// pixel color accumulator
 	float3 color = {} ;
 	// rays per pixel accumulator
 	unsigned int rpp = 0 ;
@@ -58,6 +58,7 @@ extern "C" __global__ void __raygen__camera() {
 		lp_general.camera.ray( s, t, ori, dir, &state ) ;
 
 		// shoot initial ray
+		depth = 1 ;
 		optixTrace(
 				lp_general.as_handle,
 				ori,                        // next ray's origin
@@ -79,7 +80,7 @@ extern "C" __global__ void __raygen__camera() {
 		// accumulate this ray's color
 		color = color+make_float3( __uint_as_float( r ), __uint_as_float( g ), __uint_as_float( b ) ) ;
 		// accumulate rays per pixel
-		rpp = rpp+optixGetPayload_5() ;
+		rpp = rpp+depth ;
 	}
 
 	// update pixel in image buffer with mean color
