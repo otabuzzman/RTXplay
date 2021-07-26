@@ -72,9 +72,13 @@ extern "C" __global__ void __raygen__camera() {
 					0,                          // SBT related
 					ph, pl                      // payload: ray parameter
 					) ;
+
+			if ( rayparam.stat == RP_STAT_STOP )
+				break ;
+
 			depth++ ;
 
-			if ( rayparam.stat != RP_STAT_CONT )
+			if ( rayparam.stat == RP_STAT_MISS )
 				break ;
 		}
 
