@@ -73,13 +73,15 @@ extern "C" __global__ void __raygen__camera() {
 					ph, pl                      // payload: ray parameter
 					) ;
 
-			if ( rayparam.stat == RP_STAT_STOP )
-				break ;
+			if ( rayparam.stat == RP_STAT_STOP ) {
+				depth-- ; // ray does not count ;
+				break ;   // terminate trace
+			}
 
 			depth++ ;
 
 			if ( rayparam.stat == RP_STAT_MISS )
-				break ;
+				break ;   // terminate trace
 		}
 
 		// accumulate this trace's color
