@@ -263,7 +263,7 @@ int main() {
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
 #ifdef RECURSIVE
-			pipeline_cc_options.numPayloadValues                 = 7 ; // R, G, B, RNG (2x), depth, rpp
+			pipeline_cc_options.numPayloadValues                 = 6 ; // R, G, B, RNG (2x), depth
 #else
 			pipeline_cc_options.numPayloadValues                 = 2 ; // RayParam (2x)
 #endif // RECURSIVE
