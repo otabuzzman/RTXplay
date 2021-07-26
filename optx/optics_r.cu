@@ -16,7 +16,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 	unsigned int depth = optixGetPayload_5() ;
 
 	// go deeper as long as not reaching ground
-	if ( lp_general.depth>depth++ ) {
+	if ( lp_general.depth>depth ) {
 		// retrieve data (SBT record) of thing being hit
 		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
 		const Optics optics = thing->optics() ;
@@ -61,6 +61,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 		unsigned int r, g, b ;
 
 		// one step beyond (recursion)
+		depth++ ;
 		optixTrace(
 				lp_general.as_handle,
 				hit,                        // next ray's origin
@@ -84,15 +85,12 @@ extern "C" __global__ void __closesthit__diffuse() {
 		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
 		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
-
-		optixSetPayload_5( depth ) ;
 	} else {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
-
-		optixSetPayload_5( depth-1u ) ;
 	}
+	optixSetPayload_5( depth ) ;
 }
 
 extern "C" __global__ void __closesthit__reflect() {
@@ -100,7 +98,7 @@ extern "C" __global__ void __closesthit__reflect() {
 	unsigned int depth = optixGetPayload_5() ;
 
 	// go deeper as long as not reaching ground
-	if ( lp_general.depth>depth++ ) {
+	if ( lp_general.depth>depth ) {
 		// retrieve data (SBT record) of thing being hit
 		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
 		const Optics optics = thing->optics() ;
@@ -150,6 +148,7 @@ extern "C" __global__ void __closesthit__reflect() {
 			unsigned int r, g, b ;
 
 			// one step beyond (recursion)
+			depth++ ;
 			optixTrace(
 					lp_general.as_handle,
 					hit,                        // next ray's origin
@@ -173,22 +172,17 @@ extern "C" __global__ void __closesthit__reflect() {
 			optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
 			optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 			optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
-
-			optixSetPayload_5( depth ) ;
 		} else {
 			optixSetPayload_0( 0u ) ;
 			optixSetPayload_1( 0u ) ;
 			optixSetPayload_2( 0u ) ;
-
-			optixSetPayload_5( depth-1u ) ;
 		}
 	} else {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
-
-		optixSetPayload_5( depth-1u ) ;
 	}
+	optixSetPayload_5( depth ) ;
 }
 
 extern "C" __global__ void __closesthit__refract() {
@@ -196,7 +190,7 @@ extern "C" __global__ void __closesthit__refract() {
 	unsigned int depth = optixGetPayload_5() ;
 
 	// go deeper as long as not reaching ground
-	if ( lp_general.depth>depth++ ) {
+	if ( lp_general.depth>depth ) {
 		// retrieve data (SBT record) of thing being hit
 		const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
 		const Optics optics = thing->optics() ;
@@ -262,6 +256,7 @@ extern "C" __global__ void __closesthit__refract() {
 		unsigned int r, g, b ;
 
 		// one step beyond (recursion)
+		depth++ ;
 		optixTrace(
 				lp_general.as_handle,
 				hit,                        // next ray's origin
@@ -285,13 +280,10 @@ extern "C" __global__ void __closesthit__refract() {
 		optixSetPayload_0( __float_as_uint( albedo.x*__uint_as_float( r ) ) ) ;
 		optixSetPayload_1( __float_as_uint( albedo.y*__uint_as_float( g ) ) ) ;
 		optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
-
-		optixSetPayload_5( depth ) ;
 	} else {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
-
-		optixSetPayload_5( depth-1u ) ;
 	}
+	optixSetPayload_5( depth ) ;
 }
