@@ -115,7 +115,7 @@ extern "C" __global__ void __closesthit__reflect() {
 		rayparam->stat   = RP_STAT_CONT ;
 	} else {
 		rayparam->color  = { 0.f, 0.f, 0.f } ;
-		rayparam->stat   = RP_STAT_ABRT ;
+		rayparam->stat   = RP_STAT_STOP ;
 	}
 }
 

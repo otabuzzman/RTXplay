@@ -74,7 +74,7 @@ extern "C" __global__ void __raygen__camera() {
 					) ;
 			depth++ ;
 
-			if ( rayparam.stat == RP_STAT_MISS )
+			if ( rayparam.stat != RP_STAT_CONT )
 				break ;
 		}
 
