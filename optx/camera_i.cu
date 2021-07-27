@@ -75,7 +75,7 @@ extern "C" __global__ void __raygen__camera() {
 			depth++ ;
 
 			if ( rayparam.stat != RP_STAT_CONT )
-				break ;   // terminate trace
+				break ; // terminate trace
 		}
 
 		// accumulate this trace's color
@@ -107,6 +107,5 @@ extern "C" __global__ void __miss__ambient() {
 	const float3 white   = { 1.f, 1.f, 1.f } ;
 
 	rayparam->color *= ( 1.f-t )*white+t*ambient ;
-
-	rayparam->stat = RP_STAT_MISS ;
+	rayparam->stat   = RP_STAT_MISS ;
 }

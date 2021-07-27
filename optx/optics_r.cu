@@ -13,15 +13,17 @@ extern "C" { __constant__ LpGeneral lp_general ; }
 
 extern "C" __global__ void __closesthit__diffuse() {
 	// retrieve actual trace depth from payload
-	unsigned int depth = optixGetPayload_5() ;
+	unsigned int depth = optixGetPayload_5()+1u ;
 
 	// return if recursion limit reached
-	if ( ! ( lp_general.depth>depth++ ) ) {
+	if ( lp_general.depth == depth ) {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
 		optixSetPayload_5( depth ) ;
+
+		return ;
 	}
 
 	// retrieve data (SBT record) of thing being hit
@@ -97,15 +99,17 @@ extern "C" __global__ void __closesthit__diffuse() {
 
 extern "C" __global__ void __closesthit__reflect() {
 	// retrieve actual trace depth from payload
-	unsigned int depth = optixGetPayload_5() ;
+	unsigned int depth = optixGetPayload_5()+1u ;
 
 	// return if recursion limit reached
-	if ( ! ( lp_general.depth>depth++ ) ) {
+	if ( lp_general.depth == depth ) {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
 		optixSetPayload_5( depth ) ;
+
+		return ;
 	}
 
 	// retrieve data (SBT record) of thing being hit
@@ -191,15 +195,17 @@ extern "C" __global__ void __closesthit__reflect() {
 
 extern "C" __global__ void __closesthit__refract() {
 	// retrieve actual trace depth from payload
-	unsigned int depth = optixGetPayload_5() ;
+	unsigned int depth = optixGetPayload_5()+1u ;
 
 	// return if recursion limit reached
-	if ( ! ( lp_general.depth>depth++ ) ) {
+	if ( lp_general.depth == depth ) {
 		optixSetPayload_0( 0u ) ;
 		optixSetPayload_1( 0u ) ;
 		optixSetPayload_2( 0u ) ;
 
 		optixSetPayload_5( depth ) ;
+
+		return ;
 	}
 
 	// retrieve data (SBT record) of thing being hit
