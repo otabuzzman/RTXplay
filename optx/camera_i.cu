@@ -53,10 +53,11 @@ extern "C" __global__ void __raygen__camera() {
 		lp_general.camera.ray( s, t, ori, dir, &rayparam.rng ) ;
 
 		rayparam.color = { 1.f, 1.f, 1.f } ;
-		rayparam.hit = ori ;
-		rayparam.dir = dir ;
+		rayparam.hit   = ori ;
+		rayparam.dir   = dir ;
+		rayparam.stat  = RP_STAT_CONT ;
 		unsigned int depth = 0 ;
-		while ( lp_general.depth>depth ) {
+		while ( lp_general.depth>depth && rayparam.stat == RP_STAT_CONT ) {
 			// the ray gun
 			optixTrace(
 					lp_general.as_handle,
@@ -73,9 +74,6 @@ extern "C" __global__ void __raygen__camera() {
 					ph, pl                      // payload: ray parameter
 					) ;
 			depth++ ;
-
-			if ( rayparam.stat != RP_STAT_CONT )
-				break ; // terminate trace
 		}
 
 		// accumulate this trace's color
