@@ -41,9 +41,6 @@ extern "C" __global__ void __raygen__camera() {
 	unsigned int sh, sl ;
 	util::cut64( &state, sh, sl ) ;
 
-	// payload to propagate depth count down the trace
-	unsigned int depth ;
-
 	// pixel color accumulator
 	float3 color = {} ;
 	// rays per pixel accumulator
@@ -57,8 +54,10 @@ extern "C" __global__ void __raygen__camera() {
 		float3 ori, dir ;
 		lp_general.camera.ray( s, t, ori, dir, &state ) ;
 
+		// payload to propagate depth count down and recursion depth up
+		unsigned int depth = 0 ;
+
 		// shoot initial ray
-		depth = 1 ;
 		optixTrace(
 				lp_general.as_handle,
 				ori,                        // next ray's origin
@@ -71,10 +70,10 @@ extern "C" __global__ void __raygen__camera() {
 				0,                          // SBT related
 				1,                          // SBT related
 				0,                          // SBT related
-				r, g, b, // payload upstream: color
-				sh, sl,  // payload downstream: RNG state pointer
-				depth    // payload downstream: current recursion depth
-				         // payload upstream: final recursion depth (rays per trace)
+				// payloads
+				r, g, b, // up: color
+				sh, sl,  // down: RNG state pointer
+				depth    // down: current recursion depth, up: final recursion depth (rays per trace)
 				) ;
 
 		// accumulate this ray's color
@@ -104,4 +103,6 @@ extern "C" __global__ void __miss__ambient() {
 	optixSetPayload_0( __float_as_uint( color.x ) ) ;
 	optixSetPayload_1( __float_as_uint( color.y ) ) ;
 	optixSetPayload_2( __float_as_uint( color.z ) ) ;
+
+	optixSetPayload_5( optixGetPayload_5()+1 ) ;
 }
