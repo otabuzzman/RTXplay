@@ -8,6 +8,7 @@ tmp/
 *.exp
 *.gz
 *.lib
+*.ncu-rep
 *.o
 *.out
 *.png
