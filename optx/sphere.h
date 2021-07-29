@@ -9,7 +9,7 @@
 
 class Sphere : public Thing {
 	public:
-		Sphere( const float3& center, const float radius, const Optics optics, const bool bbox = false, const unsigned int ndiv = 6 ) ;
+		Sphere( const float3& center, const float radius, const Optics& optics, const bool bbox = false, const unsigned int ndiv = 6 ) ;
 		~Sphere() noexcept ( false ) ;
 
 	private:

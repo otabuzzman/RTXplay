@@ -13,7 +13,7 @@
 using V::operator+ ;
 using V::operator* ;
 
-Sphere::Sphere( const float3& center, const float radius, const Optics optics, const bool bbox, const unsigned int ndiv )
+Sphere::Sphere( const float3& center, const float radius, const Optics& optics, const bool bbox, const unsigned int ndiv )
 	: radius_( radius ), ndiv_( ndiv ) {
 	center_ = center ;
 	optics_ = optics ;

@@ -56,6 +56,7 @@ extern "C" __global__ void __raygen__camera() {
 		rayparam.hit   = ori ;
 		rayparam.dir   = dir ;
 		rayparam.stat  = RP_STAT_CONT ;
+
 		unsigned int depth = 0 ;
 		while ( lp_general.depth>depth && rayparam.stat == RP_STAT_CONT ) {
 			// the ray gun
