@@ -173,8 +173,8 @@ int main() {
 				obi_thing.triangleArray.numIndexTriplets            = things[i]->num_ices() ;
 				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
-				// obi_thing_flags[i][1]                               = { OPTIX_GEOMETRY_FLAG_NONE } ;
-				// obi_thing.triangleArray.flags                       = &( obi_thing_flags[i] )[0] ;
+				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_NONE ) ;
+				// obi_thing.triangleArray.flags                       = &obi_thing_flags[i][0] ;
 				obi_thing.triangleArray.flags                       = &obi_thing_flags[0] ;
 				obi_thing.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
 				obi_thing.triangleArray.sbtIndexOffsetBuffer        = 0 ;
