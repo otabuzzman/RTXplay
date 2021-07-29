@@ -155,7 +155,7 @@ int main() {
 			// thing specific (or one fits all) flags per SBT record
 			// std::vector<std::vector<unsigned int>> obi_thing_flags ;
 			// obi_thing_flags.resize( things.size() ) ;
-			const unsigned int obi_thing_flags[1] = { OPTIX_GEOMETRY_FLAG_NONE } ;
+			const unsigned int obi_thing_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
@@ -173,7 +173,7 @@ int main() {
 				obi_thing.triangleArray.numIndexTriplets            = things[i]->num_ices() ;
 				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
-				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_NONE ) ;
+				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
 				// obi_thing.triangleArray.flags                       = &obi_thing_flags[i][0] ;
 				obi_thing.triangleArray.flags                       = &obi_thing_flags[0] ;
 				obi_thing.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
@@ -263,8 +263,8 @@ int main() {
 		{
 			OptixModuleCompileOptions module_cc_options = {} ;
 			module_cc_options.maxRegisterCount          = OPTIX_COMPILE_DEFAULT_MAX_REGISTER_COUNT ;
-			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_LEVEL_0 ; // OPTIX_COMPILE_OPTIMIZATION_DEFAULT
-			module_cc_options.debugLevel                = OPTIX_COMPILE_DEBUG_LEVEL_FULL ;     // OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT
+			module_cc_options.optLevel                  = OPTIX_COMPILE_OPTIMIZATION_DEFAULT ; // OPTIX_COMPILE_OPTIMIZATION_LEVEL_0
+			module_cc_options.debugLevel                = OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT ;  // OPTIX_COMPILE_DEBUG_LEVEL_FULL
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
