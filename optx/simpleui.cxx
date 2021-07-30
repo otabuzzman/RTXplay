@@ -230,7 +230,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 						cudaMemcpyDeviceToHost
 						) ) ;
 			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-			fprintf( stderr, "%u %llu %llu (pixels, rays, milliseconds)", w*h, sr, dt ) ;
+			fprintf( stderr, "%9u %12llu %4llu (pixels, rays, milliseconds)", w*h, sr, dt ) ;
 		}
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
@@ -297,12 +297,11 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			camera->eye( pat+len*paddle.move( -1, 0 ) ) ;
 
 			GLFW_CHECK( glfwPollEvents() ) ;
-			auto t3 = std::chrono::high_resolution_clock::now() ;
-			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
-			fprintf( stderr, " %.2f fps", 1000.f/dt ) ;
 		} else
 			GLFW_CHECK( glfwWaitEvents() ) ;
-		fprintf( stderr, "\n" ) ;
+		auto t3 = std::chrono::high_resolution_clock::now() ;
+		long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+		fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
 }
 

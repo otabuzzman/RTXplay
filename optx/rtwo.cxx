@@ -599,7 +599,7 @@ int main() {
 								) ) ;
 					CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
 					long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-					fprintf( stderr, "%u %llu %llu (pixel, rays, milliseconds) %.2f fps\n", w*h, sr, dt, 1000.f/dt ) ;
+					fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w*h, sr, dt, 1000.f/dt ) ;
 				}
 
 				CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
