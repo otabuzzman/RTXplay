@@ -191,6 +191,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
 
 	do {
+		auto t0 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
@@ -207,7 +208,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		const int w = lp_general->image_w ;
 		const int h = lp_general->image_h ;
 
-		auto t0 = std::chrono::high_resolution_clock::now() ;
+		auto t1 = std::chrono::high_resolution_clock::now() ;
 		OPTX_CHECK( optixLaunch(
 			pipeline,
 			cuda_stream,
@@ -216,10 +217,10 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			&sbt,
 			w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
-		auto t1 = std::chrono::high_resolution_clock::now() ;
+		auto t2 = std::chrono::high_resolution_clock::now() ;
 
 		{ // output statistics
-			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t2-t1 ).count() ;
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
@@ -229,7 +230,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 						cudaMemcpyDeviceToHost
 						) ) ;
 			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-			fprintf( stderr, "%u %llu %llu (pixel, rays, milliseconds)\n", w*h, sr, dt ) ;
+			fprintf( stderr, "%u %llu %llu (pixels, rays, milliseconds)", w*h, sr, dt ) ;
 		}
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
@@ -296,8 +297,12 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			camera->eye( pat+len*paddle.move( -1, 0 ) ) ;
 
 			GLFW_CHECK( glfwPollEvents() ) ;
+			auto t3 = std::chrono::high_resolution_clock::now() ;
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+			fprintf( stderr, " %.2f fps", 1000.f/dt ) ;
 		} else
 			GLFW_CHECK( glfwWaitEvents() ) ;
+		fprintf( stderr, "\n" ) ;
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
 }
 
