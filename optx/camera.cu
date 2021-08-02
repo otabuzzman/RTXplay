@@ -44,7 +44,7 @@ extern "C" __global__ void __raygen__camera() {
 	// payload to propagate depth count down the trace
 	unsigned int depth = 0 ;
 
-	// color accumulator
+	// pixel color accumulator
 	float3 color = {} ;
 	for ( int i = 0 ; lp_general.spp>i ; i++ ) {
 		// transform x/y pixel coords (range 0/0 to w/h)
@@ -76,7 +76,7 @@ extern "C" __global__ void __raygen__camera() {
 				depth    // payload downstream: recursion depth
 				) ;
 
-		// cumulate this ray's color
+		// acccumulate this ray's color
 		color = color+make_float3( __uint_as_float( r ), __uint_as_float( g ), __uint_as_float( b ) ) ;
 	}
 

@@ -108,6 +108,7 @@ int main() {
 			OptixDeviceContextOptions optx_options = {} ;
 			optx_options.logCallbackFunction       = &util::optxLogStderr ;
 			optx_options.logCallbackLevel          = 4 ;
+			optx_options.validationMode            = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL ;
 
 			// use current (0) CUDA context
 			CUcontext cuda_context = 0 ;
@@ -134,6 +135,11 @@ int main() {
 			std::vector<CUdeviceptr> d_ices ;
 			d_ices.resize( things.size() ) ;
 
+			// thing specific (or one fits all) flags per SBT record
+			// std::vector<std::vector<unsigned int>> obi_thing_flags ;
+			// obi_thing_flags.resize( things.size() ) ;
+			const unsigned int obi_thing_flags[1] = { OPTIX_GEOMETRY_FLAG_NONE } ;
+
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
 				d_vces[i] = reinterpret_cast<CUdeviceptr>( things[i]->d_vces() ) ;
@@ -150,8 +156,9 @@ int main() {
 				obi_thing.triangleArray.numIndexTriplets            = things[i]->num_ices() ;
 				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
-				const unsigned int obi_thing_flags[1]               = { OPTIX_GEOMETRY_FLAG_NONE } ;
-				obi_thing.triangleArray.flags                       = obi_thing_flags ;
+				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_NONE ) ;
+				// obi_thing.triangleArray.flags                       = &obi_thing_flags[i][0] ;
+				obi_thing.triangleArray.flags                       = &obi_thing_flags[0] ;
 				obi_thing.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
 				obi_thing.triangleArray.sbtIndexOffsetBuffer        = 0 ;
 				obi_thing.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
@@ -548,8 +555,8 @@ int main() {
 			}
 		}
 		auto t1 = std::chrono::high_resolution_clock::now() ;
-		long long int dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-		fprintf( stderr, "OptiX pipeline for RTWO ran %lld milliseconds\n", dt ) ;
+		long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+		fprintf( stderr, "OptiX pipeline took %lld milliseconds\n", dt ) ;
 
 
 
