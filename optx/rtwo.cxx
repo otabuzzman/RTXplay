@@ -1,6 +1,6 @@
 #include <array>
 #include <chrono>
-#include <string>
+#include <cstring>
 #include <vector>
 
 #include <optix.h>
