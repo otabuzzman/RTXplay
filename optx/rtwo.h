@@ -33,8 +33,11 @@ struct RayParam {
 	float3       color ;
 	float3       hit ;
 	float3       dir ;
-
+#ifdef CURAND
 	curandState  rng ;
+#else
+	Frand48      rng ;
+#endif // CURAND
 
 #define RP_STAT_NONE 0 // default
 #define RP_STAT_CONT 1 // HG shader returned color

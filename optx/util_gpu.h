@@ -1,12 +1,21 @@
 #ifndef UTIL_GPU_H
 #define UTIL_GPU_H
 
+#ifdef CURAND
 #include <curand_kernel.h>
+#else
+#include "frand48.h"
+#endif // CURAND
 
 namespace util {
 
+#ifdef CURAND
 __forceinline__ __device__ float rnd( curandState* state )                                   { return static_cast<float>( curand( state ) )/( static_cast<float>( UINT_MAX )+1.f ) ; }
 __forceinline__ __device__ float rnd( const float min, const float max, curandState* state ) { return min+rnd( state )*( max-min ) ; }
+#else
+__forceinline__ __device__ float rnd( Frand48* state )                                       { return ( *state )() ; }
+__forceinline__ __device__ float rnd( const float min, const float max, Frand48* state )     { return min+rnd( state )*( max-min ) ; }
+#endif // CURAND
 
 __forceinline__ __device__ float rad( const float deg ) { return deg*kPi/180.f ; }
 

@@ -37,7 +37,11 @@ extern "C" __global__ void __raygen__camera() {
 	util::cut64( &rayparam, ph, pl ) ;
 
 	// initialize random number generator
+#ifdef CURAND
 	curand_init( 4711, pix, 0, &rayparam.rng ) ;
+#else
+	rayparam.rng.init( pix ) ;
+#endif // CURAND
 
 	// color accumulator
 	float3 color = {} ;

@@ -46,7 +46,11 @@ class Camera {
 
 #ifdef __CUDACC__
 
+#ifdef CURAND
 		__device__ void ray( const float s, const float t, float3& ori, float3& dir, curandState* state ) const {
+#else
+		__device__ void ray( const float s, const float t, float3& ori, float3& dir, Frand48* state ) const {
+#endif // CURAND
 			const float3 r = aperture_/2.f*V::rndVin1disk( state ) ;
 			const float3 o = eye_+r.x*u_+r.y*v_ ;
 

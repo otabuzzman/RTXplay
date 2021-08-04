@@ -3,11 +3,16 @@
 
 #include <cmath>
 
+#ifdef CURAND
 #include <curand_kernel.h>
+#endif // CURAND
 
 #include <vector_functions.h>
 #include <vector_types.h>
 
+#ifndef CURAND
+#include "frand48.h"
+#endif // CURAND
 #include "util.h"
 
 namespace V {
@@ -43,6 +48,7 @@ __forceinline__ __host__ __device__ bool   near0( const float3& v )             
 
 #ifdef __CUDACC__
 
+#ifdef CURAND
 __forceinline__ __device__ float3 rnd( curandState *state )                                   { return make_float3( util::rnd( state ), util::rnd( state ), util::rnd( state ) ) ; }
 __forceinline__ __device__ float3 rnd( const float min, const float max, curandState *state ) { return make_float3( util::rnd( min, max, state ), util::rnd( min, max, state ), util::rnd( min, max, state ) ) ; }
 
@@ -53,6 +59,15 @@ __forceinline__ __device__ float3 rndVon1sphere( curandState *state ) { return u
 
 // random V (float3) in unit disk (chapter 12.2)
 __forceinline__ __device__ float3 rndVin1disk( curandState *state )   { while ( true ) { auto v = make_float3( util::rnd( -1.f, 1.f, state ), util::rnd( -1.f, 1.f, state ), 0.f ) ; if ( 1.f>dot( v, v ) ) return v ; } }
+#else
+__forceinline__ __device__ float3 rnd( Frand48 *state )                                       { return make_float3( util::rnd( state ), util::rnd( state ), util::rnd( state ) ) ; }
+__forceinline__ __device__ float3 rnd( const float min, const float max, Frand48 *state )     { return make_float3( util::rnd( min, max, state ), util::rnd( min, max, state ), util::rnd( min, max, state ) ) ; }
+
+__forceinline__ __device__ float3 rndVin1sphere( Frand48 *state )     { while ( true ) { auto v = rnd( -1.f, 1.f, state ) ; if ( 1.f>dot( v, v ) ) return v ; } }
+__forceinline__ __device__ float3 rndVon1sphere( Frand48 *state )     { return unitV( rndVin1sphere( state ) ) ; }
+
+__forceinline__ __device__ float3 rndVin1disk( Frand48 *state )       { while ( true ) { auto v = make_float3( util::rnd( -1.f, 1.f, state ), util::rnd( -1.f, 1.f, state ), 0.f ) ; if ( 1.f>dot( v, v ) ) return v ; } }
+#endif // CURAND
 
 #else
 
