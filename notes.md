@@ -1,7 +1,6 @@
 ### Branches
 - `main` - main development branch (default)
 - `movie` - render multiple images to compose clip
-- `frand48` - replace for NVIDIA's curand RNG
 - `hitcorr` - calculate real intersection point on sphere
 - `objout` - provide triangle mesh inspection support
 
