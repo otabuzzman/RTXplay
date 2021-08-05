@@ -1,3 +1,13 @@
+### Contents
+- [Comments on this repo's branches](#branches)
+- [Steps to compile the OptiX 7 course](#compile-optix-7-course)
+- [Setup a simple GPU WS on AWS with VNC](#simple-gpu-workstation-on-aws-vnc)
+- [Comments on a GPU WS using CAS](#gpu-workstation-on-aws-cas)
+- [Copy&paste templates for common Git tasks](#git-for-short-copypaste)
+- [Exploring CUDA OpenGL interoperabillity](#cuda-opengl-interoperability)
+- [List of findings considered relevant](#findings)
+- [List of links considered useful](#links)
+
 ### Branches
 - `main` - main development branch (default)
 - `movie` - render multiple images to compose clip
@@ -120,18 +130,6 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
 #### Setup on Teradici CAS AMI
 Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-types/g4/) (`g4dn.xlarge`) with [Teradici Cloud Access Software for CentOS 7 AMI](https://aws.amazon.com/marketplace/pp/Teradici-Teradici-Cloud-Access-Software-for-CentOS/B07CT11PCQ).
 
-
-
-### Findings
-1. Extracting optixTriangle from OptiX SDK samples. Code copied from `cuda/CUDAOutputBuffer.h` contained `cudaFree ( <d_pointer> ) ; cudaMalloc ( <d_pointer> ) ;`. Original code worked fine, copied code produced random background, thus apparently didn't execute miss program. Removing `cudaFree( <d_pointer> )` fixed it. Using `cudaFree` with a device pointer not allocated before is not allowed according to CUDA API reference. Question is why this worked in original CUDAOutputBuffer class implementation.
-2. Curly braces around `params` declaration in `shader_optixTriangle.cu`. Removing braces [shall yield same scope](https://vladonsoftware.wordpress.com/2019/02/25/c-when-the-curly-braces-really-matter/) (section *What happened*) but produces warning. Avoid with NVCC option `-rdc true` to [force relocatable device code](https://forums.developer.nvidia.com/t/warning-extern-declaration-of-the-entity-xxxx-is-treated-as-a-static-definition/69887) generation.
-3. [Simple(r) implementation](https://zeux.io/2010/12/14/quantizing-floats/) to quantize `float` into `unsigned char`.
-4. OPTIX_CHECK_LOG macro in `sutil/Exception.h` depends on variable names `log` and `sizeof_log` which thus must not change.
-5. Changing shader sources requires cache file removal before starting application. Otherwise errors are likely.
-6. Code in a PTX file must contain any referenced objects (or variables). Calling a class member function from inside a shader (kernel) expects the class in question to be defined in the same .cu file (e.g. by including a header file containing the definition) or by a further .cu file given to NVCC on the command line when compiling to PTX.
-7. [Q&A on NVIDIA developer forum](https://forums.developer.nvidia.com/t/intersection-point/81612/7) on how to get a hit primitive's vertices in a closest hit shader. Using `optixGetGASTraversableHandle()` and related [might be bad for performance](https://raytracing-docs.nvidia.com/optix7/guide/index.html#device_side_functions#vertex-random-access). Passing device pointers pointing at primitive vertices and indices of `OptixBuildInput` objects (the *Things*) via SBT records thus recommended.
-8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
-
 ### Git for short (copy&paste)
 
 #### Branching on new features
@@ -189,77 +187,88 @@ Dangerous and therefore tricky but if you dare this [SO answer](https://stackove
   rm /usr/local/bin/git-reword-commit
   ```
 
-### GL interop handling in OptiX SDK samples
+### CUDA OpenGL interoperability
+
+####  OptiX SDK sample `optixMeshViewer´
 Files
 - `SDK/optixMeshViewer/optixMeshViewer.cpp`
 - `SDK/sutil/CUDAOutputBuffer.h`
 - `SDK/sutil/GLDisplay.cpp`
 - `SDK/sutil/sutil.cpp`
 
+Manually compiled sketch of code executed by `optixMeshViewer` to utilize GPU simultaneously for display and calculation.
+  ```
+  CUDAOutputBuffer.h
+  ->ctor() // GL_INTEROP
+    check x/y > 0/0
+    check X running
 
-Manually compiled listing of code executed by `optixMeshViewer` to utilize GPU simultaneously for display and calculation.
-```
-#CUDAOutputBuffer GL_INTEROP
-->ctor()
-check x/y > 0/0
-check disp == curr device
+    ->resize( w, h )
+      cudaSetDevice( 0 )
 
-->resize(m_width,m_height)
-cudaSetDevice(0)
+      glGenBuffers( 1, &m_pbo ) )
+      glBindBuffer( GL_ARRAY_BUFFER, m_pbo ) )
+      glBufferData( GL_ARRAY_BUFFER, sizeof( PIXEL_FORMAT )*w*h, ... ) )
+      glBindBuffer( GL_ARRAY_BUFFER, 0u ) )
 
-glGenBuffers( 1, &m_pbo ) );
-glBindBuffer( GL_ARRAY_BUFFER, m_pbo ) );
-glBufferData( GL_ARRAY_BUFFER, sizeof(PIXEL_FORMAT)*m_width*m_height, nullptr, GL_STREAM_DRAW ) );
-glBindBuffer( GL_ARRAY_BUFFER, 0u ) );
+      cudaGraphicsGLRegisterBuffer( m_pbo, ... ) )
+    <-resize()
+  <-ctor()
 
-cudaGraphicsGLRegisterBuffer( &m_cuda_gfx_resource, m_pbo, cudaGraphicsMapFlagsWriteDiscard ) );
-<-resize()
-<-ctor()
+  ->dtor() // anticipated
+    cudaGraphicsUnregisterResource( m_pbo ) )
+    glDeleteBuffers( 1, &m_pbo ) )
+  <-dtor()
 
-(anticipated)  ->dtor()
-               cudaGraphicsUnregisterResource(m_pbo));
-               glDeleteBuffers( 1, &m_pbo ) );
-               <-dtor()
+  GLDisplay.cpp
+  ->ctor()
+    essentially code in glxview.cpp from init to loop start
+  <-ctor()
 
+  ->dtor() // anticipated
+    essentially code from glxview.cpp cleanup section
+  <-dtor()
 
+  optixMeshViewer.cpp
+  ->loop
+    ->launchSubframe()
+      ->CUDAOutputBuffer.map()
+        cudaSetDevice( 0 )
 
-#GLDisplay
-->ctor()
-glxview:from init to loop
-<-ctor()
+        cudaGraphicsMapResources ( m_gfx, ... ) )
+        cudaGraphicsResourceGetMappedPointer( m_gfx, ... ) )
 
-(anticipated)  ->dtor()
-               glxview:cleanup
-               <-dtor()
+        // params.frame_buffer is GL_ARRAY_BUFFER
+      <-CUDAOutputBuffer.map()
+      cudaMemcpyAsync( &params, ... )
+      optixLaunch( scene.pipeline(), ... )
 
-#optixMeshViewer
-->loop
-->launchSubframe()
-->CUDAOutputBuffer.map()
-cudaSetDevice(0)
+      cudaGraphicsUnmapResources ( m_gfx, ... ) )
+      cudaDeviceSynchronize()
+    <-launchSubframe()
+    ->displayhSubframe()
+      glfwGetFramebufferSize( window, &framebuf_res_x, &framebuf_res_y )
 
-cudaGraphicsMapResources ( 1, &m_cuda_gfx_resource, m_stream ) );
-cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &m_device_pixels ),
-                    &buffer_size, m_cuda_gfx_resource ) );
-#params.frame_buffer ^= GL_ARRAY_BUFFER
-<-CUDAOutputBuffer.map()
-cudaMemcpyAsync( &params, ... );
-optixLaunch( scene.pipeline(), ... );
-cudaGraphicsUnmapResources ( 1, &m_cuda_gfx_resource,  m_stream ) );
-cudaDeviceSynchronize();
-<-launchSubframe()
-->displayhSubframe()
-glfwGetFramebufferSize( window, &framebuf_res_x, &framebuf_res_y );
-->GLDisplay.display(m_pbo)
-glxview:loop
-<-GLDisplay.display()
-<-displayhSubframe()
-<-loop
-```
+      ->GLDisplay.display( m_pbo )
+        essentially code from glxview.cpp render loop
+      <-GLDisplay.display()
+    <-displayhSubframe()
+  <-loop
+  ```
 
-### GL interop handling in CUDA samples
+#### CUDA sample `simpleGL´
 Files
 - `cuda_samples/cuda_samples/2_Graphics/simpleGL/simpleGL.cu`
+
+### Findings
+1. Extracting optixTriangle from OptiX SDK samples. Code copied from `cuda/CUDAOutputBuffer.h` contained `cudaFree ( <d_pointer> ) ; cudaMalloc ( <d_pointer> ) ;`. Original code worked fine, copied code produced random background, thus apparently didn't execute miss program. Removing `cudaFree( <d_pointer> )` fixed it. Using `cudaFree` with a device pointer not allocated before is not allowed according to CUDA API reference. Question is why this worked in original CUDAOutputBuffer class implementation.
+2. Curly braces around `params` declaration in `shader_optixTriangle.cu`. Removing braces [shall yield same scope](https://vladonsoftware.wordpress.com/2019/02/25/c-when-the-curly-braces-really-matter/) (section *What happened*) but produces warning. Avoid with NVCC option `-rdc true` to [force relocatable device code](https://forums.developer.nvidia.com/t/warning-extern-declaration-of-the-entity-xxxx-is-treated-as-a-static-definition/69887) generation.
+3. [Simple(r) implementation](https://zeux.io/2010/12/14/quantizing-floats/) to quantize `float` into `unsigned char`.
+4. OPTIX_CHECK_LOG macro in `sutil/Exception.h` depends on variable names `log` and `sizeof_log` which thus must not change.
+5. Changing shader sources requires cache file removal before starting application. Otherwise errors are likely.
+6. Code in a PTX file must contain any referenced objects (or variables). Calling a class member function from inside a shader (kernel) expects the class in question to be defined in the same .cu file (e.g. by including a header file containing the definition) or by a further .cu file given to NVCC on the command line when compiling to PTX.
+7. [Q&A on NVIDIA developer forum](https://forums.developer.nvidia.com/t/intersection-point/81612/7) on how to get a hit primitive's vertices in a closest hit shader. Using `optixGetGASTraversableHandle()` and related [might be bad for performance](https://raytracing-docs.nvidia.com/optix7/guide/index.html#device_side_functions#vertex-random-access). Passing device pointers pointing at primitive vertices and indices of `OptixBuildInput` objects (the *Things*) via SBT records thus recommended.
+8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
 
 ### Links
 RTOW
