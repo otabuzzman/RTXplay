@@ -3,6 +3,7 @@ KHR/
 OptixCache_ec2-user/
 glad/
 tmp/
+vid/
 *.docx
 *.exe
 *.exp
