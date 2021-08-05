@@ -16,6 +16,7 @@ vid/
 !/optx/img/*.png
 *.pptx
 *.tmp
+*.xlsx
 *.zip
 rtow
 rtwo

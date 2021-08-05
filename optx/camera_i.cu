@@ -72,7 +72,7 @@ extern "C" __global__ void __raygen__camera() {
 					1e16f,                      // tmax
 					0.f,                        // motion
 					OptixVisibilityMask( 255 ),
-					OPTIX_RAY_FLAG_NONE,
+					OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT,
 					0,                          // SBT related
 					1,                          // SBT related
 					0,                          // SBT related
