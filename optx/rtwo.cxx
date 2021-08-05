@@ -364,7 +364,7 @@ int main() {
 
 			OptixPipelineLinkOptions pipeline_ld_options = {} ;
 			pipeline_ld_options.maxTraceDepth            = max_trace_depth ;
-			pipeline_ld_options.debugLevel               = OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT ;  // OPTIX_COMPILE_DEBUG_LEVEL_FULL
+			pipeline_ld_options.debugLevel               = OPTIX_COMPILE_DEBUG_LEVEL_FULL ;  // OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT
 			OPTX_CHECK_LOG( optixPipelineCreate(
 						optx_context,
 						&pipeline_cc_options,
