@@ -6,8 +6,8 @@
 #include <optix.h>
 #include <optix_stubs.h>
 /*** calculate stack sizes
-#include <optix_stack_size.h>
 ***/
+#include <optix_stack_size.h>
 #include <optix_function_table_definition.h>
 
 #include <vector_functions.h>
@@ -402,12 +402,12 @@ int main() {
 
 
 
-			/*** calculate stack sizes
-
+			/*** calculate stack sizes (see `fixed stack sizes´ alternative below)
+			***/
 			OptixStackSizes stack_sizes = {} ;
 			for ( auto& prog_group : program_groups )
 				OPTX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
-//			fprintf( stderr, "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDG: %u\n",
+//			fprintf( stderr, "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDC: %u\n",
 //				stack_sizes.cssRG,
 //				stack_sizes.cssMS,
 //				stack_sizes.cssCH,
@@ -432,14 +432,6 @@ int main() {
 //				dssStat,
 //				css ) ;
 
-			// max_trace_depth = 4 :
-			// cssRG: 6496, cssMS: 0, cssCH: 32, cssAH: 0, cssIS: 0, cssCC: 0, dssDG: 0
-			// dss Traversal (IS, AH): 0, dss State (RG, MS, CH): 0, css: 6624
-
-			// max_trace_depth = 16 :
-			// cssRG: 6496, cssMS: 0, cssCH: 32, cssAH: 0, cssIS: 0, cssCC: 0, dssDG: 0
-			// dss Traversal (IS, AH): 0, dss State (RG, MS, CH): 0, css: 7008
-
 			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
 						dssTrav, // direct callable stack size (called from AH and IS programs)
@@ -448,28 +440,17 @@ int main() {
 						1        // maxTraversableGraphDepth (acceleration structure depth)
 						) ) ;
 
+
+
+			/*** fixed stack sizes (see `calculate stack sizes´ alternative above)
+			OPTX_CHECK( optixPipelineSetStackSize(
+						pipeline,
+						8*1024, // direct callable stack size (called from AH and IS programs)
+						8*1024, // direct callable stack size (called from RG, MS and CH programs)
+						8*1024, // continuation callable stack size
+						1       // maxTraversableGraphDepth (acceleration structure depth)
+						) ) ;
 			***/
-
-
-
-			// comment if using code from comment block titled `calculate stack sizes´
-#ifdef RECURSIVE
-			OPTX_CHECK( optixPipelineSetStackSize(
-						pipeline,
-						8*1024, // direct callable stack size (called from AH and IS programs)
-						8*1024, // direct callable stack size (called from RG, MS and CH programs)
-						8*1024, // continuation callable stack size
-						1       // maxTraversableGraphDepth (acceleration structure depth)
-						) ) ;
-#else
-			OPTX_CHECK( optixPipelineSetStackSize(
-						pipeline,
-						8*1024, // direct callable stack size (called from AH and IS programs)
-						8*1024, // direct callable stack size (called from RG, MS and CH programs)
-						8*1024, // continuation callable stack size
-						1       // maxTraversableGraphDepth (acceleration structure depth)
-						) ) ;
-#endif // RECURSIVE
 		}
 
 
