@@ -5,6 +5,7 @@
 - [Comments on a GPU WS using CAS](#gpu-workstation-on-aws-cas)
 - [Copy&paste templates for common Git tasks](#git-for-short-copypaste)
 - [Exploring CUDA OpenGL interoperabillity](#cuda-opengl-interoperability)
+- [OptiX kernel profiling](#improving-performance)
 - [List of findings considered relevant](#findings)
 - [List of links considered useful](#links)
 
@@ -259,6 +260,46 @@ Manually compiled sketch of code executed by `optixMeshViewer` to utilize GPU si
 #### CUDA sample `simpleGL´
 Files
 - `cuda_samples/cuda_samples/2_Graphics/simpleGL/simpleGL.cu`
+
+### Improving performance
+
+#### Low hanging fruits
+- Use iterate (default) instead of recurse
+  ```
+  # to try recursive
+  make lclean
+  CXXFLAGS=curand make
+  ```
+- Use full (default) optimization (OPTIX_COMPILE_OPTIMIZATION_DEFAULT)
+- Use `Frand48` (default) instead of CUDA `curand` RNG
+  ```
+  # try curand
+  make lclean
+  CXXFLAGS=curand make
+  ```
+- Try `OPTIX_GEOMETRY_FLAG_NONE` instead of `OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT` (`rtwo.cxx`, `*.cu`)
+
+See [time series chart](https://docs.google.com/spreadsheets/d/1HAkMM2-QL5F1pwvjQTtyEAV1Zo2fghDp/edit?usp=sharing&ouid=100581696502355527803&rtpof=true&sd=true) for comparisons of various measures.
+
+#### Kernel profiling with Nsight Compute
+- Install Nsight Compute 2021.2 (Windows version)
+- Nsight Compute CLI (`ncu`) is part od CUDA Toolkit
+- Prepare module compile options in OptiX app
+  ```
+  OptixModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO ; // or OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO
+  ```
+
+- Provide `-lineinfo` option to NVCC (`Makefile`)
+- Run `ncu` on OptiX app (mind [developer forum thread on kernel selection](https://forums.developer.nvidia.com/t/optix-and-performance-counter-reports-in-nsight-compute/180642))
+  ```
+  ncu \
+    -k regex:raygen    \ # RG kernel to profile (cannot HG, MS etc.)
+    --section regex:.* \ # record data for all sections (ncu -list-sections for all)
+    -f                 \ # force overwrite report file
+    -o rtwo            \ # report file, .ncu-rep auto-suffixed
+    ./rtwo -q
+```
+- Analyse report in GUI
 
 ### Findings
 1. Extracting optixTriangle from OptiX SDK samples. Code copied from `cuda/CUDAOutputBuffer.h` contained `cudaFree ( <d_pointer> ) ; cudaMalloc ( <d_pointer> ) ;`. Original code worked fine, copied code produced random background, thus apparently didn't execute miss program. Removing `cudaFree( <d_pointer> )` fixed it. Using `cudaFree` with a device pointer not allocated before is not allowed according to CUDA API reference. Question is why this worked in original CUDAOutputBuffer class implementation.
