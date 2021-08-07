@@ -308,7 +308,6 @@ Files
   OptixModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO ; // or OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT
   ```
 
-- 
 - Run `ncu` on OptiX app (mind [developer forum thread on kernel selection](https://forums.developer.nvidia.com/t/optix-and-performance-counter-reports-in-nsight-compute/180642))
   ```
   # ncu options:
@@ -324,6 +323,7 @@ Files
     -o rtwo            \
     ./rtwo -q
 ```
+
 - Analyse report in Nsight Compute GUI
 <br><br><br>
 
