@@ -1,3 +1,7 @@
+# Notes
+Various findinds stepped across during the course of exploring OptiX.
+<br><br>
+
 ### Contents
 - [Comments on this repo's branches](#branches)
 - [Steps to compile the OptiX 7 course](#compile-optix-7-course)
@@ -5,18 +9,24 @@
 - [Comments on a GPU WS using CAS](#gpu-workstation-on-aws-cas)
 - [Copy&paste templates for common Git tasks](#git-for-short-copypaste)
 - [Exploring CUDA OpenGL interoperabillity](#cuda-opengl-interoperability)
-- [OptiX kernel profiling](#improving-performance)
+- [Improving performance](#improving-performance)
 - [List of findings considered relevant](#findings)
 - [List of links considered useful](#links)
+<br><br><br>
 
 ### Branches
-- `main` - main development branch (default)
-- `movie` - render multiple images to compose clip
-- `hitcorr` - calculate real intersection point on sphere
-- `objout` - provide triangle mesh inspection support
+|Name      |Comment                                      |
+|:---|:---|
+|`main`    |main development branch (default)            |
+|`hitcorr` |calculate real intersection point on sphere  |
+|`manastra`|OptiX port of RTOW to become RTWO (objective)|
+|`movie`   |render multiple images to compose clip       |
+|`objout`  |provide triangle mesh inspection support     |
+
+<br><br><br>
 
 ### Compile OptiX 7 course
-Steps below assume a working instance of the [RTXplay](https://github.com/otabuzzman/RTXplay) repository.
+Steps below assume a working instance of the [RTXplay](https://github.com/otabuzzman/RTXplay) repo.
 
 1. Install GLFW
   ```
@@ -45,6 +55,7 @@ Steps below assume a working instance of the [RTXplay](https://github.com/otabuz
   ./ex01_helloOptix
   ./ex02_pipelineAndRayGen
   ```
+<br><br><br>
 
 ### Simple GPU workstation on AWS (VNC)
 The faster RDP would have been a better approach but it's not compatible with Nvidia's GLX for Xorg (see [xrdp issues](https://github.com/neutrinolabs/xrdp/issues/721#issuecomment-293241800) *xorgxrdp driver not supporting Nvidia's GLX* [and](https://github.com/neutrinolabs/xrdp/issues/1550#issuecomment-614910727) *not seen that (Nvidia's GLX) work yet with xrdpdev*) which has been confirmed by tests with numerous configurations which all failed. Due to these obstacles and despite it is slow, falling back on VNC is considered ok because it works after all and it's only for testing anyway.
@@ -119,6 +130,7 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
   ```
 
   Try iOS version of VNC viewer
+<br><br><br>
 
 ### GPU workstation on AWS (CAS)
 CAS (Cloud Access Software) and PCoIP from Teradici allow for fast access of remote workstations via public networks.
@@ -130,6 +142,7 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
 
 #### Setup on Teradici CAS AMI
 Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-types/g4/) (`g4dn.xlarge`) with [Teradici Cloud Access Software for CentOS 7 AMI](https://aws.amazon.com/marketplace/pp/Teradici-Teradici-Cloud-Access-Software-for-CentOS/B07CT11PCQ).
+<br><br><br>
 
 ### Git for short (copy&paste)
 
@@ -187,6 +200,7 @@ Dangerous and therefore tricky but if you dare this [SO answer](https://stackove
 
   rm /usr/local/bin/git-reword-commit
   ```
+<br><br><br>
 
 ### CUDA OpenGL interoperability
 
@@ -260,46 +274,58 @@ Manually compiled sketch of code executed by `optixMeshViewer` to utilize GPU si
 #### CUDA sample `simpleGL´
 Files
 - `cuda_samples/cuda_samples/2_Graphics/simpleGL/simpleGL.cu`
+<br><br><br>
 
 ### Improving performance
 
 #### Low hanging fruits
-- Use iterate (default) instead of recurse
+- Use iterative instead of recursive raytracing
+
+  Repo contains programs (`*.cu`) for both but `Makefile` defaults to *iterative*.
   ```
   # to try recursive
   make lclean
-  CXXFLAGS=curand make
+  CXXFLAGS=-DRECURSIVE make
   ```
-- Use full (default) optimization (OPTIX_COMPILE_OPTIMIZATION_DEFAULT)
+- Use full optimization (`OPTIX_COMPILE_OPTIMIZATION_DEFAULT`) for module compilation
 - Use `Frand48` (default) instead of CUDA `curand` RNG
+
+  Code support both but `Makefile` defaults to `Frand48`.
   ```
   # try curand
   make lclean
-  CXXFLAGS=curand make
+  CXXFLAGS=-DCURAND make
   ```
 - Try `OPTIX_GEOMETRY_FLAG_NONE` instead of `OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT` (`rtwo.cxx`, `*.cu`)
 
-See [time series chart](https://docs.google.com/spreadsheets/d/1HAkMM2-QL5F1pwvjQTtyEAV1Zo2fghDp/edit?usp=sharing&ouid=100581696502355527803&rtpof=true&sd=true) for comparisons of various measures.
+  OptiX documentation and develper forum recommend use of `OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT` even if there is no Anyhit Program. See [time series chart](https://docs.google.com/spreadsheets/d/1HAkMM2-QL5F1pwvjQTtyEAV1Zo2fghDp/edit?usp=sharing&ouid=100581696502355527803&rtpof=true&sd=true) for comparisons of various measures.
 
 #### Kernel profiling with Nsight Compute
 - Install Nsight Compute 2021.2 (Windows version)
 - Nsight Compute CLI (`ncu`) is part od CUDA Toolkit
-- Prepare module compile options in OptiX app
+- Prepare module compile options in OptiX app (`rtwo.cxx`) and run NVCC with `-lineinfo` option (`Makefile`)
   ```
-  OptixModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO ; // or OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO
+  OptixModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO ; // or OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT
   ```
 
-- Provide `-lineinfo` option to NVCC (`Makefile`)
+- 
 - Run `ncu` on OptiX app (mind [developer forum thread on kernel selection](https://forums.developer.nvidia.com/t/optix-and-performance-counter-reports-in-nsight-compute/180642))
   ```
+  # ncu options:
+  # -k regex:raygen    : RG kernel to profile (cannot HG, MS etc.)
+  # --section regex:.* : record data for all sections (ncu -list-sections for all)
+  # -f                 : force overwrite report file
+  # -o rtwo            : report file (.ncu-rep auto-suffixed)
+
   ncu \
-    -k regex:raygen    \ # RG kernel to profile (cannot HG, MS etc.)
-    --section regex:.* \ # record data for all sections (ncu -list-sections for all)
-    -f                 \ # force overwrite report file
-    -o rtwo            \ # report file, .ncu-rep auto-suffixed
+    -k regex:raygen    \
+    --section regex:.* \
+    -f                 \
+    -o rtwo            \
     ./rtwo -q
 ```
-- Analyse report in GUI
+- Analyse report in Nsight Compute GUI
+<br><br><br>
 
 ### Findings
 1. Extracting optixTriangle from OptiX SDK samples. Code copied from `cuda/CUDAOutputBuffer.h` contained `cudaFree ( <d_pointer> ) ; cudaMalloc ( <d_pointer> ) ;`. Original code worked fine, copied code produced random background, thus apparently didn't execute miss program. Removing `cudaFree( <d_pointer> )` fixed it. Using `cudaFree` with a device pointer not allocated before is not allowed according to CUDA API reference. Question is why this worked in original CUDAOutputBuffer class implementation.
@@ -310,6 +336,7 @@ See [time series chart](https://docs.google.com/spreadsheets/d/1HAkMM2-QL5F1pwvj
 6. Code in a PTX file must contain any referenced objects (or variables). Calling a class member function from inside a shader (kernel) expects the class in question to be defined in the same .cu file (e.g. by including a header file containing the definition) or by a further .cu file given to NVCC on the command line when compiling to PTX.
 7. [Q&A on NVIDIA developer forum](https://forums.developer.nvidia.com/t/intersection-point/81612/7) on how to get a hit primitive's vertices in a closest hit shader. Using `optixGetGASTraversableHandle()` and related [might be bad for performance](https://raytracing-docs.nvidia.com/optix7/guide/index.html#device_side_functions#vertex-random-access). Passing device pointers pointing at primitive vertices and indices of `OptixBuildInput` objects (the *Things*) via SBT records thus recommended.
 8. [Front face in OptiX](https://forums.developer.nvidia.com/t/optix-triangle-hit-face/83511) is counter-clockwise in right-handed coordinate system (missing in OptiX documentation).
+<br><br><br>
 
 ### Links
 RTOW
