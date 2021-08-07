@@ -322,8 +322,7 @@ Files
     -f                 \
     -o rtwo            \
     ./rtwo -q
-```
-
+  ```
 - Analyse report in Nsight Compute GUI
 <br><br><br>
 
