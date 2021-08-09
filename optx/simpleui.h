@@ -5,11 +5,12 @@
 
 class SimpleUI {
 	public:
-		SimpleUI( const std::string& name, LpGeneral& lp_general ) ;
+		SimpleUI( const std::string& name, LpGeneral& lp_general, const bool smtrace = false ) ;
 		~SimpleUI() noexcept ( false ) ;
 
 		void render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) ;
-		void usage() const ;
+
+		static void usage() ;
 
 	private:
 		GLFWwindow* window_ ;

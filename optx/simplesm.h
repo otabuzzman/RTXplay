@@ -16,12 +16,6 @@ static const std::string stateName[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM
 enum class Event { ANM, BLR, DIR, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
 static const std::string eventName[] = { "ANM", "BLR", "DIR", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
-#ifdef SMTRACE
-static const bool smtrace = true ;
-#else
-static const bool smtrace = false ;
-#endif // SMTRACE
-
 struct SmParam {
 	LpGeneral             lp_general ;
 	GLuint                pbo ;
@@ -34,7 +28,7 @@ struct SmParam {
 
 class SimpleSM {
 	public:
-		SimpleSM( GLFWwindow* window ) ;
+		SimpleSM( GLFWwindow* window, const bool smtrace = false ) ;
 		~SimpleSM() ;
 
 		void transition( const Event& event ) ;
@@ -86,6 +80,9 @@ class SimpleSM {
 		} ;
 
 		void eaReject() ;
+
+		// trace SM events and state changes
+		bool smtrace_ ;
 } ;
 
 #endif // SIMPLESM_H

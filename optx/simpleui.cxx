@@ -30,7 +30,7 @@ static void keyCb      ( GLFWwindow* window, int key, int /*scancode*/, int act,
 extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
-SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
+SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const bool smtrace ) {
 	// initialize GLFW
 	GLFW_CHECK( glfwInit() ) ;
 
@@ -159,7 +159,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general ) {
 	// initialize FSM
 	glfwSetWindowUserPointer( window_, &smparam ) ;
 	smparam.lp_general = lp_general ;
-	simplesm = new SimpleSM( window_ ) ;
+	simplesm = new SimpleSM( window_, smtrace ) ;
 	// initialize CBT
 	GLFW_CHECK( glfwSetMouseButtonCallback( window_, mousecliqCb ) ) ;
 	GLFW_CHECK( glfwSetCursorPosCallback  ( window_, mousemoveCb ) ) ;
@@ -353,17 +353,17 @@ void glfwGetScroll( GLFWwindow* /*window*/, double* x, double* y ) {
 	*y = yscroll_ ;
 }
 
-void SimpleUI::usage() const {
-	std::cerr << "*** UI usage:\n\
+void SimpleUI::usage() {
+	std::cerr << "*** UI functions:\n\
   window resize        - change viewport dimensions\n\
   left button + move   - change camera position\n\
   right button + move  - change camera direction\n\
   right button + scoll - roll camera\n\
   'a' key              - toggle scene animation\n\
-  'z' key              - enter zoom mode (<ESC> to leave)\n\
-      scroll           - zoom in and out\n\
   'f' key              - enter focus mode (<ESC> to leave)\n\
       scroll           - change aperture\n\
+  'z' key              - enter zoom mode (<ESC> to leave)\n\
+      scroll           - zoom in and out\n\
   <ESC> key            - leave RTWO\n\
 " ;
 }

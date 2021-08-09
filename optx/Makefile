@@ -37,7 +37,6 @@ all: $(EXE) $(IMG)
 
 # preprocessor macros:
 # -DRECURSIVE - use recursive shaders instead of iterative
-# -DSMTRACE   - log events and state changes of FSM (stderr)
 # -DCURAND    - use CUDA RNG instead of rand48
 
 ifdef winos
