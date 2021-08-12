@@ -114,7 +114,7 @@ getopt.h:
 	ln $$(cygpath -w /usr/include/$@) $@
 
 args.exe: args.cxx
-	g++ -o $@ $< \
+	g++ -DMAIN -o $@ $< \
 
 else
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS

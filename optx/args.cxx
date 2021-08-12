@@ -5,7 +5,7 @@
 #include "args.h"
 
 Args::Args( const int argc, char* const* argv ) noexcept( false ) {
-	int c, i = 0 ;
+	int c, n = 0 ;
 
 	const char*         s_opts   = "g:a:s:d:vtqhp:" ;
 	const struct option l_opts[] = {
@@ -90,7 +90,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 			default: // -1
 				break ;
 		}
-	} while ( c>-1 && MAXOPT>i++ ) ;
+	} while ( c>-1 && MAXOPT>n++ ) ;
 }
 
 int Args::param_w( const int dEfault ) const { return 0>w_ ? dEfault : w_ ; }
@@ -109,14 +109,21 @@ void Args::usage() {
 	std::cerr << "Usage: rtwo [OPTION...]\n\
   `rtwo´ renders the image from Pete Shirley's Ray Tracing in One Weekend\n\
   tutorial using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
-  (PPM, PGM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
+  (PPM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
 \n\
   If the host execs an X server (GLX enabled) as well, `rtwo´ continuously\n\
   renders and displays results. A (rather) simple UI allows for basic\n\
   interactions.\n\
 \n\
-Example:\n\
-  rtwo | magick ppm:- rtwo.png # convert PPM into PNG\n\
+Examples:\n\
+  # convert image to PNG\n\
+  rtwo | magick ppm:- rtwo.png\n\
+\n\
+  # convert image and AOV (yields rtwo-0.png (image), rtwo-1.png (RPP))\n\
+  rtwo --print-aov RPP | magick - rtwo.png\n\
+\n\
+  # improve RPP contrast\n\
+  magick rtwo-1.png -autolevel -level 0%,25% rtwo-rpp.png\n\
 \n\
 Options:\n\
   -g, --geometry {<width>[x<height>]|RES}\n\
@@ -180,14 +187,15 @@ Options:\n\
     in list below) or pick particular AOVs (order as given).\n\
 \n\
     Available AOVs:\n\
-      RPP ( Rays per pixel) - Pixel values sum up total number of rays\n\
-                              that have been traced by each sample.\n\
+      RPP (Rays per pixel) - Pixel values sum up total number of rays\n\
+                             that have been traced by each sample (PGM).\n\
 \n\
     This option is not available in interactive mode.\n\
 \n\
 " ;
 }
 
+#ifdef MAIN
 int main( int argc, char* argv[] ) {
 	try {
 		Args args( argc, argv ) ;
@@ -217,3 +225,4 @@ int main( int argc, char* argv[] ) {
 
 	return 0 ;
 }
+#endif // MAIN

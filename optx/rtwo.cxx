@@ -632,9 +632,10 @@ int main( int argc, char* argv[] ) {
 						<< "P2\n" // magic PGM header
 						<< w << ' ' << h << '\n' << 65535 << '\n' ;
 
-					for ( auto p : rpp )
-						std::cout
-							<< p << '\n' ;
+					for ( int y = h-1 ; y>=0 ; --y )
+						for ( int x = 0 ; x<w ; ++x )
+							std::cout
+								<< rpp[w*y+x] << '\n' ;
 				}
 			}
 		}
