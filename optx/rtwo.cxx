@@ -545,6 +545,7 @@ int main( int argc, char* argv[] ) {
 		} else {
 			const int w = lp_general.image_w ;
 			const int h = lp_general.image_h ;
+			std::vector<unsigned int> rpp ;
 
 			{ // launch pipeline
 				CUstream cuda_stream ;
@@ -576,7 +577,6 @@ int main( int argc, char* argv[] ) {
 
 				{ // output statistics
 					long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-					std::vector<unsigned int> rpp ;
 					rpp.resize( w*h ) ;
 					CUDA_CHECK( cudaMemcpy(
 								reinterpret_cast<void*>( rpp.data() ),
@@ -623,6 +623,18 @@ int main( int argc, char* argv[] ) {
 							<< static_cast<int>( p.y ) << ' '
 							<< static_cast<int>( p.z ) << '\n' ;
 					}
+				}
+
+				// output AOV RPP (rays per pixel)
+				if ( args.flag_aov_rpp() ) {
+					std::cout
+						<< '\n'
+						<< "P2\n" // magic PGM header
+						<< w << ' ' << h << '\n' << 65535 << '\n' ;
+
+					for ( auto p : rpp )
+						std::cout
+							<< p << '\n' ;
 				}
 			}
 		}
