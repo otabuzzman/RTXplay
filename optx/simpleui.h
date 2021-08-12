@@ -5,7 +5,7 @@
 
 class SimpleUI {
 	public:
-		SimpleUI( const std::string& name, LpGeneral& lp_general, const bool smtrace = false ) ;
+		SimpleUI( const std::string& name, LpGeneral& lp_general, const bool tracesm = false ) ;
 		~SimpleUI() noexcept ( false ) ;
 
 		void render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) ;

@@ -28,7 +28,7 @@ struct SmParam {
 
 class SimpleSM {
 	public:
-		SimpleSM( GLFWwindow* window, const bool smtrace = false ) ;
+		SimpleSM( GLFWwindow* window, const bool tracesm = false ) ;
 		~SimpleSM() ;
 
 		void transition( const Event& event ) ;
@@ -82,7 +82,7 @@ class SimpleSM {
 		void eaReject() ;
 
 		// trace SM events and state changes
-		bool smtrace_ ;
+		bool tracesm_ ;
 } ;
 
 #endif // SIMPLESM_H

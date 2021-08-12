@@ -18,6 +18,7 @@ endif
 OBJ = \
 	glad.o \
 	rtwo.o \
+	args.o \
 	sphere.o \
 	camera_i.o \
 	optics_i.o \
@@ -101,10 +102,19 @@ LIB = \
 LD = nvcc
 
 # native OpenGL image viewer
-glxview.exe: glad.o vert.o frag.o | stb_image.h
-	g++ -o $@ glxview.cxx $^ \
+glxview.exe: glxview.cxx glad.o vert.o frag.o | stb_image.h
+	g++ -o $@ $^ \
 		-I. -I/usr/local/include \
 		-L/usr/local/lib -lglfw3 \
+
+# GNU getopt_long(3) missing on Windows
+args.o: getopt.h
+
+getopt.h:
+	ln $$(cygpath -w /usr/include/$@) $@
+
+args.exe: args.cxx
+	g++ -o $@ $< \
 
 else
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS
@@ -123,8 +133,8 @@ LIB = \
 LD = g++
 
 # interop'ed OpenGL image viewer
-glxview: glad.o vert.o frag.o | stb_image.h
-	nvcc -o $@ glxview.cxx $^ \
+glxview: glxview.cxx glad.o vert.o frag.o | stb_image.h
+	nvcc -o $@ $^ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \
 		$(LIB) \
@@ -171,9 +181,15 @@ endif
 eclean: clean
 	rm -f $(EXE) $(IMG)
 	rm -rf $(OPTIX_CACHE_PATH)
+ifdef winos
+	rm -f glxview.exe args.exe
+endif
 
 lclean: eclean
 	rm -rf glad KHR
+ifdef winos
+	rm -f getopt.h
+endif
 
 rclean: lclean
 	rm -f glad.zip stb_image.h

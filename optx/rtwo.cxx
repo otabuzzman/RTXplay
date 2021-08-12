@@ -15,6 +15,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include "args.h"
 #include "camera.h"
 #include "optics.h"
 #include "simpleui.h"
@@ -89,12 +90,27 @@ const Things scene() {
 	return s ;
 }
 
-int main() {
-	Things things = scene() ;
+int main( int argc, char* argv[] ) {
+	Args args( argc, argv ) ;
 
-	float aspratio = 3.f/2.f ;
+	if ( args.flag_help() ) {
+		Args::usage() ;
+		SimpleUI::usage() ;
+
+		return 0 ;
+	}
 
 	LpGeneral lp_general ;
+	lp_general.image_w = args.param_w( 1280 ) ;   // image width in pixels
+	lp_general.image_h = args.param_h( 720 )  ;   // image height in pixels
+	lp_general.spp     = args.param_spp( 50 ) ;   // samples per pixel
+#ifdef RECURSIVE
+	lp_general.depth   = args.param_depth( 16 ) ; // recursion depth
+#else
+	lp_general.depth   = args.param_depth( 50 ) ;
+#endif // RECURSIVE
+
+	float aspratio = static_cast<float>( lp_general.image_w )/static_cast<float>( lp_general.image_h ) ;
 	lp_general.camera.set(
 		{ 13.f, 2.f, 3.f } /*eye*/,
 		{  0.f, 0.f, 0.f } /*pat*/,
@@ -103,15 +119,6 @@ int main() {
 		aspratio,
 		.1f  /*aperture*/,
 		20.f /*distance*/ ) ;
-
-	lp_general.image_w = 1200 ;                                            // image width in pixels
-	lp_general.image_h = static_cast<int>( lp_general.image_w/aspratio ) ; // image height in pixels
-	lp_general.spp = 50 ;                                                  // samples per pixel
-#ifdef RECURSIVE
-	lp_general.depth = 16 ;                                                // recursion depth
-#else
-	lp_general.depth = 50 ;
-#endif // RECURSIVE
 
 	SbtRecordMS sbt_record_ambient ;
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;
@@ -125,7 +132,7 @@ int main() {
 
 			OptixDeviceContextOptions optx_options = {} ;
 			optx_options.logCallbackFunction       = &util::optxLogStderr ;
-			optx_options.logCallbackLevel          = 4 ;
+			optx_options.logCallbackLevel          = args.flag_verbose() ? 4 : 0 ;
 			optx_options.validationMode            = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL ;
 
 			// use current (0) CUDA context
@@ -136,9 +143,10 @@ int main() {
 
 
 		// build acceleration structure
-		CUdeviceptr              d_as_outbuf ;
+		CUdeviceptr d_as_outbuf ;
 		// acceleration structure compaction buffer
-//		CUdeviceptr              d_as_zipbuf ;
+//		CUdeviceptr d_as_zipbuf ;
+		Things things = scene() ;
 		{
 			// build input structures of things in scene
 			std::vector<OptixBuildInput> obi_things ;
@@ -532,9 +540,7 @@ int main() {
 		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
 		if ( display_dev>0 ) {
-			SimpleUI simpleui( "RTWO", lp_general ) ;
-			SimpleUI::usage() ;
-
+			SimpleUI simpleui( "RTWO", lp_general, args.flag_tracesm() ) ;
 			simpleui.render( pipeline, sbt ) ;
 		} else {
 			const int w = lp_general.image_w ;
@@ -594,8 +600,8 @@ int main() {
 
 
 			// output image
-			std::vector<uchar4> image ;
-			{
+			if ( ! args.flag_quiet() ) {
+				std::vector<uchar4> image ;
 				image.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(
 							reinterpret_cast<void*>( image.data() ),
@@ -642,7 +648,7 @@ int main() {
 
 			OPTX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
 		}
-	} catch ( std::exception& e ) {
+	} catch ( const std::exception& e ) {
 		std::cerr << "exception: " << e.what() << "\n" ;
 
 		return 1 ;
