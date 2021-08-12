@@ -30,6 +30,11 @@ static const std::map<std::string, res> res_ = {
 	{ "UHD-2",  { 7680, 4320 } }
 } ;
 
+#define AOV_RPP 0
+static const std::map<std::string, int> aov_ = {
+	{ "RPP", AOV_RPP }
+} ;
+
 class Args {
 	public:
 		Args( const int argc, char* const* argv ) noexcept( false ) ;
@@ -44,6 +49,8 @@ class Args {
 		bool flag_quiet() const ;
 		bool flag_tracesm() const ;
 
+		bool flag_aov_rpp() const ;
+
 		static void usage() ;
 
 	private:
@@ -51,10 +58,13 @@ class Args {
 		int h_       = -1 ;
 		int spp_     = -1 ;
 		int depth_   = -1 ;
+
 		int verbose_ =  0 ;
 		int help_    =  0 ;
 		int quiet_   =  0 ;
 		int tracesm_ =  0 ;
+
+		int aov_rpp_ = 0 ;
 } ;
 
 #endif // ARGS_H

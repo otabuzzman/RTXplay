@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include <getopt.h>
 
 #include "args.h"
@@ -64,6 +65,24 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 				help_  = 1 ;
 				break ;
 			case 'p':
+				{
+					std::vector<const char*> subopt{ optarg } ;
+					for ( int i = 0 ; optarg[i] != '\0' ; i++ )
+						if ( optarg[i] == ',' ) {
+							optarg[i] = '\0' ; // terminate subopt
+							subopt.push_back( &optarg[i+1] ) ;
+						}
+					for ( auto aov : subopt ) {
+						auto s = aov_.find( aov ) ;
+						if ( s != aov_.end() ) {
+							switch ( s->second ) {
+								case AOV_RPP:
+									aov_rpp_ = 1 ;
+									break ;
+							}
+						}
+					}
+				}
 				break ;
 			case '?':
 				throw std::invalid_argument( "try 'rtwo --help' for more information." ) ;
@@ -84,26 +103,28 @@ bool Args::flag_help() const { return help_>0 ? true : false ; }
 bool Args::flag_quiet() const { return quiet_>0 ? true : false ; }
 bool Args::flag_tracesm() const { return tracesm_>0 ? true : false ; }
 
+bool Args::flag_aov_rpp() const { return aov_rpp_>0 ? true : false ; }
+
 void Args::usage() {
 	std::cerr << "Usage: rtwo [OPTION...]\n\
-  `rtwo´ renders the image from Pete Shirley‘s Ray Tracing in One Weekend\n\
-  tutorial using NVIDIA’s OptiX Ray Tracing Engine and pipes the PPM (P3)\n\
-  result to stdout for easy batch post-processing (e.g. ImageMagick).\n\
+  `rtwo´ renders the image from Pete Shirley's Ray Tracing in One Weekend\n\
+  tutorial using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
+  (PPM, PGM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
 \n\
   If the host execs an X server (GLX enabled) as well, `rtwo´ continuously\n\
   renders and displays results. A (rather) simple UI allows for basic\n\
   interactions.\n\
 \n\
 Example:\n\
-  rtwo | magick ppm:- rtwo.png # convert P3 into PNG\n\
+  rtwo | magick ppm:- rtwo.png # convert PPM into PNG\n\
 \n\
 Options:\n\
-  -g, --geometry {<width>[x<height>]|PRE}\n\
+  -g, --geometry {<width>[x<height>]|RES}\n\
     Set image resolution to particular dimensions or substitute RES with\n\
     a predefined value. In case of X server exec'ing, this option defines\n\
     initial values that will change on resizing the window.\n\
 \n\
-    Prefedined values for PRE:\n\
+    Prefedined values for RES:\n\
       CGA    - 320x200      8:5\n\
       HVGA   - 480x320      3:2\n\
       VGA    - 640x480      4:3\n\
@@ -122,7 +143,7 @@ Options:\n\
       UWQHD  - 3440x1440  ~21:9\n\
       UHD-1  - 3840x2160   16:9\n\
       4K     - 4096x2160  ~17:9\n\
-      5K-UW  - 5120x2160  ~21:9 (5K Ultrawide)\n\
+      5K-UW  - 5120x2160  ~21:9\n\
       5K     - 5120x2880   16:9\n\
       UHD-2  - 7680x4320   16:9\n\
 \n\
@@ -154,7 +175,7 @@ Options:\n\
   -h, --help, --usage\n\
     Print this help. Takes precedence over any other options\n\
 \n\
-  -p, --print-aov [<AOV>[, ...]]\n\
+  -p, --print-aov [<AOV>[,...]]\n\
     Print AOVs after image on stdout. Print all if no AOVs given (order as\n\
     in list below) or pick particular AOVs (order as given).\n\
 \n\
@@ -163,7 +184,7 @@ Options:\n\
                               that have been traced by each sample.\n\
 \n\
     This option is not available in interactive mode.\n\
-\n\\n\
+\n\
 " ;
 }
 
@@ -171,18 +192,23 @@ int main( int argc, char* argv[] ) {
 	try {
 		Args args( argc, argv ) ;
 
-		if ( args.flag_help() )
+		if ( args.flag_help() ) {
 			Args::usage() ;
+
+			return 0 ;
+		}
 
 		std::cout << "geometry : " << args.param_w    ( 4711 ) << "x" << args.param_h( 4711 ) << std::endl ;
 		std::cout << "spp : "      << args.param_spp  ( 4711 ) << std::endl ;
 		std::cout << "depth : "    << args.param_depth( 4711 ) << std::endl ;
 
-		std::cout << "verbose "  << ( args.flag_verbose() ? "set" : "not set" ) << std::endl ;
-		std::cout << "help "     << ( args.flag_help()    ? "set" : "not set" ) << std::endl ;
-		std::cout << "quiet "    << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
-		std::cout << "silent "   << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
-		std::cout << "trace-sm " << ( args.flag_tracesm() ? "set" : "not set" ) << std::endl ;
+		std::cout << "verbose "    << ( args.flag_verbose() ? "set" : "not set" ) << std::endl ;
+		std::cout << "help "       << ( args.flag_help()    ? "set" : "not set" ) << std::endl ;
+		std::cout << "quiet "      << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
+		std::cout << "silent "     << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
+		std::cout << "trace-sm "   << ( args.flag_tracesm() ? "set" : "not set" ) << std::endl ;
+
+		std::cout << "aov RPP "    << ( args.flag_aov_rpp() ? "set" : "not set" ) << std::endl ;
 	} catch ( const std::invalid_argument& e ) {
 		std::cerr << e.what() << std::endl ;
 
