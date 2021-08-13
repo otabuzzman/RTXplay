@@ -30,7 +30,7 @@ static void keyCb      ( GLFWwindow* window, int key, int /*scancode*/, int act,
 extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
-SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const bool tracesm ) {
+SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& args ) : args_( args ) {
 	// initialize GLFW
 	GLFW_CHECK( glfwInit() ) ;
 
@@ -159,7 +159,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const bool t
 	// initialize FSM
 	glfwSetWindowUserPointer( window_, &smparam ) ;
 	smparam.lp_general = lp_general ;
-	simplesm = new SimpleSM( window_, tracesm ) ;
+	simplesm = new SimpleSM( window_, args_ ) ;
 	// initialize CBT
 	GLFW_CHECK( glfwSetMouseButtonCallback( window_, mousecliqCb ) ) ;
 	GLFW_CHECK( glfwSetCursorPosCallback  ( window_, mousemoveCb ) ) ;
@@ -219,7 +219,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
 		auto t2 = std::chrono::high_resolution_clock::now() ;
 
-		{ // output statistics
+		if ( args_.flag_statinf() ) { // output statistics
 			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t2-t1 ).count() ;
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;

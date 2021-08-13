@@ -48,6 +48,7 @@ class Args {
 		bool flag_help() const ;
 		bool flag_quiet() const ;
 		bool flag_tracesm() const ;
+		bool flag_statinf() const ;
 
 		bool flag_aov_rpp() const ;
 
@@ -63,6 +64,7 @@ class Args {
 		int help_    =  0 ;
 		int quiet_   =  0 ;
 		int tracesm_ =  0 ;
+		int statinf_ =  0 ;
 
 		int aov_rpp_ = 0 ;
 } ;

@@ -7,7 +7,7 @@
 Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 	int c, n = 0 ;
 
-	const char*         s_opts   = "g:a:s:d:vtqhp:" ;
+	const char*         s_opts   = "g:a:s:d:vtqhA:S" ;
 	const struct option l_opts[] = {
 		{ "geometry",          required_argument, 0, 'g' },
 		{ "aspect-ratio",      required_argument, 0, 'a' },
@@ -19,7 +19,8 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		{ "silent",            no_argument, &quiet_,   1 },
 		{ "help",              no_argument, &help_,    1 },
 		{ "usage",             no_argument, &help_,    1 },
-		{ "print-aov",         required_argument, 0, 'p' },
+		{ "print-aov",         required_argument, 0, 'A' },
+		{ "print-statistics",  no_argument, &statinf_, 1 },
 		{ 0, 0, 0, 0 }
 	} ;
 
@@ -64,7 +65,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 			case 'h':
 				help_  = 1 ;
 				break ;
-			case 'p':
+			case 'A':
 				{
 					std::vector<const char*> subopt{ optarg } ;
 					for ( int i = 0 ; optarg[i] != '\0' ; i++ )
@@ -84,6 +85,9 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 					}
 				}
 				break ;
+			case 'S':
+				statinf_ = 1 ;
+				break ;
 			case '?':
 				throw std::invalid_argument( "try 'rtwo --help' for more information." ) ;
 				break ;
@@ -102,6 +106,7 @@ bool Args::flag_verbose() const { return verbose_>0 ? true : false ; }
 bool Args::flag_help() const { return help_>0 ? true : false ; }
 bool Args::flag_quiet() const { return quiet_>0 ? true : false ; }
 bool Args::flag_tracesm() const { return tracesm_>0 ? true : false ; }
+bool Args::flag_statinf() const { return statinf_>0 ? true : false ; }
 
 bool Args::flag_aov_rpp() const { return aov_rpp_>0 ? true : false ; }
 
@@ -116,13 +121,13 @@ void Args::usage() {
   interactions.\n\
 \n\
 Examples:\n\
-  # convert image to PNG\n\
-  rtwo | magick ppm:- rtwo.png\n\
+  # render and convert image to PNG. Print statistical information.\n\
+  rtwo -S | magick ppm:- rtwo.png\n\
 \n\
-  # convert image and AOV (yields rtwo-0.png (image), rtwo-1.png (RPP))\n\
+  # convert image and AOV (yields rtwo-0.png (image), rtwo-1.png (RPP)).\n\
   rtwo --print-aov RPP | magick - rtwo.png\n\
 \n\
-  # improve RPP contrast\n\
+  # improve AOV RPP contrast.\n\
   magick rtwo-1.png -autolevel -level 0%,25% rtwo-rpp.png\n\
 \n\
 Options:\n\
@@ -177,12 +182,12 @@ Options:\n\
 \n\
   -q, --quiet, --silent\n\
     Omit result output on stdout. This option takes precedence over\n\
-    -p, --print-aov options.\n\
+    -A, --print-aov options.\n\
 \n\
   -h, --help, --usage\n\
     Print this help. Takes precedence over any other options\n\
 \n\
-  -p, --print-aov [<AOV>[,...]]\n\
+  -A, --print-aov [<AOV>[,...]]\n\
     Print AOVs after image on stdout. Print all if no AOVs given (order as\n\
     in list below) or pick particular AOVs (order as given).\n\
 \n\
@@ -192,10 +197,14 @@ Options:\n\
 \n\
     This option is not available in interactive mode.\n\
 \n\
+  -S, --print-statistics\n\
+    Print statistical information on stderr.\n\
+\n\
 " ;
 }
 
 #ifdef MAIN
+
 int main( int argc, char* argv[] ) {
 	try {
 		Args args( argc, argv ) ;
@@ -206,17 +215,18 @@ int main( int argc, char* argv[] ) {
 			return 0 ;
 		}
 
-		std::cout << "geometry : " << args.param_w    ( 4711 ) << "x" << args.param_h( 4711 ) << std::endl ;
-		std::cout << "spp : "      << args.param_spp  ( 4711 ) << std::endl ;
-		std::cout << "depth : "    << args.param_depth( 4711 ) << std::endl ;
+		std::cout << "geometry   : " << args.param_w    ( 4711 ) << "x" << args.param_h( 4711 ) << std::endl ;
+		std::cout << "spp        : " << args.param_spp  ( 4711 ) << std::endl ;
+		std::cout << "depth      : " << args.param_depth( 4711 ) << std::endl ;
 
-		std::cout << "verbose "    << ( args.flag_verbose() ? "set" : "not set" ) << std::endl ;
-		std::cout << "help "       << ( args.flag_help()    ? "set" : "not set" ) << std::endl ;
-		std::cout << "quiet "      << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
-		std::cout << "silent "     << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
-		std::cout << "trace-sm "   << ( args.flag_tracesm() ? "set" : "not set" ) << std::endl ;
+		std::cout << "verbose    : " << ( args.flag_verbose() ? "set" : "not set" ) << std::endl ;
+		std::cout << "help       : " << ( args.flag_help()    ? "set" : "not set" ) << std::endl ;
+		std::cout << "quiet      : " << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
+		std::cout << "silent     : " << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
+		std::cout << "trace-sm   : " << ( args.flag_tracesm() ? "set" : "not set" ) << std::endl ;
+		std::cout << "statistics : " << ( args.flag_statinf() ? "set" : "not set" ) << std::endl ;
 
-		std::cout << "aov RPP "    << ( args.flag_aov_rpp() ? "set" : "not set" ) << std::endl ;
+		std::cout << "aov RPP    : " << ( args.flag_aov_rpp() ? "set" : "not set" ) << std::endl ;
 	} catch ( const std::invalid_argument& e ) {
 		std::cerr << e.what() << std::endl ;
 
@@ -225,4 +235,5 @@ int main( int argc, char* argv[] ) {
 
 	return 0 ;
 }
+
 #endif // MAIN

@@ -540,7 +540,7 @@ int main( int argc, char* argv[] ) {
 		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
 		if ( display_dev>0 ) {
-			SimpleUI simpleui( "RTWO", lp_general, args.flag_tracesm() ) ;
+			SimpleUI simpleui( "RTWO", lp_general, args ) ;
 			simpleui.render( pipeline, sbt ) ;
 		} else {
 			const int w = lp_general.image_w ;
@@ -575,7 +575,7 @@ int main( int argc, char* argv[] ) {
 				CUDA_CHECK( cudaDeviceSynchronize() ) ;
 				auto t1 = std::chrono::high_resolution_clock::now() ;
 
-				{ // output statistics
+				if ( args.flag_statinf() ) { // output statistics
 					long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 					rpp.resize( w*h ) ;
 					CUDA_CHECK( cudaMemcpy(
@@ -635,7 +635,7 @@ int main( int argc, char* argv[] ) {
 					for ( int y = h-1 ; y>=0 ; --y )
 						for ( int x = 0 ; x<w ; ++x )
 							std::cout
-								<< rpp[w*y+x] << '\n' ;
+								<< rpp.data()[w*y+x] << '\n' ;
 				}
 			}
 		}
