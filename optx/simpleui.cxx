@@ -299,9 +299,12 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			GLFW_CHECK( glfwPollEvents() ) ;
 		} else
 			GLFW_CHECK( glfwWaitEvents() ) ;
-		auto t3 = std::chrono::high_resolution_clock::now() ;
-		long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
-		fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
+
+		if ( args_.flag_statinf() ) { // output statistics
+			auto t3 = std::chrono::high_resolution_clock::now() ;
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
+		}
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
 }
 

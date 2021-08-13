@@ -128,7 +128,7 @@ Examples:\n\
   rtwo --print-aov RPP | magick - rtwo.png\n\
 \n\
   # improve AOV RPP contrast.\n\
-  magick rtwo-1.png -autolevel -level 0%,25% rtwo-rpp.png\n\
+  magick rtwo-1.png -auto-level -level 0%,25% rtwo-rpp.png\n\
 \n\
 Options:\n\
   -g, --geometry {<width>[x<height>]|RES}\n\

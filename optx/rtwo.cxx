@@ -627,6 +627,17 @@ int main( int argc, char* argv[] ) {
 
 				// output AOV RPP (rays per pixel)
 				if ( args.flag_aov_rpp() ) {
+					if ( rpp.size() == 0 ) {
+						rpp.resize( w*h ) ;
+						CUDA_CHECK( cudaMemcpy(
+									reinterpret_cast<void*>( rpp.data() ),
+									lp_general.rpp,
+									w*h*sizeof( unsigned int ),
+									cudaMemcpyDeviceToHost
+									) ) ;
+						CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
+					}
+
 					std::cout
 						<< '\n'
 						<< "P2\n" // magic PGM header
