@@ -118,7 +118,7 @@ int main( int argc, char* argv[] ) {
 		20.f /*fov*/,
 		aspratio,
 		.1f  /*aperture*/,
-		20.f /*distance*/ ) ;
+		20.f /*focus distance*/ ) ;
 
 	SbtRecordMS sbt_record_ambient ;
 	sbt_record_ambient.data = { .5f, .7f, 1.f } ;

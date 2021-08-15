@@ -7,7 +7,7 @@ class Camera {
 	public:
 		Camera() {} ;
 
-		void set( const P& eye, const P& pat, const V& vup, const double fov, const double aspratio, const double aperture, const double distance ) {
+		void set( const P& eye, const P& pat, const V& vup, const double fov, const double aspratio, const double aperture, const double fostance ) {
 			eye_       = eye ;
 			aperture_  = aperture ;
 
@@ -15,17 +15,19 @@ class Camera {
 			u_ = unitV( cross( vup, w_ ) ) ;
 			v_ = cross( w_, u_ ) ;
 
-			auto hlen = 2.*tan( .5*fov*kPi/180. ) ; // virtual viewport height
-			auto wlen = hlen*aspratio ;             // virtual viewport width
-			hvec_ = distance*hlen/2.*v_ ;
-			wvec_ = distance*wlen/2.*u_ ;
+			auto h = 2.*tan( .5*fov*kPi/180. ) ; // focus plane (virtual viewport) height
+			auto w = h*aspratio ;                // focus plane width
+			hvec_ = fostance*h/2.*v_ ; // focus plane height vector
+			wvec_ = fostance*w/2.*u_ ; // focus plane width vector
+			dvec_ = fostance     *w_ ; // lens/ focus plane distance vector (focus distance)
 		}
 
 		Ray ray( const double s, const double t ) const {
+			// defocus blur (depth of field)
 			V r = aperture_/2.*rndVin1disk() ;
-			V o = eye_+r.x()*u_+r.y()*v_ ;
+			V o = r.x()*u_+r.y()*v_ ;
 
-			return Ray( o, s*wvec_+t*hvec_-o ) ;
+			return Ray( eye_+o, s*wvec_+t*hvec_-dvec_-o ) ;
 		}
 
 	private:
@@ -35,6 +37,7 @@ class Camera {
 		V u_, v_, w_ ;     // camera coordinate system
 		V hvec_ ;          // virtual viewport height vector
 		V wvec_ ;          // virtual viewport width vector
+		V dvec_ ;          // lens/ focus plane fostance vector (focus fostance)
 } ;
 
 #endif // CAMERA_H

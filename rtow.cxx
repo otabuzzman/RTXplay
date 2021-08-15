@@ -93,18 +93,18 @@ const Things scene() {
 int main() {
 	Things things = ::scene() ;
 
-	double aspratio = 3./2. ;
+	double aspratio = 16./9. ;
 
-	P eye( 13, 2, 3 ) ;
-	P pat( 0, 0, 0 ) ;
-	V vup( 0, 1, 0 ) ;
+	P eye( 13., 2., 3. ) ; /*eye*/
+	P pat(  0., 0., 0. ) ; /*pat*/
+	V vup(  0., 1., 0. ) ; /*vup*/
 	double aperture = .1 ;
-	double distance = 20. ;
+	double fostance = 20. ; // focus distance
 
 	Camera camera ;
-	camera.set( eye, pat, vup, 20., aspratio, aperture, distance ) ;
+	camera.set( eye, pat, vup, 20., aspratio, aperture, fostance ) ;
 
-	const int w = 1200 ;                           // image width in pixels
+	const int w = 1280 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
 	const int spp = 10 ;                           // samples per pixel
 	const int depth = 50 ;                         // recursion depth
