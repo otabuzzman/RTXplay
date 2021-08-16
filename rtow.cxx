@@ -5,23 +5,12 @@
 
 const std::string sRGB( const C color ) {
 	char pp3[16] ;
-
-	sprintf( pp3, "%d %d %d",
-		static_cast<int>( 255*color.x() ),
-		static_cast<int>( 255*color.y() ),
-		static_cast<int>( 255*color.z() ) ) ;
-
-	return std::string( pp3 ) ;
-}
-
-const std::string sRGB( const C color, int spp ) {
-	char pp3[16] ;
 	auto r = color.x() ;
 	auto g = color.y() ;
 	auto b = color.z() ;
 
-	auto s = 1./spp ;
-	r = sqrt( s*r ) ; g = sqrt( s*g ) ; b = sqrt( s*b ) ;
+	// sRGB approximation with gamma 2
+	r = sqrt( r ) ; g = sqrt( g ) ; b = sqrt( b ) ;
 
 	sprintf( pp3, "%d %d %d",
 		static_cast<int>( 256*clamp( r, 0, .999 ) ),
@@ -127,7 +116,7 @@ int main() {
 				color += trace( ray, things, depth ) ;
 			}
 			std::cout
-				<< sRGB( color, spp ) << '\n' ;
+				<< sRGB( color/spp ) << '\n' ;
 		}
 	}
 }
