@@ -116,7 +116,7 @@ int main() {
 				color += trace( ray, things, depth ) ;
 			}
 			std::cout
-				<< sRGB( color, spp ) << '\n' ;
+				<< sRGB( color/spp ) << '\n' ;
 		}
 	}
 }
