@@ -24,9 +24,9 @@ class Camera {
 
 		Ray ray( const double s, const double t ) const {
 			V r = lens_*rndVin1disk() ;
-			V o = eye_+r.x()*u_+r.y()*v_ ;
+			V o = r.x()*u_+r.y()*v_ ;
 
-			return Ray( o, dist_*( s*wvec_+t*hvec_ )-o ) ;
+			return Ray( eye_+o, dist_*( s*wvec_+t*hvec_-w_ )-o ) ;
 		}
 
 	private:

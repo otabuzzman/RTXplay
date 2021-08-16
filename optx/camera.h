@@ -32,10 +32,10 @@ class Camera {
 
 		__device__ void ray( const float s, const float t, float3& ori, float3& dir, curandState* state ) const {
 			const float3 r = lens_*V::rndVin1disk( state ) ;
-			const float3 o = eye_+r.x*u_+r.y*v_ ;
+			const float3 o = r.x*u_+r.y*v_ ;
 
-			ori = o ;
-			dir = dist_*( s*wvec_+t*hvec_ )-o ;
+			ori = eye_+o ;
+			dir = dist_*( s*wvec_+t*hvec_-w_ )-o ;
 		} ;
 
 #endif
