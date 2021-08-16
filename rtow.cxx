@@ -99,7 +99,7 @@ int main() {
 	P pat(  0., 0., 0. ) ; /*pat*/
 	V vup(  0., 1., 0. ) ; /*vup*/
 	double aperture = .1 ;
-	double fostance = 20. ; // focus distance
+	double fostance = 10. ; // focus distance
 
 	Camera camera ;
 	camera.set( eye, pat, vup, 20., aspratio, aperture, fostance ) ;
