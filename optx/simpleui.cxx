@@ -197,7 +197,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam.glx, cuda_stream ) ) ;
-		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->beauty ), &lp_general_image_size, smparam.glx ) ) ;
+		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, smparam.glx ) ) ;
 		CUDA_CHECK( cudaMemcpy(
 			reinterpret_cast<void*>( d_lp_general ),
 			lp_general,

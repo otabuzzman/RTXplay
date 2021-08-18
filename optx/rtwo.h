@@ -2,7 +2,7 @@
 #define RTWO_H
 
 struct LpGeneral { // launch parameter
-	uchar4*                image ;
+	float3*                image ;
 	unsigned int           image_w ;
 	unsigned int           image_h ;
 
@@ -14,9 +14,6 @@ struct LpGeneral { // launch parameter
 	OptixTraversableHandle as_handle ;
 
 	unsigned int*          rpp ;   // rays per pixel
-
-	// denoiser
-	float3*                beauty ; // output buffer
 } ;
 
 template <typename T>

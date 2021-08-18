@@ -551,7 +551,7 @@ int main( int argc, char* argv[] ) {
 				CUstream cuda_stream ;
 				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.beauty ), sizeof( float3 )*w*h ) ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( float3 )*w*h ) ) ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
 				CUdeviceptr d_lp_general ;
@@ -605,11 +605,11 @@ int main( int argc, char* argv[] ) {
 				image.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(
 							reinterpret_cast<void*>( image.data() ),
-							lp_general.beauty,
+							lp_general.image,
 							w*h*sizeof( float3 ),
 							cudaMemcpyDeviceToHost
 							) ) ;
-				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.beauty ) ) ) ;
+				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
 
 				std::cout
 					<< "P3\n" // magic PPM header
