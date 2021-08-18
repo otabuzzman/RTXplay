@@ -14,9 +14,9 @@ extern "C" { __constant__ LpGeneral lp_general ; }
 
 static __forceinline__ __device__ float3 sRGB( const float3& color ) {
 	return make_float3( // sRGB approximation with gamma 2
-		(unsigned char) ( util::clamp( sqrtf( color.x ), .0f, 1.f ) ),
-		(unsigned char) ( util::clamp( sqrtf( color.y ), .0f, 1.f ) ),
-		(unsigned char) ( util::clamp( sqrtf( color.z ), .0f, 1.f ) ) ) ;
+		util::clamp( sqrtf( color.x ), .0f, 1.f ),
+		util::clamp( sqrtf( color.y ), .0f, 1.f ),
+		util::clamp( sqrtf( color.z ), .0f, 1.f ) ) ;
 }
 
 extern "C" __global__ void __raygen__camera() {
