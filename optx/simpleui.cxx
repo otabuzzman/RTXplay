@@ -144,7 +144,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam.pbo ) ) ;
 	GL_CHECK( glBufferData(
 		GL_ARRAY_BUFFER,
-		sizeof( uchar4 )*w*h,
+		sizeof( float3 )*w*h,
 		nullptr,
 		GL_STATIC_DRAW
 		) ) ;
@@ -197,7 +197,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam.glx, cuda_stream ) ) ;
-		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, smparam.glx ) ) ;
+		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->beauty ), &lp_general_image_size, smparam.glx ) ) ;
 		CUDA_CHECK( cudaMemcpy(
 			reinterpret_cast<void*>( d_lp_general ),
 			lp_general,
@@ -253,14 +253,14 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		GL_CHECK( glPixelStorei( GL_UNPACK_ALIGNMENT, 1 ) ) ;
 		GL_CHECK( glTexImage2D(
 			GL_TEXTURE_2D,
-			0,                // for mipmap level
-			GL_RGBA8,         // texture color components
+			0,        // for mipmap level
+			GL_RGB,   // texture color components
 			w,
 			h,
 			0,
-			GL_RGBA,          // pixel data format
-			GL_UNSIGNED_BYTE, // pixel data type
-			nullptr           // data in GL_PIXEL_UNPACK_BUFFER (pbo)
+			GL_RGB,   // pixel data format
+			GL_FLOAT, // pixel data type
+			nullptr   // data in GL_PIXEL_UNPACK_BUFFER (pbo)
 			) ) ;
 		GL_CHECK( glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 ) ) ;
 

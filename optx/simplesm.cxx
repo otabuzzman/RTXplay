@@ -232,7 +232,7 @@ void SimpleSM::eaCtlRsz() {
 		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam->pbo ) ) ;
 		GL_CHECK( glBufferData(
 			GL_ARRAY_BUFFER,
-			sizeof( uchar4 )*w*h,
+			sizeof( float3 )*w*h,
 			nullptr,
 			GL_STATIC_DRAW
 			) ) ;
