@@ -1,10 +1,3 @@
-#include <optix.h>
-
-#include "camera.h"
-#include "thing.h"
-
-#include "rtwo.h"
-
 // sRGB conversion according to https://en.wikipedia.org/wiki/SRGB
 static __forceinline__ __device__ void sRGB( const float3& rgb, float3& srgb ) {
 	srgb.x = rgb.x<.0031308f ? 12.92f*rgb.x : 1.055f*powf( rgb.x, 1.f/2.4f )-.055f ;
