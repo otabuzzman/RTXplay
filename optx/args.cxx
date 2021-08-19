@@ -7,7 +7,7 @@
 Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 	int c, n = 0 ;
 
-	const char*         s_opts   = "g:a:s:d:vtqhA:S" ;
+	const char*         s_opts   = "g:a:s:d:vtqhA:SD:" ;
 	const struct option l_opts[] = {
 		{ "geometry",          required_argument, 0, 'g' },
 		{ "aspect-ratio",      required_argument, 0, 'a' },
@@ -21,6 +21,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		{ "usage",             no_argument, &help_,    1 },
 		{ "print-aov",         required_argument, 0, 'A' },
 		{ "print-statistics",  no_argument, &statinf_, 1 },
+		{ "denoise",           required_argument, 0, 'D' },
 		{ 0, 0, 0, 0 }
 	} ;
 
@@ -81,12 +82,29 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 									aov_rpp_ = 1 ;
 									break ;
 							}
-						}
+						} else
+							std::cerr << argv[0] << ": unknown argument for option A ignored -- " << aov << std::endl ;
 					}
 				}
 				break ;
 			case 'S':
 				statinf_ = 1 ;
+				break ;
+			case 'D':
+				{
+					auto s = dns_.find( optarg ) ;
+					if ( s != dns_.end() ) {
+						switch ( s->second ) {
+							case DNS_SMP:
+							case DNS_NRM:
+							case DNS_ALB:
+							case DNS_NAA:
+								denoiser_ = s->second ;
+								break ;
+						}
+					} else
+						std::cerr << argv[0] << ": unknown argument for option D ignored -- " << optarg << std::endl ;
+				}
 				break ;
 			case '?':
 				throw std::invalid_argument( "try 'rtwo --help' for more information." ) ;
@@ -97,18 +115,19 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 	} while ( c>-1 && MAXOPT>n++ ) ;
 }
 
-int Args::param_w( const int dEfault ) const { return 0>w_ ? dEfault : w_ ; }
-int Args::param_h( const int dEfault ) const { return 0>h_ ? dEfault : h_ ; }
-int Args::param_spp  ( const int dEfault ) const { return 0>spp_   ? dEfault : spp_ ; }
+int Args::param_w( const int dEfault )     const { return 0>w_ ? dEfault : w_ ; }
+int Args::param_h( const int dEfault )     const { return 0>h_ ? dEfault : h_ ; }
+int Args::param_spp  ( const int dEfault ) const { return 0>spp_   ? dEfault : spp_   ; }
 int Args::param_depth( const int dEfault ) const { return 0>depth_ ? dEfault : depth_ ; }
+int Args::param_denoiser()                 const { return denoiser_ ; }
 
-bool Args::flag_verbose() const { return verbose_>0 ? true : false ; }
-bool Args::flag_help() const { return help_>0 ? true : false ; }
-bool Args::flag_quiet() const { return quiet_>0 ? true : false ; }
-bool Args::flag_tracesm() const { return tracesm_>0 ? true : false ; }
-bool Args::flag_statinf() const { return statinf_>0 ? true : false ; }
+bool Args::flag_verbose() const { return verbose_>0 ; }
+bool Args::flag_help()    const { return help_>0    ; }
+bool Args::flag_quiet()   const { return quiet_>0   ; }
+bool Args::flag_tracesm() const { return tracesm_>0 ; }
+bool Args::flag_statinf() const { return statinf_>0 ; }
 
-bool Args::flag_aov_rpp() const { return aov_rpp_>0 ? true : false ; }
+bool Args::flag_aov_rpp() const { return aov_rpp_ != AOV_NONE ; }
 
 void Args::usage() {
 	std::cerr << "Usage: rtwo [OPTION...]\n\
@@ -187,18 +206,36 @@ Options:\n\
   -h, --help, --usage\n\
     Print this help. Takes precedence over any other options\n\
 \n\
-  -A, --print-aov [<AOV>[,...]]\n\
+  -A, --print-aov <AOV>[,...]\n\
     Print AOVs after image on stdout. Print all if no AOVs given (order as\n\
     in list below) or pick particular AOVs (order as given).\n\
 \n\
     Available AOVs:\n\
-      RPP (Rays per pixel) - Pixel values sum up total number of rays\n\
-                             that have been traced by each sample (PGM).\n\
+      RPP (Rays per pixel) - Sort of AOV. Pixel values sum up total number of\n\
+                             rays that have been traced by each sample (PGM).\n\
 \n\
     This option is not available in interactive mode.\n\
 \n\
   -S, --print-statistics\n\
     Print statistical information on stderr.\n\
+\n\
+  -D, --denoise <TYP>\n\
+    Apply denoiser type TYP after rendering. Denoiser usage implies\n\
+    rendering with 1 sample per pixel. Output in batch mode is a denoised\n\
+    image rendered with 1 SPP.\n\
+    In interactive mode denoising is applied in scene animation and while\n\
+    moving camera position and direction, zooming, etc. When finished there is\n\
+    one more still rendering with SPP as given by --samples-per-pixels\n\
+    or default.\n\
+\n\
+    Available denoiser for TYP:\n\
+      SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feed raw RGB\n\
+            rendering result into denoiser and retrieve result.\n\
+      NRM - Simple type plus hit point normals.\n\
+      ALB - Simple type plus albedo values for hit point.\n\
+      NAA - Simple type plus normals and albedos.\n\
+      AOV - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV. Might improve\n\
+            denoising result even if no AOVs provided\n\
 \n\
 " ;
 }
@@ -215,9 +252,10 @@ int main( int argc, char* argv[] ) {
 			return 0 ;
 		}
 
-		std::cout << "geometry   : " << args.param_w    ( 4711 ) << "x" << args.param_h( 4711 ) << std::endl ;
-		std::cout << "spp        : " << args.param_spp  ( 4711 ) << std::endl ;
-		std::cout << "depth      : " << args.param_depth( 4711 ) << std::endl ;
+		std::cout << "geometry   : " << args.param_w       ( 4711 ) << "x" << args.param_h( 4711 ) << std::endl ;
+		std::cout << "spp        : " << args.param_spp     ( 4711 ) << std::endl ;
+		std::cout << "depth      : " << args.param_depth   ( 4711 ) << std::endl ;
+		std::cout << "denoiser   : " << args.param_denoiser() << std::endl ;
 
 		std::cout << "verbose    : " << ( args.flag_verbose() ? "set" : "not set" ) << std::endl ;
 		std::cout << "help       : " << ( args.flag_help()    ? "set" : "not set" ) << std::endl ;

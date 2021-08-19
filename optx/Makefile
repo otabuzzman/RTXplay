@@ -24,6 +24,7 @@ OBJ = \
 	optics_i.o \
 	camera_r.o \
 	optics_r.o \
+	postproc.o \
 	paddle.o \
 	simpleui.o \
 	simplesm.o \

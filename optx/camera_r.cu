@@ -12,13 +12,6 @@ using V::operator/ ;
 
 extern "C" { __constant__ LpGeneral lp_general ; }
 
-static __forceinline__ __device__ uchar4 sRGB( const float3& color ) {
-	return make_uchar4( // sRGB approximation with gamma 2
-		(unsigned char) ( util::clamp( sqrtf( color.x ), .0f, .999f )*256.f ),
-		(unsigned char) ( util::clamp( sqrtf( color.y ), .0f, .999f )*256.f ),
-		(unsigned char) ( util::clamp( sqrtf( color.z ), .0f, .999f )*256.f ), 255u ) ;
-}
-
 extern "C" __global__ void __raygen__camera() {
 	// dim.x/ dim.y correspond to image width/ height
 	const uint3 dim = optixGetLaunchDimensions() ;
@@ -87,7 +80,7 @@ extern "C" __global__ void __raygen__camera() {
 	}
 
 	// update pixel in image buffer with mean color
-	lp_general.image[pix] = sRGB( color/lp_general.spp ) ;
+	lp_general.rawRGB[pix] = color/lp_general.spp ;
 	// save rpp to respective buffer
 	lp_general.rpp[pix] = rpp ;
 }

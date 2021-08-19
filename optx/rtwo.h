@@ -6,6 +6,8 @@ struct LpGeneral { // launch parameter
 	unsigned int           image_w ;
 	unsigned int           image_h ;
 
+	float3*                rawRGB ; // from RG prgram
+
 	Camera                 camera ;
 
 	unsigned int           spp ;   // samples per pixel
@@ -14,6 +16,10 @@ struct LpGeneral { // launch parameter
 	OptixTraversableHandle as_handle ;
 
 	unsigned int*          rpp ;   // rays per pixel
+
+	struct { // denoiser
+		float3*            beauty ; // output buffer
+	} denoiser ;
 } ;
 
 template <typename T>

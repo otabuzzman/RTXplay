@@ -30,6 +30,9 @@ static void keyCb      ( GLFWwindow* window, int key, int /*scancode*/, int act,
 extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
+// post processing
+extern void sRGB( float3* src, uchar4* dst ) ;
+
 SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& args ) : args_( args ) {
 	// initialize GLFW
 	GLFW_CHECK( glfwInit() ) ;
@@ -108,6 +111,17 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 	}
 	GL_CHECK( uniform_ = glGetUniformLocation( program_, "t" ) ) ;
 
+	// allocate render buffer
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam.lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
+
+	// allocate rays per pixel (rpp) buffer
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam.lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
+
+	// allocate denoiser buffers
+	if ( args_.param_denoiser() ) {
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam.lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
+	}
+
 	// setup vertex buffer object
 	GL_CHECK( glGenVertexArrays( 1, &vao_ ) ) ;
 	GL_CHECK( glBindVertexArray( vao_ ) ) ;
@@ -153,9 +167,6 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam.glx, smparam.pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 
-	// setup rays per pixel (rpp) buffer
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
-
 	// initialize FSM
 	glfwSetWindowUserPointer( window_, &smparam ) ;
 	smparam.lp_general = lp_general ;
@@ -170,7 +181,11 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 
 SimpleUI::~SimpleUI() noexcept ( false ) {
 	delete simplesm ; simplesm = nullptr ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.rawRGB ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.rpp ) ) ) ;
+	if ( args_.param_denoiser() ) {
+		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.denoiser.beauty ) ) ) ;
+	}
 	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam.glx ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &smparam.pbo ) ) ;
@@ -193,6 +208,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 	do {
 		auto t0 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
+		float3* finRGB = lp_general->rawRGB ;
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
@@ -232,6 +248,14 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
 			fprintf( stderr, "%9u %12llu %4llu (pixels, rays, milliseconds)", w*h, sr, dt ) ;
 		}
+
+		// apply denoiser
+		if ( args_.param_denoiser() ) {
+			finRGB = lp_general->denoiser.beauty ;
+		}
+
+		// post processing
+		sRGB( finRGB, lp_general->image ) ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 

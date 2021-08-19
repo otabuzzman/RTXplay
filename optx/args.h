@@ -30,9 +30,22 @@ static const std::map<std::string, res> res_ = {
 	{ "UHD-2",  { 7680, 4320 } }
 } ;
 
-#define AOV_RPP 0
+#define AOV_NONE 0
+#define AOV_RPP  1
 static const std::map<std::string, int> aov_ = {
 	{ "RPP", AOV_RPP }
+} ;
+
+#define DNS_NONE 0
+#define DNS_SMP  1
+#define DNS_NRM  2
+#define DNS_ALB  3
+#define DNS_NAA  4
+static const std::map<std::string, int> dns_ = {
+	{ "SMP", DNS_SMP },
+	{ "NRM", DNS_NRM },
+	{ "ALB", DNS_ALB },
+	{ "NAA", DNS_NAA }
 } ;
 
 class Args {
@@ -43,6 +56,7 @@ class Args {
 		int param_h( const int dEfault ) const ;
 		int param_spp  ( const int dEfault ) const ;
 		int param_depth( const int dEfault ) const ;
+		int param_denoiser() const ;
 
 		bool flag_verbose() const ;
 		bool flag_help() const ;
@@ -59,6 +73,7 @@ class Args {
 		int h_       = -1 ;
 		int spp_     = -1 ;
 		int depth_   = -1 ;
+		int denoiser_  = DNS_NONE ;
 
 		int verbose_ =  0 ;
 		int help_    =  0 ;
@@ -66,7 +81,7 @@ class Args {
 		int tracesm_ =  0 ;
 		int statinf_ =  0 ;
 
-		int aov_rpp_ = 0 ;
+		int aov_rpp_ =  AOV_NONE ;
 } ;
 
 #endif // ARGS_H

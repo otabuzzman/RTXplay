@@ -227,6 +227,17 @@ void SimpleSM::eaCtlRsz() {
 		smparam->lp_general.image_h = h ;
 		Camera* camera = &smparam->lp_general.camera ;
 		camera->aspratio( static_cast<float>( w )/static_cast<float>( h ) ) ;
+		// realloc render buffer
+		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.rawRGB ) ) ) ;
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
+		// realloc rays per pixel (rpp) buffer
+		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.rpp ) ) ) ;
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
+		// realloc denoiser buffers
+		if ( args_.param_denoiser() ) {
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.denoiser.beauty ) ) ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
+		}
 		// resize pixel (image) buffer object
 		GL_CHECK( glGenBuffers( 1, &smparam->pbo ) ) ;
 		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam->pbo ) ) ;
@@ -239,9 +250,6 @@ void SimpleSM::eaCtlRsz() {
 		// register pbo for CUDA
 		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, smparam->pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
-		// realloc rays per pixel (rpp) buffer
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.rpp ) ) ) ;
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 	}
 	// set history
 	h_state_.pop() ;

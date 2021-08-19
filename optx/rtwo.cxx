@@ -43,6 +43,10 @@ const char* camera_ptx = &camera_i_ptx[0] ;
 const char* optics_ptx = &optics_i_ptx[0] ;
 #endif //RECURSIVE
 
+// post processing
+extern void sRGB( float3* src, uchar4* dst ) ;
+
+
 
 const Things scene() {
 	Optics o ;
@@ -90,6 +94,8 @@ const Things scene() {
 	return s ;
 }
 
+
+
 int main( int argc, char* argv[] ) {
 	Args args( argc, argv ) ;
 
@@ -100,14 +106,14 @@ int main( int argc, char* argv[] ) {
 		return 0 ;
 	}
 
-	LpGeneral lp_general ;
-	lp_general.image_w = args.param_w( 1280 ) ;   // image width in pixels
-	lp_general.image_h = args.param_h( 720 )  ;   // image height in pixels
-	lp_general.spp     = args.param_spp( 50 ) ;   // samples per pixel
+	LpGeneral lp_general = {} ;
+	lp_general.image_w       = args.param_w( 1280 ) ;                               // image width in pixels
+	lp_general.image_h       = args.param_h( 720 )  ;                               // image height in pixels
+	lp_general.spp           = args.param_denoiser() ? 1 : args.param_spp( 50 ) ;   // samples per pixel
 #ifdef RECURSIVE
-	lp_general.depth   = args.param_depth( 16 ) ; // recursion depth
+	lp_general.depth         = args.param_depth( 16 ) ; // recursion depth
 #else
-	lp_general.depth   = args.param_depth( 50 ) ;
+	lp_general.depth         = args.param_depth( 50 ) ; // number of iterations
 #endif // RECURSIVE
 
 	float aspratio = static_cast<float>( lp_general.image_w )/static_cast<float>( lp_general.image_h ) ;
@@ -546,12 +552,14 @@ int main( int argc, char* argv[] ) {
 			const int w = lp_general.image_w ;
 			const int h = lp_general.image_h ;
 			std::vector<unsigned int> rpp ;
+			float3* finRGB ;
 
 			{ // launch pipeline
 				CUstream cuda_stream ;
 				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
+				finRGB = lp_general.rawRGB ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
 				CUdeviceptr d_lp_general ;
@@ -584,7 +592,6 @@ int main( int argc, char* argv[] ) {
 								w*h*sizeof( unsigned int ),
 								cudaMemcpyDeviceToHost
 								) ) ;
-					CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
 					long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
 					fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w*h, sr, dt, 1000.f/dt ) ;
 				}
@@ -599,6 +606,23 @@ int main( int argc, char* argv[] ) {
 
 
 
+			// apply denoiser
+			if ( args.param_denoiser() ) {
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
+
+				finRGB = lp_general.denoiser.beauty ;
+			}
+
+
+
+			// post processing
+			{
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
+				sRGB( finRGB, lp_general.image ) ;
+			}
+
+
+
 			// output image
 			if ( ! args.flag_quiet() ) {
 				std::vector<uchar4> image ;
@@ -609,7 +633,6 @@ int main( int argc, char* argv[] ) {
 							w*h*sizeof( uchar4 ),
 							cudaMemcpyDeviceToHost
 							) ) ;
-				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
 
 				std::cout
 					<< "P3\n" // magic PPM header
@@ -635,7 +658,6 @@ int main( int argc, char* argv[] ) {
 									w*h*sizeof( unsigned int ),
 									cudaMemcpyDeviceToHost
 									) ) ;
-						CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
 					}
 
 					std::cout
@@ -649,6 +671,13 @@ int main( int argc, char* argv[] ) {
 								<< rpp.data()[w*y+x] << '\n' ;
 				}
 			}
+
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
+			if ( args.param_denoiser() ) {
+				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.denoiser.beauty ) ) ) ;
+			}
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
 		}
 
 
