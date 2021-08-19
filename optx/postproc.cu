@@ -5,8 +5,6 @@
 
 #include "rtwo.h"
 
-extern "C" { __constant__ LpGeneral lp_general ; }
-
 // sRGB conversion according to https://en.wikipedia.org/wiki/SRGB
 static __forceinline__ __device__ void sRGB( const float3& rgb, float3& srgb ) {
 	srgb.x = rgb.x<.0031308f ? 12.92f*rgb.x : 1.055f*powf( rgb.x, 1.f/2.4f )-.055f ;
@@ -23,22 +21,22 @@ static __forceinline__ __device__ void sRGB( const float3& rgb, uchar4& srgb ) {
 	srgb.z = static_cast<unsigned char>( c.z*256.f ) ;
 }
 
-extern "C" __global__ void g_sRGB( float3* src, uchar4* dst ) {
+extern "C" __global__ void g_sRGB( const float3* src, uchar4* dst, const int w, const int h ) {
 	int x = threadIdx.x+blockIdx.x*blockDim.x ;
 	int y = threadIdx.y+blockIdx.y*blockDim.y ;
 
-	if ( x >= lp_general.image_w )
-		return;
-	if ( y >= lp_general.image_h )
-		return;
+	if ( x >= w )
+		return ;
+	if ( y >= h )
+		return ;
 
-	int pix = x+lp_general.image_w*y ;
+	int pix = x+w*y ;
 	sRGB( src[pix], dst[pix] ) ;
 }
 
-extern "C" __host__ void sRGB( float3* src, uchar4* dst ) {
-	const int blocks_x = ( lp_general.image_w+32-1 )/32 ;
-	const int blocks_y = ( lp_general.image_h+32-1 )/32 ;
+extern "C" __host__ void sRGB( const float3* src, uchar4* dst, const int w, const int h ) {
+	const int blocks_x = ( w+32-1 )/32 ;
+	const int blocks_y = ( h+32-1 )/32 ;
 
-	g_sRGB<<<dim3( blocks_x, blocks_y, 1 ), dim3( 32, 32, 1 )>>>( src, dst ) ;
+	g_sRGB<<<dim3( blocks_x, blocks_y, 1 ), dim3( 32, 32, 1 )>>>( src, dst, w, h ) ;
 }

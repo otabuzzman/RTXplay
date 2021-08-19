@@ -13,6 +13,9 @@ using V::operator* ;
 
 class Camera {
 	public:
+
+#ifndef __CUDACC__
+
 		void set( const float3& eye, const float3& pat, const float3&  vup, const float fov, const float aspratio, const float aperture, const float fostance ) {
 			eye_ = eye ;
 			pat_ = pat ;
@@ -45,7 +48,7 @@ class Camera {
 		float  aperture()                 const { return aperture_ ; }
 		void   aperture( const float aperture ) { set( eye_, pat_, vup_, fov_, aspratio_, aperture,  fostance_ ) ; }
 
-#ifdef __CUDACC__
+#else
 
 #ifdef CURAND
 		__device__ void ray( const float s, const float t, float3& ori, float3& dir, curandState* state ) const {

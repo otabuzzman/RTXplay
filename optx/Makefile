@@ -51,8 +51,10 @@ ifdef winos
 
 # ignored warnings (known):
 # C4061: unused enumerator
+# C4191: <some type> unsafe type conversion
 # C4245: <some type> unsigned int conversion
 # C4365: <some type> unsigned int conversion
+# C4505: unreferenced local function deleted
 # C4514: unreferenced inline function deleted
 # C4571: catch semantic changed in VC 7.1
 # C4625: copy constructor defined as deleted
@@ -73,6 +75,7 @@ IGNORED_WARNINGS = \
 	/wd4191 \
 	/wd4245 \
 	/wd4365 \
+	/wd4505 \
 	/wd4514 \
 	/wd4571 \
 	/wd4625 \
@@ -152,6 +155,11 @@ vpath glad.c glad
 		-I. \
 
 .cxx.o:
+	nvcc -c $< -o $@ \
+		$(NVCCFLAGS) \
+		-I. $(INC) \
+
+postproc.o: postproc.cu
 	nvcc -c $< -o $@ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \
