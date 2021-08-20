@@ -44,7 +44,7 @@ const char* optics_ptx = &optics_i_ptx[0] ;
 #endif //RECURSIVE
 
 // post processing
-extern void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
+extern "C" void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
 
 

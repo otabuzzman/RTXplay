@@ -31,7 +31,7 @@ extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
 // post processing
-extern void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
+extern "C" void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
 SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& args ) : args_( args ) {
 	// initialize GLFW
