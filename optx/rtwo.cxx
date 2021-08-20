@@ -44,7 +44,7 @@ const char* optics_ptx = &optics_i_ptx[0] ;
 #endif //RECURSIVE
 
 // post processing
-extern void sRGB( float3* src, uchar4* dst ) ;
+extern void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
 
 
@@ -618,7 +618,7 @@ int main( int argc, char* argv[] ) {
 			// post processing
 			{
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
-				sRGB( finRGB, lp_general.image ) ;
+				sRGB( finRGB, lp_general.image, w, h ) ;
 			}
 
 

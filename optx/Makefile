@@ -24,7 +24,8 @@ OBJ = \
 	optics_i.o \
 	camera_r.o \
 	optics_r.o \
-	postproc.o \
+	postproc_h.o \
+	postproc_d.o \
 	paddle.o \
 	simpleui.o \
 	simplesm.o \
@@ -51,6 +52,7 @@ ifdef winos
 
 # ignored warnings (known):
 # C4061: unused enumerator
+# C4100: unreferenced formal parameter
 # C4191: <some type> unsafe type conversion
 # C4245: <some type> unsigned int conversion
 # C4365: <some type> unsigned int conversion
@@ -72,6 +74,7 @@ ifdef winos
 
 IGNORED_WARNINGS = \
 	/wd4061 \
+	/wd4100 \
 	/wd4191 \
 	/wd4245 \
 	/wd4365 \
@@ -91,14 +94,16 @@ IGNORED_WARNINGS = \
 	/wd5039 \
 	/wd5045 \
 
-CXXFLAGS = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG $$CXXDEFS
-NVCCFLAGS = -rdc true -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math -lineinfo
+CXXFLAGS  = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG $$CXXDEFS
+NVCCFLAGS = -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/libcurand/curand_dev/include) \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/include) \
 	-I$$(cygpath -w /usr/local/include) \
+
+LDFLAGS = -arch sm_75
 
 LIB = \
 	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/lib/x64) \
@@ -121,8 +126,8 @@ args.exe: args.cxx
 	g++ -DMAIN -o $@ $< \
 
 else
-CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS
-NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math -lineinfo
+CXXFLAGS  = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS
+NVCCFLAGS = -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
 	-I/usr/local/cuda/include \
@@ -133,6 +138,8 @@ LIB = \
 	-L/usr/local/cuda/lib64 -lcudart -lpthread -lrt -ldl \
 	-L/usr/local/lib -lglfw3 \
 	-lm \
+
+LDFLAGS =
 
 LD = g++
 
@@ -155,12 +162,17 @@ vpath glad.c glad
 		-I. \
 
 .cxx.o:
-	nvcc -c $< -o $@ \
+	nvcc -dc $< -o $@ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \
 
-postproc.o: postproc.cu
-	nvcc -c $< -o $@ \
+# NVCC separate compilation needed (UG)
+postproc_d.o: postproc_h.o
+	nvcc -dlink $< -o $@ \
+		$(NVCCFLAGS) \
+
+postproc_h.o: postproc.cu
+	nvcc -dc $< -o $@ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \
 
@@ -177,6 +189,7 @@ postproc.o: postproc.cu
 
 $(EXE): $(OBJ)
 	$(LD) -o $@ $^ \
+		$(LDFLAGS) \
 		$(LIB) \
 
 

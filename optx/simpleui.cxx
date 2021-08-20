@@ -31,7 +31,7 @@ extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
 // post processing
-extern void sRGB( float3* src, uchar4* dst ) ;
+extern void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
 SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& args ) : args_( args ) {
 	// initialize GLFW
@@ -255,7 +255,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		}
 
 		// post processing
-		sRGB( finRGB, lp_general->image ) ;
+		sRGB( finRGB, lp_general->image, w, h ) ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 
