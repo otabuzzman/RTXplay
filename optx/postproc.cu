@@ -9,9 +9,9 @@ static __forceinline__ __device__ void sRGB( const float3& rgb, uchar4& srgb ) {
 	float3 c ;
 
 	sRGB( rgb, c ) ;
-	srgb.x = static_cast<unsigned char>( c.x*256 ) ;
-	srgb.y = static_cast<unsigned char>( c.y*256 ) ;
-	srgb.z = static_cast<unsigned char>( c.z*256 ) ;
+	srgb.x = static_cast<unsigned char>( c.x*255 ) ;
+	srgb.y = static_cast<unsigned char>( c.y*255 ) ;
+	srgb.z = static_cast<unsigned char>( c.z*255 ) ;
 	srgb.w = 255u ;
 }
 
@@ -27,9 +27,9 @@ extern "C" __global__ void none( const float3* src, uchar4* dst, const int w, co
 	const int pix = x+w*y ;
 	const float3 s = src[pix] ;
 	const uchar4 d = make_uchar4(
-		static_cast<unsigned char>( s.x*256 ),
-		static_cast<unsigned char>( s.y*256 ),
-		static_cast<unsigned char>( s.z*256 ), 255u ) ;
+		static_cast<unsigned char>( s.x*255 ),
+		static_cast<unsigned char>( s.y*255 ),
+		static_cast<unsigned char>( s.z*255 ), 255u ) ;
 	dst[pix] = d ;
 }
 

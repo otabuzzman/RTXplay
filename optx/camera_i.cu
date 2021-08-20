@@ -80,7 +80,7 @@ extern "C" __global__ void __raygen__camera() {
 	}
 
 	// update pixel in image buffer with mean color
-	lp_general.rawRGB[pix] = color/lp_general.spp ;
+	lp_general.rawRGB[pix] = util::clamp( color/lp_general.spp, 0.f, 1.f ) ;
 	// save rpp at respective buffer index
 	lp_general.rpp[pix] = rpp ;
 }
