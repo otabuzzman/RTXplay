@@ -105,21 +105,21 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 		glDeleteShader( v_shader_ ) ;
 		std::ostringstream comment ;
 		comment
-			<< "link shader program_ failed: "
+			<< "link shader program failed: "
 			<< log << std::endl ;
 		throw std::runtime_error( comment.str() ) ;
 	}
 	GL_CHECK( uniform_ = glGetUniformLocation( program_, "t" ) ) ;
 
 	// allocate render buffer
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam.lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
 
 	// allocate rays per pixel (rpp) buffer
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam.lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
 	// allocate denoiser buffers
 	if ( args_.param_denoiser() ) {
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam.lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
 	}
 
 	// setup vertex buffer object
