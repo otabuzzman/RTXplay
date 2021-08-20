@@ -233,11 +233,6 @@ void SimpleSM::eaCtlRsz() {
 		// realloc rays per pixel (rpp) buffer
 		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.rpp ) ) ) ;
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
-		// realloc denoiser buffers
-		if ( args_.param_denoiser() ) {
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.denoiser.beauty ) ) ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
-		}
 		// resize pixel (image) buffer object
 		GL_CHECK( glGenBuffers( 1, &smparam->pbo ) ) ;
 		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam->pbo ) ) ;

@@ -14,22 +14,47 @@ static __forceinline__ __device__ void sRGB( const float3& rgb, uchar4& srgb ) {
 	srgb.z = static_cast<unsigned char>( c.z*256.f ) ;
 }
 
-extern "C" __global__ void g_sRGB( const float3* src, uchar4* dst, const int w, const int h ) {
-	int x = threadIdx.x+blockIdx.x*blockDim.x ;
-	int y = threadIdx.y+blockIdx.y*blockDim.y ;
+extern "C" __global__ void none( const float3* src, uchar4* dst, const int w, const int h ) {
+	const int x = threadIdx.x+blockIdx.x*blockDim.x ;
+	const int y = threadIdx.y+blockIdx.y*blockDim.y ;
 
 	if ( x >= w )
 		return ;
 	if ( y >= h )
 		return ;
 
-	int pix = x+w*y ;
+	const int pix = x+w*y ;
+	const float3 s = src[pix] ;
+	const uchar4 d = make_uchar4(
+		static_cast<unsigned char>( s.x*256.f ),
+		static_cast<unsigned char>( s.y*256.f ),
+		static_cast<unsigned char>( s.z*256.f ), 255u ) ;
+	dst[pix] = d ;
+}
+
+extern "C" __global__ void sRGB( const float3* src, uchar4* dst, const int w, const int h ) {
+	const int x = threadIdx.x+blockIdx.x*blockDim.x ;
+	const int y = threadIdx.y+blockIdx.y*blockDim.y ;
+
+	if ( x >= w )
+		return ;
+	if ( y >= h )
+		return ;
+
+	const int pix = x+w*y ;
 	sRGB( src[pix], dst[pix] ) ;
 }
 
-extern "C" __host__ void sRGB( const float3* src, uchar4* dst, const int w, const int h ) {
+extern "C" __host__ void pp_none( const float3* src, uchar4* dst, const int w, const int h ) {
 	const int blocks_x = ( w+32-1 )/32 ;
 	const int blocks_y = ( h+32-1 )/32 ;
 
-	g_sRGB<<<dim3( blocks_x, blocks_y, 1 ), dim3( 32, 32, 1 )>>>( src, dst, w, h ) ;
+	none<<<dim3( blocks_x, blocks_y, 1 ), dim3( 32, 32, 1 )>>>( src, dst, w, h ) ;
+}
+
+extern "C" __host__ void pp_sRGB( const float3* src, uchar4* dst, const int w, const int h ) {
+	const int blocks_x = ( w+32-1 )/32 ;
+	const int blocks_y = ( h+32-1 )/32 ;
+
+	sRGB<<<dim3( blocks_x, blocks_y, 1 ), dim3( 32, 32, 1 )>>>( src, dst, w, h ) ;
 }

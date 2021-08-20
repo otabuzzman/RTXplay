@@ -31,7 +31,8 @@ extern "C" const char vert_glsl[] ;
 extern "C" const char frag_glsl[] ;
 
 // post processing
-extern "C" void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
+extern "C" void pp_none( const float3* src, uchar4* dst, const int w, const int h ) ;
+extern "C" void pp_sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
 SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& args ) : args_( args ) {
 	// initialize GLFW
@@ -113,14 +114,8 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 
 	// allocate render buffer
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
-
 	// allocate rays per pixel (rpp) buffer
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
-
-	// allocate denoiser buffers
-	if ( args_.param_denoiser() ) {
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
-	}
 
 	// setup vertex buffer object
 	GL_CHECK( glGenVertexArrays( 1, &vao_ ) ) ;
@@ -183,9 +178,6 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 	delete simplesm ; simplesm = nullptr ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.rawRGB ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.rpp ) ) ) ;
-	if ( args_.param_denoiser() ) {
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.denoiser.beauty ) ) ) ;
-	}
 	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam.glx ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &smparam.pbo ) ) ;
@@ -250,12 +242,11 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		}
 
 		// apply denoiser
-		if ( args_.param_denoiser() ) {
-			finRGB = lp_general->denoiser.beauty ;
+		if ( args_.flag_denoiser() ) {
 		}
 
 		// post processing
-		sRGB( finRGB, lp_general->image, w, h ) ;
+		pp_sRGB( finRGB, lp_general->image, w, h ) ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 

@@ -16,10 +16,6 @@ struct LpGeneral { // launch parameter
 	OptixTraversableHandle as_handle ;
 
 	unsigned int*          rpp ;   // rays per pixel
-
-	struct { // denoiser
-		float3*            beauty ; // output buffer
-	} denoiser ;
 } ;
 
 template <typename T>

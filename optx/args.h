@@ -33,6 +33,7 @@ static const std::map<std::string, res> res_ = {
 #define AOV_NONE 0
 #define AOV_RPP  1
 static const std::map<std::string, int> aov_ = {
+	{ "NON", AOV_NONE },
 	{ "RPP", AOV_RPP }
 } ;
 
@@ -42,6 +43,7 @@ static const std::map<std::string, int> aov_ = {
 #define DNS_ALB  3
 #define DNS_NAA  4
 static const std::map<std::string, int> dns_ = {
+	{ "NON", DNS_NONE },
 	{ "SMP", DNS_SMP },
 	{ "NRM", DNS_NRM },
 	{ "ALB", DNS_ALB },
@@ -52,19 +54,21 @@ class Args {
 	public:
 		Args( const int argc, char* const* argv ) noexcept( false ) ;
 
-		int param_w( const int dEfault ) const ;
-		int param_h( const int dEfault ) const ;
-		int param_spp  ( const int dEfault ) const ;
-		int param_depth( const int dEfault ) const ;
-		int param_denoiser() const ;
+		int param_w( const int dEfault )        const ;
+		int param_h( const int dEfault )        const ;
+		int param_spp  ( const int dEfault )    const ;
+		int param_depth( const int dEfault )    const ;
+		int param_denoiser( const int dEfault ) const ;
 
 		bool flag_verbose() const ;
-		bool flag_help() const ;
-		bool flag_quiet() const ;
+		bool flag_help()    const ;
+		bool flag_quiet()   const ;
 		bool flag_tracesm() const ;
 		bool flag_statinf() const ;
 
 		bool flag_aov_rpp() const ;
+
+		bool flag_denoiser() const ; // pseudo flag
 
 		static void usage() ;
 

@@ -44,7 +44,8 @@ const char* optics_ptx = &optics_i_ptx[0] ;
 #endif //RECURSIVE
 
 // post processing
-extern "C" void sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
+extern "C" void pp_none( const float3* src, uchar4* dst, const int w, const int h ) ;
+extern "C" void pp_sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
 
 
@@ -107,9 +108,9 @@ int main( int argc, char* argv[] ) {
 	}
 
 	LpGeneral lp_general = {} ;
-	lp_general.image_w       = args.param_w( 1280 ) ;                               // image width in pixels
-	lp_general.image_h       = args.param_h( 720 )  ;                               // image height in pixels
-	lp_general.spp           = args.param_denoiser() ? 1 : args.param_spp( 50 ) ;   // samples per pixel
+	lp_general.image_w       = args.param_w( 1280 ) ;   // image width in pixels
+	lp_general.image_h       = args.param_h( 720 )  ;   // image height in pixels
+	lp_general.spp           = args.param_spp( 50 ) ;   // samples per pixel
 #ifdef RECURSIVE
 	lp_general.depth         = args.param_depth( 16 ) ; // recursion depth
 #else
@@ -607,10 +608,7 @@ int main( int argc, char* argv[] ) {
 
 
 			// apply denoiser
-			if ( args.param_denoiser() ) {
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.denoiser.beauty ), sizeof( float3 )*w*h ) ) ;
-
-				finRGB = lp_general.denoiser.beauty ;
+			if ( args.flag_denoiser() ) {
 			}
 
 
@@ -618,7 +616,7 @@ int main( int argc, char* argv[] ) {
 			// post processing
 			{
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
-				sRGB( finRGB, lp_general.image, w, h ) ;
+				pp_sRGB( finRGB, lp_general.image, w, h ) ;
 			}
 
 
@@ -674,9 +672,6 @@ int main( int argc, char* argv[] ) {
 
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
-			if ( args.param_denoiser() ) {
-				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.denoiser.beauty ) ) ) ;
-			}
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
 		}
 
