@@ -10,6 +10,7 @@ Various findinds stepped across during the course of exploring OptiX.
 - [Copy&paste templates for common Git tasks](#git-for-short-copypaste)
 - [Exploring CUDA OpenGL interoperabillity](#cuda-opengl-interoperability)
 - [Improving performance](#improving-performance)
+- [Denoiser considerations](#denoiser-considerations)
 - [List of findings considered relevant](#findings)
 - [List of links considered useful](#links)
 <br><br><br>
@@ -324,6 +325,30 @@ Files
     ./rtwo -q
   ```
 - Analyse report in Nsight Compute GUI
+<br><br><br>
+
+### Denoiser Considerations
+
+- RTWO uses an `uchar4` framebuffer. The denoiser operates on `float4`. Using output directly quads FB size. Would this impact OpenGL rendering performance? Rewriting to `uchar4` reduces FB memory but adds copy cycles. Latter could include RGB to sRGB conversion.
+- Check fps of RTWO with `float4` FB and sRGB as is:
+  - Baseline RTWO fps ('a' mode)
+  - Add `float4` FB, check fps
+  - Add `float4`-to-`uchar4` FB, check fps
+
+#### sRGB implementation
+- Make it last step in RG program (as is)
+Easy implementation that should work with denoiser according to OptiX Programming Guide: *"In general, the pixel color space of an image that is used as input for the denoiser should match the color space of the images on which the denoiser was trained. However, slight variations, such as substituting sRGB with a simple gamma curve, should not have a noticeable impact."*
+
+- Use dedicated kernel (as in [OptiX 7 Course sample 12](https://github.com/ingowald/optix7course/tree/master/example12_denoiseSeparateChannels)). 
+Interesting approach mixing OptiX programs with CUDA kernels. Might improve denoiser result. If it actually does (tbc) means of choice.
+  - Project setup (Makefile) demands [separate compilation](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#using-separate-compilation-in-cuda) of host and device code.
+
+- Enable openGL `GL_FRAMEBUFFER_SRGB` ([see OpenGL 101](https://learnopengl.com/Advanced-Lighting/Gamma-Correction))
+  - Might not function due to [NVIDIA developer forum](https://forums.developer.nvidia.com/t/gl-framebuffer-srgb-functions-incorrectly/34889) and [SO](https://stackoverflow.com/questions/25842211/opengl-srgb-framebuffer-oddity)
+  - Needs sRGB for batch mode
+
+- Implement on host side
+  - Needs sRGB for interactive mode
 <br><br><br>
 
 ### Findings
