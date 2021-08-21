@@ -79,17 +79,17 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 
 |RTWO (Raytracing with OptiX) samples|   |
 |:---|:---|
-|1 spp (samples per pixel) in 3348 milliseconds|50 spp in 3850 milliseconds|
-|![1 spp in 3348 milliseconds](./optx/img/rtwo-1spp-3348.png)|![50 spp in 3850 milliseconds](./optx/img/rtwo-50spp-3850.png)|
-|500 spp (default) in 7110 milliseconds|no defocus blur|
-|![500 spp in 7110 milliseconds](./optx/img/rtwo-500spp-7110.png)|![no defocus blur](./optx/img/rtwo-noblur.png)|
+|1 spp (samples per pixel)|50 spp|
+|![1 spp](./optx/img/rtwo-1spp-189.png)|![50 spp](./optx/img/rtwo-50spp-776.png)|
+|500 spp (default)|no defocus blur|
+|![500 spp](./optx/img/rtwo-500spp-5586.png)|![no defocus blur](./optx/img/rtwo-noblur.png)|
 
-|RTWO samples with experimental|triangle hit correction|made with branch `hitcorr`|
+|RTWO samples with experimental...|...triangle hit correction made...|..with `hitcorr` branch.|
 |:---|:---|:---|
 |enabled for diffuse only|reflect added|refract added|
 |![enabled for diffuse only](optx/img/rtwo-branch-hc-diff.png)|![reflect added](optx/img/rtwo-branch-hc-refl.png)|![refract added](optx/img/rtwo-branch-hc-refr-8811.png)|
 
-|Sphere (subdivided tetrahedron)|samples made with [commit](https://github.com/otabuzzman/RTXplay/tree/e68dc9d7e28d1763c741d5efab63e3392b24a457)|   |
+|Sphere (subdivided tetrahedron)...|...samples made with [commit](https://github.com/otabuzzman/RTXplay/tree/e68dc9d7e28d1763c741d5efab63e3392b24a457).|   |
 |:---|:---|:---|
 |single triangle, no subdivision|1 subdivision|2 subdivisions|
 |![single triangle, no subdivision](optx/img/tetra-1tri-0div.png)|![1 subdivision](optx/img/tetra-1tri-1div.png)|![2 subdivisions](optx/img/tetra-1tri-2div.png)|
