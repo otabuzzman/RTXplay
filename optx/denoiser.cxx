@@ -5,7 +5,7 @@
 
 #include "denoiser.h"
 
-DenoiserSMP::DenoiserSMP( const float3* rawRGB, const unsigned int w, const unsigned int h, const OptixDeviceContext optx_context ) : w_( w ), h_( h ) {
+DenoiserSMP::DenoiserSMP( const unsigned int w, const unsigned int h, const OptixDeviceContext optx_context ) : w_( w ), h_( h ) {
 	OptixDenoiserOptions dns_options = {} ;
 	OPTX_CHECK( optixDenoiserCreate(
 		optx_context,
@@ -26,12 +26,6 @@ DenoiserSMP::DenoiserSMP( const float3* rawRGB, const unsigned int w, const unsi
 	state_size_ = static_cast<unsigned int>( dns_sizes.stateSizeInBytes );
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &state_ ), state_size_ ) ) ;
 
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &params_.hdrIntensity ), sizeof( float ) ) ) ;
-
-	layer_.input = { reinterpret_cast<CUdeviceptr>( rawRGB ), w_, h_, w_*sizeof( float3 ), sizeof( float3 ), OPTIX_PIXEL_FORMAT_FLOAT3 } ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &beauty_ ), w_*h_*sizeof( float3 ) ) ) ;
-	layer_.output = { reinterpret_cast<CUdeviceptr>( beauty_ ), w_, h_, w_*sizeof( float3 ), sizeof( float3 ), OPTIX_PIXEL_FORMAT_FLOAT3 } ;
-
 	OPTX_CHECK( optixDenoiserSetup(
 		denoiser_,
 		nullptr,
@@ -48,16 +42,37 @@ DenoiserSMP::~DenoiserSMP() noexcept ( false ) {
 	OPTX_CHECK( optixDenoiserDestroy( denoiser_ ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( scratch_   ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( state_     ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( intensity_ ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( beauty_    ) ) ) ;
 }
 
-float3* DenoiserSMP::beauty() const {
+void DenoiserSMP::update( const float3* rawRGB ) {
+	layer_.input = {
+		reinterpret_cast<CUdeviceptr>( rawRGB ),
+		w_,
+		h_,
+		w_*sizeof( float3 ),
+		sizeof( float3 ),
+		OPTIX_PIXEL_FORMAT_FLOAT3
+		} ;
+}
+
+float3* DenoiserSMP::beauty() {
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &beauty_ ), w_*h_*sizeof( float3 ) ) ) ;
+	layer_.output = {
+		reinterpret_cast<CUdeviceptr>( beauty_ ),
+		w_,
+		h_,
+		w_*sizeof( float3 ),
+		sizeof( float3 ),
+		OPTIX_PIXEL_FORMAT_FLOAT3
+		} ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &params_.hdrIntensity ), sizeof( float ) ) ) ;
 	OPTX_CHECK( optixDenoiserComputeIntensity(
 		denoiser_,
 		nullptr,
 		&layer_.input,
-		intensity_,
+		params_.hdrIntensity,
 		scratch_,
 		scratch_size_
 		) ) ;
@@ -77,6 +92,7 @@ float3* DenoiserSMP::beauty() const {
 		scratch_,
 		scratch_size_
 		) ) ;
+	CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
 	return beauty_ ;
 }

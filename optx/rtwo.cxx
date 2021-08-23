@@ -553,15 +553,17 @@ int main( int argc, char* argv[] ) {
 		} else {
 			const int w = lp_general.image_w ;
 			const int h = lp_general.image_h ;
+			DenoiserSMP denoiser( w, h, optx_context ) ;
 			std::vector<unsigned int> rpp ;
-			float3* finRGB ;
 
 			{ // launch pipeline
 				CUstream cuda_stream ;
 				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
+				if ( args.param_denoiser( DNS_NONE ) != DNS_NONE )
+					lp_general.spp = 1 ;
+
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
-				finRGB = lp_general.rawRGB ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
 				CUdeviceptr d_lp_general ;
@@ -609,10 +611,12 @@ int main( int argc, char* argv[] ) {
 
 
 			// apply denoiser
+			float3* finRGB ;
 			if ( args.param_denoiser( DNS_NONE ) != DNS_NONE ) {
-				DenoiserSMP denoiser( lp_general.rawRGB, w, h, optx_context ) ;
+				denoiser.update( lp_general.rawRGB ) ;
 				finRGB = denoiser.beauty() ;
-			}
+			} else
+				finRGB = lp_general.rawRGB ;
 
 
 

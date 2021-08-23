@@ -220,14 +220,14 @@ Options:\n\
   -S, --print-statistics\n\
     Print statistical information on stderr.\n\
 \n\
-  -D, --apply-denoiser <KND>\n\
-    Apply denoiser kind KND after rendering using 1 SPP. In interactive mode\n\
+  -D, --apply-denoiser <TYP>\n\
+    Apply denoiser type TYP after rendering using 1 SPP. In interactive mode\n\
     denoising is applied in scene animation and while moving camera position\n\
     and direction, zooming, etc. When finished there is a final still\n\
     rendering with SPP as given by --samples-per-pixels or default.\n\
     Output in batch mode is a denoised image rendered with 1 SPP.\n\
 \n\
-    Available denoiser for KND:\n\
+    Available denoiser for TYP:\n\
       SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw RGB\n\
             rendering output into denoiser and retrieves result.\n\
       NRM - Simple type plus hit point normals.\n\

@@ -6,10 +6,11 @@
 
 class DenoiserSMP {
 	public:
-		DenoiserSMP( const float3* rawRGB, const unsigned int w, const unsigned int h, const OptixDeviceContext optx_context ) ;
+		DenoiserSMP( const unsigned int w, const unsigned int h, const OptixDeviceContext optx_context ) ;
 		~DenoiserSMP() noexcept ( false ) ;
 
-		float3* beauty() const ;
+		void update( const float3* rawRGB ) ;
+		float3* beauty() ;
 
 	private:
 		unsigned int        w_ ;
@@ -18,11 +19,10 @@ class DenoiserSMP {
 		OptixDenoiserLayer  layer_  = {}  ;
 		OptixDenoiserParams params_ = {}  ;
 		CUdeviceptr         scratch_      ;
-		unsigned int  scratch_size_ ;
+		unsigned int        scratch_size_ ;
 		CUdeviceptr         state_        ;
-		unsigned int  state_size_   ;
-		CUdeviceptr         intensity_    ;
+		unsigned int        state_size_   ;
 		float3*             beauty_       ;
 } ;
 
-#endif  DENOISER_H
+#endif // DENOISER_H
