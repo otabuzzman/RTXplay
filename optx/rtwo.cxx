@@ -18,6 +18,7 @@
 #include "args.h"
 #include "camera.h"
 #include "optics.h"
+#include "denoiser.h"
 #include "simpleui.h"
 #include "sphere.h"
 #include "things.h"
@@ -608,7 +609,9 @@ int main( int argc, char* argv[] ) {
 
 
 			// apply denoiser
-			if ( args.flag_denoiser() ) {
+			if ( args.param_denoiser( DNS_NONE ) != DNS_NONE ) {
+				DenoiserSMP denoiser( lp_general.rawRGB, w, h, optx_context ) ;
+				finRGB = denoiser.beauty() ;
 			}
 
 

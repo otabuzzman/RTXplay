@@ -33,7 +33,6 @@ static const std::map<std::string, res> res_ = {
 #define AOV_NONE 0
 #define AOV_RPP  1
 static const std::map<std::string, int> aov_ = {
-	{ "NON", AOV_NONE },
 	{ "RPP", AOV_RPP }
 } ;
 
@@ -42,13 +41,15 @@ static const std::map<std::string, int> aov_ = {
 #define DNS_NRM  2
 #define DNS_ALB  3
 #define DNS_NAA  4
+#define DNS_AOV  5
 static const std::map<std::string, int> dns_ = {
-	{ "NON", DNS_NONE },
 	{ "SMP", DNS_SMP },
 	{ "NRM", DNS_NRM },
 	{ "ALB", DNS_ALB },
-	{ "NAA", DNS_NAA }
+	{ "NAA", DNS_NAA },
+	{ "AOV", DNS_AOV }
 } ;
+#define DNS_NUM 5
 
 class Args {
 	public:
@@ -68,24 +69,22 @@ class Args {
 
 		bool flag_aov_rpp() const ;
 
-		bool flag_denoiser() const ; // pseudo flag
-
 		static void usage() ;
 
 	private:
-		int w_       = -1 ;
-		int h_       = -1 ;
-		int spp_     = -1 ;
-		int depth_   = -1 ;
-		int denoiser_  = DNS_NONE ;
+		int w_        = -1 ;
+		int h_        = -1 ;
+		int spp_      = -1 ;
+		int depth_    = -1 ;
+		int denoiser_ = DNS_NONE ;
 
-		int verbose_ =  0 ;
-		int help_    =  0 ;
-		int quiet_   =  0 ;
-		int tracesm_ =  0 ;
-		int statinf_ =  0 ;
+		int verbose_  =  0 ;
+		int help_     =  0 ;
+		int quiet_    =  0 ;
+		int tracesm_  =  0 ;
+		int statinf_  =  0 ;
 
-		int aov_rpp_ =  AOV_NONE ;
+		int aov_rpp_  = AOV_NONE ;
 } ;
 
 #endif // ARGS_H

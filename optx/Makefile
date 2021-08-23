@@ -26,6 +26,7 @@ OBJ = \
 	optics_r.o \
 	postproc_h.o \
 	postproc_d.o \
+	denoiser.o \
 	paddle.o \
 	simpleui.o \
 	simplesm.o \

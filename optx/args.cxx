@@ -21,7 +21,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		{ "usage",             no_argument, &help_,    1 },
 		{ "print-aov",         required_argument, 0, 'A' },
 		{ "print-statistics",  no_argument, &statinf_, 1 },
-		{ "denoise",           required_argument, 0, 'D' },
+		{ "apply-denoiser",    required_argument, 0, 'D' },
 		{ 0, 0, 0, 0 }
 	} ;
 
@@ -99,6 +99,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 							case DNS_NRM:
 							case DNS_ALB:
 							case DNS_NAA:
+							case DNS_AOV:
 								denoiser_ = s->second ;
 								break ;
 						}
@@ -127,9 +128,7 @@ bool Args::flag_quiet()    const { return quiet_>0   ; }
 bool Args::flag_tracesm()  const { return tracesm_>0 ; }
 bool Args::flag_statinf()  const { return statinf_>0 ; }
 
-bool Args::flag_aov_rpp()  const { return aov_rpp_  != AOV_NONE ; }
-
-bool Args::flag_denoiser() const { return denoiser_ != DNS_NONE ; } // pseudo flag
+bool Args::flag_aov_rpp()  const { return aov_rpp_ != AOV_NONE ; }
 
 void Args::usage() {
 	std::cerr << "Usage: rtwo [OPTION...]\n\
@@ -213,7 +212,6 @@ Options:\n\
     in list below) or pick particular AOVs (order as given).\n\
 \n\
     Available AOVs:\n\
-      NON                  - Do not output any AOV. Same as omitting option.\n\
       RPP (Rays per pixel) - Sort of AOV. Pixel values sum up total number of\n\
                              rays that have been traced by each sample (PGM).\n\
 \n\
@@ -222,21 +220,18 @@ Options:\n\
   -S, --print-statistics\n\
     Print statistical information on stderr.\n\
 \n\
-  -D, --denoise <TYP>\n\
-    Apply denoiser type TYP after rendering. Denoiser usage implies\n\
-    rendering with 1 sample per pixel. Output in batch mode is a denoised\n\
-    image rendered with 1 SPP.\n\
-    In interactive mode denoising is applied in scene animation and while\n\
-    moving camera position and direction, zooming, etc. When finished there is\n\
-    one more still rendering with SPP as given by --samples-per-pixels\n\
-    or default.\n\
+  -D, --apply-denoiser <KND>\n\
+    Apply denoiser kind KND after rendering using 1 SPP. In interactive mode\n\
+    denoising is applied in scene animation and while moving camera position\n\
+    and direction, zooming, etc. When finished there is a final still\n\
+    rendering with SPP as given by --samples-per-pixels or default.\n\
+    Output in batch mode is a denoised image rendered with 1 SPP.\n\
 \n\
-    Available denoiser for TYP:\n\
-      NON - Do not apply any denoiser. Same as omitting option.\n\
-      SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feed raw RGB\n\
-            rendering result into denoiser and retrieve result.\n\
+    Available denoiser for KND:\n\
+      SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw RGB\n\
+            rendering output into denoiser and retrieves result.\n\
       NRM - Simple type plus hit point normals.\n\
-      ALB - Simple type plus albedo values for hit point.\n\
+      ALB - Simple type plus albedo values for hit points.\n\
       NAA - Simple type plus normals and albedos.\n\
       AOV - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV. Might improve\n\
             denoising result even if no AOVs provided\n\
@@ -261,14 +256,14 @@ int main( int argc, char* argv[] ) {
 		std::cout << "depth      : " << args.param_depth   ( 4711 )     << std::endl ;
 		std::cout << "denoiser   : " << args.param_denoiser( DNS_NONE ) << std::endl ;
 
-		std::cout << "verbose    : " << ( args.flag_verbose() ? "set" : "not set" ) << std::endl ;
-		std::cout << "help       : " << ( args.flag_help()    ? "set" : "not set" ) << std::endl ;
-		std::cout << "quiet      : " << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
-		std::cout << "silent     : " << ( args.flag_quiet()   ? "set" : "not set" ) << std::endl ;
-		std::cout << "trace-sm   : " << ( args.flag_tracesm() ? "set" : "not set" ) << std::endl ;
-		std::cout << "statistics : " << ( args.flag_statinf() ? "set" : "not set" ) << std::endl ;
+		std::cout << "verbose    : " << ( args.flag_verbose()  ? "set" : "not set" ) << std::endl ;
+		std::cout << "help       : " << ( args.flag_help()     ? "set" : "not set" ) << std::endl ;
+		std::cout << "quiet      : " << ( args.flag_quiet()    ? "set" : "not set" ) << std::endl ;
+		std::cout << "silent     : " << ( args.flag_quiet()    ? "set" : "not set" ) << std::endl ;
+		std::cout << "trace-sm   : " << ( args.flag_tracesm()  ? "set" : "not set" ) << std::endl ;
+		std::cout << "statistics : " << ( args.flag_statinf()  ? "set" : "not set" ) << std::endl ;
 
-		std::cout << "aov RPP    : " << ( args.flag_aov_rpp() ? "set" : "not set" ) << std::endl ;
+		std::cout << "aov RPP    : " << ( args.flag_aov_rpp()  ? "set" : "not set" ) << std::endl ;
 	} catch ( const std::invalid_argument& e ) {
 		std::cerr << e.what() << std::endl ;
 

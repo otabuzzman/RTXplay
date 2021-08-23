@@ -158,7 +158,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 		GL_STATIC_DRAW
 		) ) ;
 
-	// register pbo for CUDA
+	// register pbo for CUDA OpenGL interop
 	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam.glx, smparam.pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 
@@ -232,17 +232,13 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
-						reinterpret_cast<void*>( rpp.data() ),
-						lp_general->rpp,
-						w*h*sizeof( unsigned int ),
-						cudaMemcpyDeviceToHost
-						) ) ;
+				reinterpret_cast<void*>( rpp.data() ),
+				lp_general->rpp,
+				w*h*sizeof( unsigned int ),
+				cudaMemcpyDeviceToHost
+				) ) ;
 			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
 			fprintf( stderr, "%9u %12llu %4llu (pixels, rays, milliseconds)", w*h, sr, dt ) ;
-		}
-
-		// apply denoiser
-		if ( args_.flag_denoiser() ) {
 		}
 
 		// post processing
@@ -378,6 +374,8 @@ void SimpleUI::usage() {
   right button + move  - change camera direction\n\
   right button + scoll - roll camera\n\
   'a' key              - toggle scene animation\n\
+  'd' key              - enable next in list (--usage) of\n\
+                         available denoiser\n\
   'f' key              - enter focus mode (<ESC> to leave)\n\
       scroll           - change aperture\n\
   'z' key              - enter zoom mode (<ESC> to leave)\n\
