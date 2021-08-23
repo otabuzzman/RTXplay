@@ -677,6 +677,9 @@ int main( int argc, char* argv[] ) {
 				}
 			}
 
+			// block cleanup
+			if ( args.param_denoiser( DNS_NONE ) != DNS_NONE )
+				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( finRGB ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
@@ -684,7 +687,7 @@ int main( int argc, char* argv[] ) {
 
 
 
-		// cleanup
+		// global cleanup
 		{
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;

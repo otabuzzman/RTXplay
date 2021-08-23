@@ -43,7 +43,6 @@ DenoiserSMP::~DenoiserSMP() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( scratch_   ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( state_     ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( beauty_    ) ) ) ;
 }
 
 void DenoiserSMP::update( const float3* rawRGB ) {
@@ -51,7 +50,7 @@ void DenoiserSMP::update( const float3* rawRGB ) {
 		reinterpret_cast<CUdeviceptr>( rawRGB ),
 		w_,
 		h_,
-		w_*sizeof( float3 ),
+		static_cast<unsigned int>( w_*sizeof( float3 ) ),
 		sizeof( float3 ),
 		OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
@@ -63,7 +62,7 @@ float3* DenoiserSMP::beauty() {
 		reinterpret_cast<CUdeviceptr>( beauty_ ),
 		w_,
 		h_,
-		w_*sizeof( float3 ),
+		static_cast<unsigned int>( w_*sizeof( float3 ) ),
 		sizeof( float3 ),
 		OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
