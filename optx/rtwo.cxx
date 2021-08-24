@@ -553,7 +553,6 @@ int main( int argc, char* argv[] ) {
 		} else {
 			const int w = lp_general.image_w ;
 			const int h = lp_general.image_h ;
-			DenoiserSMP denoiser( w, h, optx_context ) ;
 			std::vector<unsigned int> rpp ;
 
 			{ // launch pipeline
@@ -562,7 +561,6 @@ int main( int argc, char* argv[] ) {
 
 				if ( args.param_denoiser( DNS_NONE ) != DNS_NONE )
 					lp_general.spp = 1 ;
-
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
@@ -586,6 +584,8 @@ int main( int argc, char* argv[] ) {
 							w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 				CUDA_CHECK( cudaDeviceSynchronize() ) ;
 				auto t1 = std::chrono::high_resolution_clock::now() ;
+
+				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_lp_general ) ) ) ;
 
 				if ( args.flag_statinf() ) { // output statistics
 					long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
@@ -611,20 +611,17 @@ int main( int argc, char* argv[] ) {
 
 
 			// apply denoiser
-			float3* finRGB ;
 			if ( args.param_denoiser( DNS_NONE ) != DNS_NONE ) {
-				denoiser.update( lp_general.rawRGB ) ;
-				finRGB = denoiser.beauty() ;
-			} else
-				finRGB = lp_general.rawRGB ;
+				Denoiser* denoiser = new DenoiserSMP( w, h, optx_context ) ;
+				denoiser->beauty( lp_general.rawRGB ) ;
+				delete denoiser ;
+			}
 
 
 
 			// post processing
-			{
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
-				pp_sRGB( finRGB, lp_general.image, w, h ) ;
-			}
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
+			pp_sRGB( lp_general.rawRGB, lp_general.image, w, h ) ;
 
 
 
@@ -676,18 +673,14 @@ int main( int argc, char* argv[] ) {
 								<< rpp.data()[w*y+x] << '\n' ;
 				}
 			}
-
-			// block cleanup
-			if ( args.param_denoiser( DNS_NONE ) != DNS_NONE )
-				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( finRGB ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image  ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp    ) ) ) ;
 		}
 
 
 
-		// global cleanup
+		// cleanup
 		{
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;

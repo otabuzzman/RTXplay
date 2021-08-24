@@ -317,6 +317,8 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
 		}
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
+
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_lp_general ) ) ) ;
 }
 
 // event callback table

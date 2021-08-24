@@ -11,7 +11,7 @@ class Sphere : public Thing {
 			optics_ = optics ;
 		}
 
-		virtual bool hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const override ;
+		bool hit( const Ray& ray, const double tmin, const double tmax, Binding& binding ) const override ;
 
 	private:
 		double radius_ ;

@@ -6,7 +6,7 @@
 #define MAXOPT 32
 
 typedef struct { int w; int h ; } res ;
-static const std::map<std::string, res> res_ = {
+static const std::map<std::string, res> res_map = {
 	{ "CGA",    {  320,  200 } },
 	{ "HVGA",   {  480,  320 } },
 	{ "VGA",    {  640,  480 } },
@@ -30,24 +30,34 @@ static const std::map<std::string, res> res_ = {
 	{ "UHD-2",  { 7680, 4320 } }
 } ;
 
+static const std::string aov_mne[] = {
+	"RPP"
+} ;
 #define AOV_NONE 0
 #define AOV_RPP  1
-static const std::map<std::string, int> aov_ = {
-	{ "RPP", AOV_RPP }
+static const std::map<std::string, int> aov_map = {
+	{ aov_mne[AOV_RPP], AOV_RPP }
 } ;
 
+static const std::string dns_mne[] = {
+	"SMP",
+	"NRM",
+	"ALB",
+	"NAA",
+	"AOV"
+} ;
 #define DNS_NONE 0
 #define DNS_SMP  1
 #define DNS_NRM  2
 #define DNS_ALB  3
 #define DNS_NAA  4
 #define DNS_AOV  5
-static const std::map<std::string, int> dns_ = {
-	{ "SMP", DNS_SMP },
-	{ "NRM", DNS_NRM },
-	{ "ALB", DNS_ALB },
-	{ "NAA", DNS_NAA },
-	{ "AOV", DNS_AOV }
+static const std::map<std::string, int> dns_map = {
+	{ dns_mne[DNS_SMP], DNS_SMP },
+	{ dns_mne[DNS_NRM], DNS_NRM },
+	{ dns_mne[DNS_ALB], DNS_ALB },
+	{ dns_mne[DNS_NAA], DNS_NAA },
+	{ dns_mne[DNS_AOV], DNS_AOV }
 } ;
 #define DNS_NUM 5
 

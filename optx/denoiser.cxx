@@ -45,8 +45,9 @@ DenoiserSMP::~DenoiserSMP() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
 }
 
-void DenoiserSMP::update( const float3* rawRGB ) {
-	layer_.input = {
+void DenoiserSMP::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( false ) {
+	OptixDenoiserLayer dns_layer = {} ;
+	dns_layer.input = {
 		reinterpret_cast<CUdeviceptr>( rawRGB ),
 		w_,
 		h_,
@@ -54,23 +55,20 @@ void DenoiserSMP::update( const float3* rawRGB ) {
 		sizeof( float3 ),
 		OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
-}
-
-float3* DenoiserSMP::beauty() {
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &beauty_ ), w_*h_*sizeof( float3 ) ) ) ;
-	layer_.output = {
-		reinterpret_cast<CUdeviceptr>( beauty_ ),
+	dns_layer.output = {
+		beauty ? reinterpret_cast<CUdeviceptr>( beauty ) : reinterpret_cast<CUdeviceptr>( rawRGB ),
 		w_,
 		h_,
 		static_cast<unsigned int>( w_*sizeof( float3 ) ),
 		sizeof( float3 ),
 		OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
+
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &params_.hdrIntensity ), sizeof( float ) ) ) ;
 	OPTX_CHECK( optixDenoiserComputeIntensity(
 		denoiser_,
 		nullptr,
-		&layer_.input,
+		&dns_layer.input,
 		params_.hdrIntensity,
 		scratch_,
 		scratch_size_
@@ -84,14 +82,18 @@ float3* DenoiserSMP::beauty() {
 		state_,
 		state_size_,
 		&dns_guidelayer,
-		&layer_,
+		&dns_layer,
 		1,
 		0,
 		0,
 		scratch_,
 		scratch_size_
 		) ) ;
-	CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
-	return beauty_ ;
+	CUDA_CHECK( cudaDeviceSynchronize() ) ;
+	if ( cudaGetLastError() != cudaSuccess ) {
+		std::ostringstream comment ;
+		comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
+		throw std::runtime_error( comment.str() ) ;
+	}
 }

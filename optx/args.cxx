@@ -29,8 +29,8 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		switch ( c = getopt_long( argc, argv, s_opts, l_opts, 0 ) ) {
 			case 'g':
 				{
-					auto s = res_.find( optarg ) ;
-					if ( s == res_.end() ) {
+					auto s = res_map.find( optarg ) ;
+					if ( s == res_map.end() ) {
 						sscanf( optarg, "%dx%d", &w_, &h_ ) ;
 						if ( 1>w_ || 1>h_ ) {
 							w_ = -1 ;
@@ -75,8 +75,8 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 							subopt.push_back( &optarg[i+1] ) ;
 						}
 					for ( auto aov : subopt ) {
-						auto s = aov_.find( aov ) ;
-						if ( s != aov_.end() ) {
+						auto s = aov_map.find( aov ) ;
+						if ( s != aov_map.end() ) {
 							switch ( s->second ) {
 								case AOV_RPP:
 									aov_rpp_ = 1 ;
@@ -92,8 +92,8 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 				break ;
 			case 'D':
 				{
-					auto s = dns_.find( optarg ) ;
-					if ( s != dns_.end() ) {
+					auto s = dns_map.find( optarg ) ;
+					if ( s != dns_map.end() ) {
 						switch ( s->second ) {
 							case DNS_SMP:
 							case DNS_NRM:
