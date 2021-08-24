@@ -6,7 +6,7 @@
 
 class Denoiser {
 	public:
-		virtual ~Denoiser() noexcept ( false ) ;
+		virtual ~Denoiser() noexcept ( false ) {} ;
 
 		virtual void beauty( const float3* rawRGB, const float3* beauty = nullptr ) = 0 ;
 } ;

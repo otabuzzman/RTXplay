@@ -31,6 +31,7 @@ static const std::map<std::string, res> res_map = {
 } ;
 
 static const std::string aov_mne[] = {
+	"none",
 	"RPP"
 } ;
 #define AOV_NONE 0
@@ -40,6 +41,7 @@ static const std::map<std::string, int> aov_map = {
 } ;
 
 static const std::string dns_mne[] = {
+	"none",
 	"SMP",
 	"NRM",
 	"ALB",
