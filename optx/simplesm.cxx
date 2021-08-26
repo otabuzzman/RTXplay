@@ -79,9 +79,7 @@ void SimpleSM::eaCtlDir() {
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// reduce RT quality while moving
 		i_sexchg_.push( smparam->lp_general.spp ) ;
-		i_sexchg_.push( smparam->lp_general.depth ) ;
 		smparam->lp_general.spp = 1 ;
-		smparam->lp_general.depth = 1 ;
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -144,8 +142,6 @@ void SimpleSM::eaDirRet() {
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// restore RT quality after moving
-		smparam->lp_general.depth = i_sexchg_.top() ;
-		i_sexchg_.pop() ;
 		smparam->lp_general.spp = i_sexchg_.top() ;
 		i_sexchg_.pop() ;
 	}
@@ -171,9 +167,7 @@ void SimpleSM::eaCtlPos() {
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// reduce RT quality while moving
 		i_sexchg_.push( smparam->lp_general.spp ) ;
-		i_sexchg_.push( smparam->lp_general.depth ) ;
 		smparam->lp_general.spp = 1 ;
-		smparam->lp_general.depth = 1 ;
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -214,8 +208,6 @@ void SimpleSM::eaPosRet() {
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// restore RT quality after moving
-		smparam->lp_general.depth = i_sexchg_.top() ;
-		i_sexchg_.pop() ;
 		smparam->lp_general.spp = i_sexchg_.top() ;
 		i_sexchg_.pop() ;
 	}
@@ -278,9 +270,7 @@ void SimpleSM::eaCtlZom() {
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// reduce RT quality while zooming
 		i_sexchg_.push( smparam->lp_general.spp ) ;
-		i_sexchg_.push( smparam->lp_general.depth ) ;
 		smparam->lp_general.spp = 1 ;
-		smparam->lp_general.depth = 1 ;
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -351,8 +341,6 @@ void SimpleSM::eaZomRet() {
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// restore RT quality after zooming
-		smparam->lp_general.depth = i_sexchg_.top() ;
-		i_sexchg_.pop() ;
 		smparam->lp_general.spp = i_sexchg_.top() ;
 		i_sexchg_.pop() ;
 	}
