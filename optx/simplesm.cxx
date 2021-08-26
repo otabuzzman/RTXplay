@@ -11,7 +11,7 @@
 #include "simplesm.h"
 
 SimpleSM::SimpleSM( GLFWwindow* window, const Args& args ) : window_( window ), args_( args ) {
-	h_state_.push( State::STL ) ; // start state
+	h_state_.push( State::CTL ) ; // start state
 
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 	Camera* camera = &smparam->lp_general.camera ;
@@ -28,16 +28,16 @@ void SimpleSM::transition( const Event& event ) {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( event ) ;
 
-	if ( args_.flag_tracesm() ) std::cerr << "SM transition " << eventName[e] << " " ;
+	if ( args_.flag_tracesm() ) std::cerr << "SM transition: " ;
 
 	h_event_.push( event ) ;
 	( this->*EATab[s][e] )() ;
 }
 
-void SimpleSM::eaStlAnm() {
+void SimpleSM::eaCtlAnm() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// toggle animation
@@ -47,15 +47,15 @@ void SimpleSM::eaStlAnm() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	// transition
-	const State next = State::ANM ;
+	const State next = State::CTL ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
-void SimpleSM::eaStlRet() {
+void SimpleSM::eaCtlRet() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		glfwSetWindowShouldClose( window_, true ) ;
 	}
@@ -63,15 +63,15 @@ void SimpleSM::eaStlRet() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	// transition
-	const State next = State::STL ;
+	const State next = State::CTL ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
-void SimpleSM::eaStlDir() {
+void SimpleSM::eaCtlDir() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
@@ -89,71 +89,13 @@ void SimpleSM::eaStlDir() {
 	// transition
 	const State next = State::DIR ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmStl() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		// toggle animation
-		smparam->options ^= SM_OPTION_ANIMATE ;
-	}
-	// clear history (comment to keep)
-	h_state_.pop() ;
-	h_event_.pop() ;
-	// transition
-	const State next = State::STL ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmRet() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-		glfwSetWindowShouldClose( window_, true ) ;
-	}
-	// clear history (comment to keep)
-	h_state_.pop() ;
-	h_event_.pop() ;
-	// transition
-	const State next = State::ANM ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmDir() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-		double x, y ;
-		glfwGetCursorPos( window_, &x, &y ) ;
-		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		// reduce RT quality while moving
-		i_sexchg_.push( smparam->lp_general.spp ) ;
-		i_sexchg_.push( smparam->lp_general.depth ) ;
-		smparam->lp_general.spp = 1 ;
-		smparam->lp_general.depth = 1 ;
-	}
-	// clear history (comment to keep)
-	// h_state_.pop() ;
-	// h_event_.pop() ;
-	// transition
-	const State next = State::DIR ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaDirScr() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
@@ -169,13 +111,13 @@ void SimpleSM::eaDirScr() {
 	// transition
 	const State next = State::DIR ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaDirMov() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
@@ -192,13 +134,13 @@ void SimpleSM::eaDirMov() {
 	// transition
 	const State next = State::DIR ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaDirRet() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// restore RT quality after moving
@@ -215,13 +157,13 @@ void SimpleSM::eaDirRet() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
-void SimpleSM::eaStlPos() {
+void SimpleSM::eaCtlPos() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
@@ -239,37 +181,13 @@ void SimpleSM::eaStlPos() {
 	// transition
 	const State next = State::POS ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmPos() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-		double x, y ;
-		glfwGetCursorPos( window_, &x, &y ) ;
-		paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		// reduce RT quality while moving
-		i_sexchg_.push( smparam->lp_general.spp ) ;
-		i_sexchg_.push( smparam->lp_general.depth ) ;
-		smparam->lp_general.spp = 1 ;
-		smparam->lp_general.depth = 1 ;
-	}
-	// clear history (comment to keep)
-	// h_state_.pop() ;
-	// h_event_.pop() ;
-	// transition
-	const State next = State::POS ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaPosMov() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
@@ -286,13 +204,13 @@ void SimpleSM::eaPosMov() {
 	// transition
 	const State next = State::POS ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaPosRet() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// restore RT quality after moving
@@ -309,13 +227,13 @@ void SimpleSM::eaPosRet() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
-void SimpleSM::eaStlRsz() {
+void SimpleSM::eaCtlRsz() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		int w, h ;
 		GLFW_CHECK( glfwGetFramebufferSize( window_, &w, &h ) ) ;
@@ -347,15 +265,15 @@ void SimpleSM::eaStlRsz() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	// transition
-	const State next = State::STL ;
+	const State next = State::CTL ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
-void SimpleSM::eaStlZom() {
+void SimpleSM::eaCtlZom() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// reduce RT quality while zooming
@@ -370,13 +288,13 @@ void SimpleSM::eaStlZom() {
 	// transition
 	const State next = State::ZOM ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
-void SimpleSM::eaStlBlr() {
+void SimpleSM::eaCtlBlr() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 	}
 	// clear history (comment to keep)
@@ -385,13 +303,13 @@ void SimpleSM::eaStlBlr() {
 	// transition
 	const State next = State::BLR ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
-void SimpleSM::eaStlFoc() {
+void SimpleSM::eaCtlFoc() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 	}
 	// clear history (comment to keep)
@@ -400,104 +318,13 @@ void SimpleSM::eaStlFoc() {
 	// transition
 	const State next = State::FOC ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmRsz() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-		int w, h ;
-		GLFW_CHECK( glfwGetFramebufferSize( window_, &w, &h ) ) ;
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		smparam->lp_general.image_w = w ;
-		smparam->lp_general.image_h = h ;
-		Camera* camera = &smparam->lp_general.camera ;
-		camera->aspratio( static_cast<float>( w )/static_cast<float>( h ) ) ;
-		// realloc render buffer
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.rawRGB ) ) ) ;
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
-		// realloc rays per pixel (rpp) buffer
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam->lp_general.rpp ) ) ) ;
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &smparam->lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
-		// resize pixel (image) buffer object
-		GL_CHECK( glGenBuffers( 1, &smparam->pbo ) ) ;
-		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam->pbo ) ) ;
-		GL_CHECK( glBufferData(
-			GL_ARRAY_BUFFER,
-			sizeof( uchar4 )*w*h,
-			nullptr,
-			GL_STATIC_DRAW
-			) ) ;
-		// register pbo for CUDA
-		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, smparam->pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
-		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
-	}
-	// clear history (comment to keep)
-	h_state_.pop() ;
-	h_event_.pop() ;
-	// transition
-	const State next = State::ANM ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmZom() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		// reduce RT quality while zooming
-		i_sexchg_.push( smparam->lp_general.spp ) ;
-		i_sexchg_.push( smparam->lp_general.depth ) ;
-		smparam->lp_general.spp = 1 ;
-		smparam->lp_general.depth = 1 ;
-	}
-	// clear history (comment to keep)
-	// _state_.pop() ;
-	// _event_.pop() ;
-	// transition
-	const State next = State::ZOM ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmBlr() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-	}
-	// clear history (comment to keep)
-	// h_state_.pop() ;
-	// h_event_.pop() ;
-	// transition
-	const State next = State::BLR ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
-}
-
-void SimpleSM::eaAnmFoc() {
-	const int s = static_cast<int>( h_state_.top() ) ;
-	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
-	{ // perform action
-	}
-	// clear history (comment to keep)
-	// h_state_.pop() ;
-	// h_event_.pop() ;
-	// transition
-	const State next = State::FOC ;
-	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaZomScr() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// update camera
@@ -514,13 +341,13 @@ void SimpleSM::eaZomScr() {
 	// transition
 	const State next = State::ZOM ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaZomRet() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// restore RT quality after zooming
@@ -537,13 +364,13 @@ void SimpleSM::eaZomRet() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaBlrScr() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 	}
 	// clear history (comment to keep)
@@ -552,13 +379,13 @@ void SimpleSM::eaBlrScr() {
 	// transition
 	const State next = State::BLR ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaBlrRet() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 	}
 	// clear history (comment to keep)
@@ -569,13 +396,13 @@ void SimpleSM::eaBlrRet() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaFocScr() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	const State next = State::FOC ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
@@ -592,13 +419,13 @@ void SimpleSM::eaFocScr() {
 	h_event_.pop() ;
 	// transition
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaFocRet() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event in state " << stateName[s] << " ... " ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state received " << eventName[e] << " event ... " ;
 	{ // perform action
 	}
 	// clear history (comment to keep)
@@ -609,13 +436,13 @@ void SimpleSM::eaFocRet() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	h_state_.push( next ) ;
-	if ( args_.flag_tracesm() ) std::cerr << stateName[static_cast<int>( next )] << "new state now" << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << "new state now " << stateName[static_cast<int>( next )] << std::endl ;
 }
 
 void SimpleSM::eaReject() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( h_event_.top() ) ;
 
-	if ( args_.flag_tracesm() ) std::cerr << eventName[e] << " event rejected in state " << stateName[s] << std::endl ;
+	if ( args_.flag_tracesm() ) std::cerr << stateName[s] << " state rejected " << eventName[e] << " event" << std::endl ;
 	h_event_.pop() ;
 }
