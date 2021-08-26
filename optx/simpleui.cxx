@@ -200,7 +200,6 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 	do {
 		auto t0 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
-		float3* finRGB = lp_general->rawRGB ;
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
@@ -242,7 +241,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		}
 
 		// post processing
-		pp_sRGB( finRGB, lp_general->image, w, h ) ;
+		pp_sRGB( lp_general->rawRGB, lp_general->image, w, h ) ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 
@@ -377,7 +376,7 @@ void SimpleUI::usage() {
   right button + scoll - roll camera\n\
   'a' key              - toggle scene animation\n\
   'd' key              - enable next in list (--usage) of\n\
-                         available denoiser\n\
+                         available denoiser (loop)\n\
   'f' key              - enter focus mode (<ESC> to leave)\n\
       scroll           - change aperture\n\
   'z' key              - enter zoom mode (<ESC> to leave)\n\

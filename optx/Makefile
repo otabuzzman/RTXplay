@@ -57,6 +57,7 @@ ifdef winos
 # C4191: <some type> unsafe type conversion
 # C4245: <some type> unsigned int conversion
 # C4365: <some type> unsigned int conversion
+# C4456: declaration shadows previous
 # C4505: unreferenced local function deleted
 # C4514: unreferenced inline function deleted
 # C4571: catch semantic changed in VC 7.1
@@ -79,6 +80,7 @@ IGNORED_WARNINGS = \
 	/wd4191 \
 	/wd4245 \
 	/wd4365 \
+	/wd4456 \
 	/wd4505 \
 	/wd4514 \
 	/wd4571 \
