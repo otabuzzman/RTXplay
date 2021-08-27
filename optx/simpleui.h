@@ -6,7 +6,7 @@
 
 class SimpleUI {
 	public:
-		SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& args ) ;
+		SimpleUI( const std::string& name ) ;
 		~SimpleUI() noexcept ( false ) ;
 
 		void render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) ;
@@ -22,9 +22,6 @@ class SimpleUI {
 		GLuint vao_ ;
 		GLuint vbo_ ;
 		GLuint tex_ ;
-
-		// command line arguments
-		Args args_ ;
 } ;
 
 #endif // SIMPLEUI_H

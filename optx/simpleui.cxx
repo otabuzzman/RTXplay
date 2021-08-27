@@ -10,6 +10,10 @@
 
 #include "simpleui.h"
 
+// common globals
+extern Args*     args ;
+extern LpGeneral lp_general ;
+
 // missing in GLFW
 void glfwSetScroll( GLFWwindow* window, const double xscroll, const double yscroll ) ;
 void glfwGetScroll( GLFWwindow* window, double* xscroll, double* yscroll ) ;
@@ -34,7 +38,7 @@ extern "C" const char frag_glsl[] ;
 extern "C" void pp_none( const float3* src, uchar4* dst, const int w, const int h ) ;
 extern "C" void pp_sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
-SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& args ) : args_( args ) {
+SimpleUI::SimpleUI( const std::string& name ) {
 	// initialize GLFW
 	GLFW_CHECK( glfwInit() ) ;
 
@@ -164,8 +168,7 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 
 	// initialize FSM
 	glfwSetWindowUserPointer( window_, &smparam ) ;
-	smparam.lp_general = lp_general ;
-	simplesm = new SimpleSM( window_, args_ ) ;
+	simplesm = new SimpleSM( window_ ) ;
 	// initialize CBT
 	GLFW_CHECK( glfwSetMouseButtonCallback( window_, mousecliqCb ) ) ;
 	GLFW_CHECK( glfwSetCursorPosCallback  ( window_, mousemoveCb ) ) ;
@@ -175,9 +178,9 @@ SimpleUI::SimpleUI( const std::string& name, LpGeneral& lp_general, const Args& 
 }
 
 SimpleUI::~SimpleUI() noexcept ( false ) {
-	delete simplesm ; simplesm = nullptr ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.rawRGB ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( smparam.lp_general.rpp ) ) ) ;
+	delete simplesm ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
 	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam.glx ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &smparam.pbo ) ) ;
@@ -191,7 +194,6 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 }
 
 void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) {
-	LpGeneral* lp_general = &smparam.lp_general ;
 	size_t lp_general_size = sizeof( LpGeneral ), lp_general_image_size ;
 
 	CUdeviceptr d_lp_general ;
@@ -204,16 +206,16 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam.glx, cuda_stream ) ) ;
-		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general->image ), &lp_general_image_size, smparam.glx ) ) ;
+		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general.image ), &lp_general_image_size, smparam.glx ) ) ;
 		CUDA_CHECK( cudaMemcpy(
 			reinterpret_cast<void*>( d_lp_general ),
-			lp_general,
+			&lp_general,
 			lp_general_size,
 			cudaMemcpyHostToDevice
 			) ) ;
 
-		const int w = lp_general->image_w ;
-		const int h = lp_general->image_h ;
+		const int w = lp_general.image_w ;
+		const int h = lp_general.image_h ;
 
 		auto t1 = std::chrono::high_resolution_clock::now() ;
 		OPTX_CHECK( optixLaunch(
@@ -226,13 +228,13 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
 		auto t2 = std::chrono::high_resolution_clock::now() ;
 
-		if ( args_.flag_statinf() ) { // output statistics
+		if ( args->flag_statinf() ) { // output statistics
 			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t2-t1 ).count() ;
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( rpp.data() ),
-				lp_general->rpp,
+				lp_general.rpp,
 				w*h*sizeof( unsigned int ),
 				cudaMemcpyDeviceToHost
 				) ) ;
@@ -240,8 +242,12 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			fprintf( stderr, "%9u %12llu %4llu (pixels, rays, milliseconds)", w*h, sr, dt ) ;
 		}
 
+		// apply denoiser
+		if ( smparam.dns_exec && smparam.dns_type != DNS_NONE )
+			smparam.denoiser->beauty( lp_general.rawRGB ) ;
+
 		// post processing
-		pp_sRGB( lp_general->rawRGB, lp_general->image, w, h ) ;
+		pp_sRGB( lp_general.rawRGB, lp_general.image, w, h ) ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 
@@ -295,9 +301,9 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		***/
 
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
-		if ( smparam.options&SM_OPTION_ANIMATE ) {
+		if ( smparam.anm_exec ) {
 			// rotate eye around y (WCS)
-			Camera* camera = &lp_general->camera ;
+			Camera* camera = &lp_general.camera ;
 			const float3 eye = camera->eye() ;
 			const float3 pat = camera->pat() ;
 			const float  len = V::len( eye-pat ) ;
@@ -310,7 +316,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		} else
 			GLFW_CHECK( glfwWaitEvents() ) ;
 
-		if ( args_.flag_statinf() ) { // output statistics
+		if ( args->flag_statinf() ) { // output statistics
 			auto t3 = std::chrono::high_resolution_clock::now() ;
 			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
 			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;

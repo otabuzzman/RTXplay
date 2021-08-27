@@ -5,6 +5,7 @@
 
 #include "args.h"
 #include "camera.h"
+#include "denoiser.h"
 #include "thing.h"
 #include "rtwo.h"
 #include "paddle.h"
@@ -18,24 +19,37 @@ enum class Event { ANM, BLR, DIR, DNS, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
 static const std::string eventName[] = { "ANM", "BLR", "DIR", "DNS", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
 struct SmParam {
-	LpGeneral             lp_general ;
 	GLuint                pbo ;
 	cudaGraphicsResource* glx ;
 
-#define SM_OPTION_NONE    0 // default
-#define SM_OPTION_ANIMATE 1 // rotate scene around y (WCS)
-	unsigned int          options = SM_OPTION_NONE ;
+	bool                  anm_exec = false ;
+
+	bool                  dns_exec = false ;
+	int                   dns_type = DNS_NONE ;
+	Denoiser*             denoiser = nullptr ;
 } ;
+
+#define EA_ENTER()                                                                           \
+	if ( args->flag_tracesm() ) {                                                            \
+		const int s = static_cast<int>( h_state_.top() ) ;                                   \
+		std::cerr << " changing state " << stateName[s] << " ... " ;                         \
+	} else
+
+#define EA_LEAVE( state )                                                                    \
+	if ( args->flag_tracesm() ) {                                                            \
+		std::cerr << "new state now " << stateName[static_cast<int>( state )] << std::endl ; \
+	} else
 
 class SimpleSM {
 	public:
-		SimpleSM( GLFWwindow* window, const Args& args ) ;
+		SimpleSM( GLFWwindow* window ) ;
 		~SimpleSM() ;
 
 		void transition( const Event& event ) ;
 
 		// event/ action implementations
 		void eaCtlAnm() ;
+		void eaCtlDns() ;
 		void eaCtlRet() ;
 		void eaCtlDir() ;
 		void eaAnmCtl() ;
@@ -74,7 +88,7 @@ class SimpleSM {
 		EAImp EATab[static_cast<int>( State::n )][static_cast<int>( Event::n )] = {
 			/* S/ E ANM                  BLR                  DIR                  DNS                  FOC                  MOV                  POS                  RET                  RSZ                  SCR                  ZOM               */
 			/*BLR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaBlrRet, &SimpleSM::eaReject, &SimpleSM::eaBlrScr, &SimpleSM::eaReject,
-			/*CTL*/ &SimpleSM::eaCtlAnm, &SimpleSM::eaCtlBlr, &SimpleSM::eaCtlDir, &SimpleSM::eaReject, &SimpleSM::eaCtlFoc, &SimpleSM::eaReject, &SimpleSM::eaCtlPos, &SimpleSM::eaCtlRet, &SimpleSM::eaCtlRsz, &SimpleSM::eaReject, &SimpleSM::eaCtlZom,
+			/*CTL*/ &SimpleSM::eaCtlAnm, &SimpleSM::eaCtlBlr, &SimpleSM::eaCtlDir, &SimpleSM::eaCtlDns, &SimpleSM::eaCtlFoc, &SimpleSM::eaReject, &SimpleSM::eaCtlPos, &SimpleSM::eaCtlRet, &SimpleSM::eaCtlRsz, &SimpleSM::eaReject, &SimpleSM::eaCtlZom,
 			/*DIR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirMov, &SimpleSM::eaReject, &SimpleSM::eaDirRet, &SimpleSM::eaReject, &SimpleSM::eaDirScr, &SimpleSM::eaReject,
 			/*FOC*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocRet, &SimpleSM::eaReject, &SimpleSM::eaFocScr, &SimpleSM::eaReject,
 			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject,
@@ -82,9 +96,6 @@ class SimpleSM {
 		} ;
 
 		void eaReject() ;
-
-		// command line arguments
-		Args args_ ;
 } ;
 
 #endif // SIMPLESM_H

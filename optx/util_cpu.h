@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-#define CUDA_CHECK( api ) \
+#define CUDA_CHECK( api )                                   \
 	do {                                                    \
 		cudaError_t e = api ;                               \
 		if ( e != cudaSuccess ) {                           \

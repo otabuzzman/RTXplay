@@ -37,8 +37,8 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 							h_ = -1 ;
 						}
 					} else { 
-						w_ = s->second.w ;
-						h_ = s->second.h ;
+						w_ = abs( s->second.w ) ;
+						h_ = abs( s->second.h ) ;
 					}
 				}
 				break ;
@@ -49,10 +49,10 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 					h_ = static_cast<int>( static_cast<float>( w_ )*h/w+.5f ) ;
 				break ;
 			case 's':
-				spp_ = atoi( optarg ) ;
+				spp_ = abs( atoi( optarg ) );
 				break ;
 			case 'd':
-				depth_ = atoi( optarg ) ;
+				depth_ = abs( atoi( optarg ) ) ;
 				break ;
 			case 'v':
 				verbose_ = 1 ;

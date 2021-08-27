@@ -4,6 +4,9 @@
 #include <vector_functions.h>
 #include <vector_types.h>
 
+// common globals
+extern OptixDeviceContext optx_context ;
+
 class Denoiser {
 	public:
 		virtual ~Denoiser() noexcept ( false ) {} ;
@@ -13,7 +16,7 @@ class Denoiser {
 
 class DenoiserSMP : public Denoiser {
 	public:
-		DenoiserSMP( const unsigned int w, const unsigned int h, const OptixDeviceContext optx_context ) ;
+		DenoiserSMP( const unsigned int w, const unsigned int h ) ;
 		~DenoiserSMP() noexcept ( false ) ;
 
 		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) noexcept ( false ) override ;

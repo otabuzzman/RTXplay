@@ -30,6 +30,11 @@
 using V::operator- ;
 using V::operator* ;
 
+// common globals
+Args*              args ;
+LpGeneral          lp_general ;
+OptixDeviceContext optx_context ;
+
 // PTX sources of shaders
 extern "C" const char camera_r_ptx[] ; // recursive
 extern "C" const char optics_r_ptx[] ;
@@ -99,24 +104,25 @@ const Things scene() {
 
 
 int main( int argc, char* argv[] ) {
-	Args args( argc, argv ) ;
+	args = new Args( argc, argv ) ;
 
-	if ( args.flag_help() ) {
+	if ( args->flag_help() ) {
 		Args::usage() ;
 		SimpleUI::usage() ;
 
 		return 0 ;
 	}
 
-	LpGeneral lp_general = {} ;
-	lp_general.image_w       = args.param_w( 1280 ) ;   // image width in pixels
-	lp_general.image_h       = args.param_h( 720 )  ;   // image height in pixels
-	lp_general.spp           = args.param_spp( 50 ) ;   // samples per pixel
+	lp_general.image_w = args->param_w( 1280 ) ;          // image width in pixels
+	lp_general.image_h = args->param_h( 720 )  ;          // image height in pixels
+	lp_general.spp     = args->param_spp( 50 ) ;          // samples per pixel
 #ifdef RECURSIVE
-	lp_general.depth         = args.param_depth( 16 ) ; // recursion depth
+#define MAX_DEPTH 16
 #else
-	lp_general.depth         = args.param_depth( 50 ) ; // number of iterations
+#define MAX_DEPTH 50
 #endif // RECURSIVE
+	const int depth    = args->param_depth( MAX_DEPTH ) ; // recursion depth or number of iterations
+	lp_general.depth   = 1>depth ? 1 : depth>MAX_DEPTH ? MAX_DEPTH : depth ;
 
 	float aspratio = static_cast<float>( lp_general.image_w )/static_cast<float>( lp_general.image_h ) ;
 	lp_general.camera.set(
@@ -133,14 +139,13 @@ int main( int argc, char* argv[] ) {
 
 	try {
 		// initialize
-		OptixDeviceContext optx_context = nullptr ;
 		{
 			CUDA_CHECK( cudaFree( 0 ) ) ;
 			OPTX_CHECK( optixInit() ) ;
 
 			OptixDeviceContextOptions optx_options = {} ;
 			optx_options.logCallbackFunction       = &util::optxLogStderr ;
-			optx_options.logCallbackLevel          = args.flag_verbose() ? 4 : 0 ;
+			optx_options.logCallbackLevel          = args->flag_verbose() ? 4 : 0 ;
 			optx_options.validationMode            = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL ;
 
 			// use current (0) CUDA context
@@ -548,7 +553,7 @@ int main( int argc, char* argv[] ) {
 		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
 		if ( display_dev>0 ) {
-			SimpleUI simpleui( "RTWO", lp_general, args ) ;
+			SimpleUI simpleui( "RTWO" ) ;
 			simpleui.render( pipeline, sbt ) ;
 		} else {
 			const int w = lp_general.image_w ;
@@ -559,7 +564,7 @@ int main( int argc, char* argv[] ) {
 				CUstream cuda_stream ;
 				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-				if ( args.param_denoiser( DNS_NONE ) != DNS_NONE )
+				if ( args->param_denoiser( DNS_NONE ) != DNS_NONE )
 					lp_general.spp = 1 ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
@@ -587,7 +592,7 @@ int main( int argc, char* argv[] ) {
 
 				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_lp_general ) ) ) ;
 
-				if ( args.flag_statinf() ) { // output statistics
+				if ( args->flag_statinf() ) { // output statistics
 					long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 					rpp.resize( w*h ) ;
 					CUDA_CHECK( cudaMemcpy(
@@ -611,8 +616,8 @@ int main( int argc, char* argv[] ) {
 
 
 			// apply denoiser
-			if ( args.param_denoiser( DNS_NONE ) != DNS_NONE ) {
-				Denoiser* denoiser = new DenoiserSMP( w, h, optx_context ) ;
+			if ( args->param_denoiser( DNS_NONE ) != DNS_NONE ) {
+				Denoiser* denoiser = new DenoiserSMP( w, h ) ;
 				denoiser->beauty( lp_general.rawRGB ) ;
 				delete denoiser ;
 			}
@@ -626,7 +631,7 @@ int main( int argc, char* argv[] ) {
 
 
 			// output image
-			if ( ! args.flag_quiet() ) {
+			if ( ! args->flag_quiet() ) {
 				std::vector<uchar4> image ;
 				image.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(
@@ -651,7 +656,7 @@ int main( int argc, char* argv[] ) {
 				}
 
 				// output AOV RPP (rays per pixel)
-				if ( args.flag_aov_rpp() ) {
+				if ( args->flag_aov_rpp() ) {
 					if ( rpp.size() == 0 ) {
 						rpp.resize( w*h ) ;
 						CUDA_CHECK( cudaMemcpy(
@@ -698,6 +703,8 @@ int main( int argc, char* argv[] ) {
 			OPTX_CHECK( optixModuleDestroy      ( module_optics         ) ) ;
 
 			OPTX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
+
+			delete args ;
 		}
 	} catch ( const std::exception& e ) {
 		std::cerr << "exception: " << e.what() << "\n" ;

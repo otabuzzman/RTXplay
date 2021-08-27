@@ -5,7 +5,7 @@
 
 #include "denoiser.h"
 
-DenoiserSMP::DenoiserSMP( const unsigned int w, const unsigned int h, const OptixDeviceContext optx_context ) : w_( w ), h_( h ) {
+DenoiserSMP::DenoiserSMP( const unsigned int w, const unsigned int h ) : w_( w ), h_( h ) {
 	OptixDenoiserOptions dns_options = {} ;
 	OPTX_CHECK( optixDenoiserCreate(
 		optx_context,
