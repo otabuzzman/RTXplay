@@ -106,7 +106,7 @@ const Things scene() {
 int main( int argc, char* argv[] ) {
 	args = new Args( argc, argv ) ;
 
-	if ( args->flag_help() ) {
+	if ( args->flag_h() ) {
 		Args::usage() ;
 		SimpleUI::usage() ;
 
@@ -115,13 +115,13 @@ int main( int argc, char* argv[] ) {
 
 	lp_general.image_w = args->param_w( 1280 ) ;          // image width in pixels
 	lp_general.image_h = args->param_h( 720 )  ;          // image height in pixels
-	lp_general.spp     = args->param_spp( 50 ) ;          // samples per pixel
+	lp_general.spp     = args->param_s( 50 ) ;          // samples per pixel
 #ifdef RECURSIVE
 #define MAX_DEPTH 16
 #else
 #define MAX_DEPTH 50
 #endif // RECURSIVE
-	const int depth    = args->param_depth( MAX_DEPTH ) ; // recursion depth or number of iterations
+	const int depth    = args->param_d( MAX_DEPTH ) ; // recursion depth or number of iterations
 	lp_general.depth   = 1>depth ? 1 : depth>MAX_DEPTH ? MAX_DEPTH : depth ;
 
 	float aspratio = static_cast<float>( lp_general.image_w )/static_cast<float>( lp_general.image_h ) ;
@@ -145,7 +145,7 @@ int main( int argc, char* argv[] ) {
 
 			OptixDeviceContextOptions optx_options = {} ;
 			optx_options.logCallbackFunction       = &util::optxLogStderr ;
-			optx_options.logCallbackLevel          = args->flag_verbose() ? 4 : 0 ;
+			optx_options.logCallbackLevel          = args->flag_v() ? 4 : 0 ;
 			optx_options.validationMode            = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL ;
 
 			// use current (0) CUDA context
@@ -564,7 +564,7 @@ int main( int argc, char* argv[] ) {
 				CUstream cuda_stream ;
 				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-				if ( args->param_denoiser( DNS_NONE ) != DNS_NONE )
+				if ( args->param_D( Dns::NONE ) != Dns::NONE )
 					lp_general.spp = 1 ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
@@ -592,7 +592,7 @@ int main( int argc, char* argv[] ) {
 
 				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_lp_general ) ) ) ;
 
-				if ( args->flag_statinf() ) { // output statistics
+				if ( args->flag_S() ) { // output statistics
 					long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 					rpp.resize( w*h ) ;
 					CUDA_CHECK( cudaMemcpy(
@@ -616,7 +616,7 @@ int main( int argc, char* argv[] ) {
 
 
 			// apply denoiser
-			if ( args->param_denoiser( DNS_NONE ) != DNS_NONE ) {
+			if ( args->param_D( Dns::NONE ) != Dns::NONE ) {
 				Denoiser* denoiser = new DenoiserSMP( w, h ) ;
 				denoiser->beauty( lp_general.rawRGB ) ;
 				delete denoiser ;
@@ -631,7 +631,7 @@ int main( int argc, char* argv[] ) {
 
 
 			// output image
-			if ( ! args->flag_quiet() ) {
+			if ( ! args->flag_q() ) {
 				std::vector<uchar4> image ;
 				image.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(
@@ -656,7 +656,7 @@ int main( int argc, char* argv[] ) {
 				}
 
 				// output AOV RPP (rays per pixel)
-				if ( args->flag_aov_rpp() ) {
+				if ( args->flag_A( Aov::RPP ) ) {
 					if ( rpp.size() == 0 ) {
 						rpp.resize( w*h ) ;
 						CUDA_CHECK( cudaMemcpy(

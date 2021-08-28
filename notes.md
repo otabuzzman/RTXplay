@@ -1,5 +1,5 @@
 # Notes
-Various findinds stepped across during the course of exploring OptiX.
+Various findings stepped across during the course of exploring OptiX.
 <br><br>
 
 ### Contents

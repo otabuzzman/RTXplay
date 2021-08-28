@@ -228,7 +228,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
 		auto t2 = std::chrono::high_resolution_clock::now() ;
 
-		if ( args->flag_statinf() ) { // output statistics
+		if ( args->flag_S() ) { // output statistics
 			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t2-t1 ).count() ;
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;
@@ -243,7 +243,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		}
 
 		// apply denoiser
-		if ( smparam.dns_exec && smparam.dns_type != DNS_NONE )
+		if ( smparam.dns_exec && smparam.dns_type != Dns::NONE )
 			smparam.denoiser->beauty( lp_general.rawRGB ) ;
 
 		// post processing
@@ -316,7 +316,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		} else
 			GLFW_CHECK( glfwWaitEvents() ) ;
 
-		if ( args->flag_statinf() ) { // output statistics
+		if ( args->flag_S() ) { // output statistics
 			auto t3 = std::chrono::high_resolution_clock::now() ;
 			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
 			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;

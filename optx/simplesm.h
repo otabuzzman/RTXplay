@@ -14,9 +14,9 @@
 extern "C" void glfwGetScroll( GLFWwindow* /*window*/, double* xscroll, double* yscroll ) ;
 
 enum class State { BLR, CTL, DIR, FOC, POS, ZOM, n } ;
-static const std::string stateName[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
+static const std::string state_name[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
 enum class Event { ANM, BLR, DIR, DNS, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
-static const std::string eventName[] = { "ANM", "BLR", "DIR", "DNS", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
+static const std::string event_name[] = { "ANM", "BLR", "DIR", "DNS", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
 struct SmParam {
 	GLuint                pbo ;
@@ -25,19 +25,19 @@ struct SmParam {
 	bool                  anm_exec = false ;
 
 	bool                  dns_exec = false ;
-	int                   dns_type = DNS_NONE ;
+	Dns                   dns_type = Dns::NONE ;
 	Denoiser*             denoiser = nullptr ;
 } ;
 
-#define EA_ENTER()                                                                           \
-	if ( args->flag_tracesm() ) {                                                            \
-		const int s = static_cast<int>( h_state_.top() ) ;                                   \
-		std::cerr << " changing state " << stateName[s] << " ... " ;                         \
+#define EA_ENTER()                                                                            \
+	if ( args->flag_t() ) {                                                                   \
+		const int s = static_cast<int>( h_state_.top() ) ;                                    \
+		std::cerr << " changing state " << state_name[s] << " ... " ;                         \
 	} else
 
-#define EA_LEAVE( state )                                                                    \
-	if ( args->flag_tracesm() ) {                                                            \
-		std::cerr << "new state now " << stateName[static_cast<int>( state )] << std::endl ; \
+#define EA_LEAVE( state )                                                                     \
+	if ( args->flag_t() ) {                                                                   \
+		std::cerr << "new state now " << state_name[static_cast<int>( state )] << std::endl ; \
 	} else
 
 class SimpleSM {

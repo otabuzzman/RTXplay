@@ -13,14 +13,14 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		{ "aspect-ratio",      required_argument, 0, 'a' },
 		{ "samples-per-pixel", required_argument, 0, 's' },
 		{ "trace-depth",       required_argument, 0, 'd' },
-		{ "verbose",           no_argument, &verbose_, 1 },
-		{ "trace-sm",          no_argument, &tracesm_, 1 },
-		{ "quiet",             no_argument, &quiet_,   1 },
-		{ "silent",            no_argument, &quiet_,   1 },
-		{ "help",              no_argument, &help_,    1 },
-		{ "usage",             no_argument, &help_,    1 },
+		{ "verbose",           no_argument,       &v_, 1 },
+		{ "trace-sm",          no_argument,       &t_, 1 },
+		{ "quiet",             no_argument,       &q_, 1 },
+		{ "silent",            no_argument,       &q_, 1 },
+		{ "help",              no_argument,       &h_, 1 },
+		{ "usage",             no_argument,       &h_, 1 },
 		{ "print-aov",         required_argument, 0, 'A' },
-		{ "print-statistics",  no_argument, &statinf_, 1 },
+		{ "print-statistics",  no_argument,       &S_, 1 },
 		{ "apply-denoiser",    required_argument, 0, 'D' },
 		{ 0, 0, 0, 0 }
 	} ;
@@ -31,40 +31,40 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 				{
 					auto s = res_map.find( optarg ) ;
 					if ( s == res_map.end() ) {
-						sscanf( optarg, "%dx%d", &w_, &h_ ) ;
-						if ( 1>w_ || 1>h_ ) {
-							w_ = -1 ;
-							h_ = -1 ;
+						sscanf( optarg, "%dx%d", &g_w_, &g_h_ ) ;
+						if ( 1>g_w_ || 1>g_h_ ) {
+							g_w_ = -1 ;
+							g_h_ = -1 ;
 						}
 					} else { 
-						w_ = abs( s->second.w ) ;
-						h_ = abs( s->second.h ) ;
+						g_w_ = abs( s->second.w ) ;
+						g_h_ = abs( s->second.h ) ;
 					}
 				}
 				break ;
 			case 'a':
 				float w, h ;
 				sscanf( optarg, "%f:%f", &w, &h ) ;
-				if ( w_>0 && w>0 && h>0 )
-					h_ = static_cast<int>( static_cast<float>( w_ )*h/w+.5f ) ;
+				if ( g_w_>0 && w>0 && h>0 )
+					g_h_ = static_cast<int>( static_cast<float>( g_w_ )*h/w+.5f ) ;
 				break ;
 			case 's':
-				spp_ = abs( atoi( optarg ) );
+				s_ = abs( atoi( optarg ) );
 				break ;
 			case 'd':
-				depth_ = abs( atoi( optarg ) ) ;
+				d_ = abs( atoi( optarg ) ) ;
 				break ;
 			case 'v':
-				verbose_ = 1 ;
+				v_ = 1 ;
 				break ;
 			case 't':
-				tracesm_ = 1 ;
+				t_ = 1 ;
 				break ;
 			case 'q':
-				quiet_ = 1 ;
+				q_ = 1 ;
 				break ;
 			case 'h':
-				help_  = 1 ;
+				h_  = 1 ;
 				break ;
 			case 'A':
 				{
@@ -77,33 +77,21 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 					for ( auto aov : subopt ) {
 						auto s = aov_map.find( aov ) ;
 						if ( s != aov_map.end() ) {
-							switch ( s->second ) {
-								case AOV_RPP:
-									aov_rpp_ = 1 ;
-									break ;
-							}
+							if ( s->second == Aov::RPP ) A_rpp_ = Aov::RPP ;
 						} else
 							std::cerr << argv[0] << ": unknown argument for option A ignored -- " << aov << std::endl ;
 					}
 				}
 				break ;
 			case 'S':
-				statinf_ = 1 ;
+				S_ = 1 ;
 				break ;
 			case 'D':
 				{
 					auto s = dns_map.find( optarg ) ;
-					if ( s != dns_map.end() ) {
-						switch ( s->second ) {
-							case DNS_SMP:
-							case DNS_NRM:
-							case DNS_ALB:
-							case DNS_NAA:
-							case DNS_AOV:
-								denoiser_ = s->second ;
-								break ;
-						}
-					} else
+					if ( s != dns_map.end() )
+						D_typ_ = s->second ;
+					else
 						std::cerr << argv[0] << ": unknown argument for option D ignored -- " << optarg << std::endl ;
 				}
 				break ;
@@ -116,19 +104,29 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 	} while ( c>-1 && MAXOPT>n++ ) ;
 }
 
-int Args::param_w( const int dEfault )        const { return 0>w_ ? dEfault : w_ ; }
-int Args::param_h( const int dEfault )        const { return 0>h_ ? dEfault : h_ ; }
-int Args::param_spp  ( const int dEfault )    const { return 0>spp_   ? dEfault : spp_   ; }
-int Args::param_depth( const int dEfault )    const { return 0>depth_ ? dEfault : depth_ ; }
-int Args::param_denoiser( const int dEfault ) const { return 0>denoiser_ ? dEfault : denoiser_ ; }
+int Args::param_w( const int dEfault ) const { return 0>g_w_ ? dEfault : g_w_ ; }
+int Args::param_h( const int dEfault ) const { return 0>g_h_ ? dEfault : g_h_ ; }
+int Args::param_s( const int dEfault ) const { return 0>s_ ? dEfault : s_ ; }
+int Args::param_d( const int dEfault ) const { return 0>d_ ? dEfault : d_ ; }
 
-bool Args::flag_verbose()  const { return verbose_>0 ; }
-bool Args::flag_help()     const { return help_>0    ; }
-bool Args::flag_quiet()    const { return quiet_>0   ; }
-bool Args::flag_tracesm()  const { return tracesm_>0 ; }
-bool Args::flag_statinf()  const { return statinf_>0 ; }
+Dns Args::param_D( const Dns dEfault, const char** mnemonic ) const {
+	Dns param = D_typ_ == Dns::NONE ? dEfault : D_typ_ ;
+	*mnemonic = dns_name[static_cast<int>( param )].c_str() ;
 
-bool Args::flag_aov_rpp()  const { return aov_rpp_ != AOV_NONE ; }
+	return param ;
+}
+
+bool Args::flag_v() const { return v_>0 ; }
+bool Args::flag_h() const { return h_>0 ; }
+bool Args::flag_q() const { return q_>0 ; }
+bool Args::flag_t() const { return t_>0 ; }
+bool Args::flag_S() const { return S_>0 ; }
+
+bool Args::flag_A( const Aov select ) const {
+	if ( select == Aov::RPP )
+		return A_rpp_ == Aov::RPP ;
+	return false ;
+}
 
 void Args::usage() {
 	std::cerr << "Usage: rtwo [OPTION...]\n\
@@ -245,25 +243,26 @@ int main( int argc, char* argv[] ) {
 	try {
 		Args args( argc, argv ) ;
 
-		if ( args.flag_help() ) {
+		if ( args.flag_h() ) {
 			Args::usage() ;
 
 			return 0 ;
 		}
 
-		std::cout << "geometry   : " << args.param_w       ( 4711 )     << "x" << args.param_h( 4711 ) << std::endl ;
-		std::cout << "spp        : " << args.param_spp     ( 4711 )     << std::endl ;
-		std::cout << "depth      : " << args.param_depth   ( 4711 )     << std::endl ;
-		std::cout << "denoiser   : " << args.param_denoiser( DNS_NONE ) << std::endl ;
+		std::cout << "geometry   : " << args.param_w( 4711 ) << "x" << args.param_h( 4711 ) << std::endl ;
+		std::cout << "spp        : " << args.param_s( 4711 ) << std::endl ;
+		std::cout << "depth      : " << args.param_d( 4711 ) << std::endl ;
+		const char* mnemonic ;
+		int dns = static_cast<int>( args.param_D( Dns::NONE, &mnemonic ) ) ;
+		std::cout << "denoiser   : " << mnemonic << " (" << dns << ")" << std::endl ;
 
-		std::cout << "verbose    : " << ( args.flag_verbose()  ? "set" : "not set" ) << std::endl ;
-		std::cout << "help       : " << ( args.flag_help()     ? "set" : "not set" ) << std::endl ;
-		std::cout << "quiet      : " << ( args.flag_quiet()    ? "set" : "not set" ) << std::endl ;
-		std::cout << "silent     : " << ( args.flag_quiet()    ? "set" : "not set" ) << std::endl ;
-		std::cout << "trace-sm   : " << ( args.flag_tracesm()  ? "set" : "not set" ) << std::endl ;
-		std::cout << "statistics : " << ( args.flag_statinf()  ? "set" : "not set" ) << std::endl ;
+		std::cout << "verbose    : " << ( args.flag_v() ? "set" : "not set" ) << std::endl ;
+		std::cout << "quiet      : " << ( args.flag_q() ? "set" : "not set" ) << std::endl ;
+		std::cout << "silent     : " << ( args.flag_q() ? "set" : "not set" ) << std::endl ;
+		std::cout << "trace-sm   : " << ( args.flag_t() ? "set" : "not set" ) << std::endl ;
+		std::cout << "statistics : " << ( args.flag_S() ? "set" : "not set" ) << std::endl ;
 
-		std::cout << "aov RPP    : " << ( args.flag_aov_rpp()  ? "set" : "not set" ) << std::endl ;
+		std::cout << "aov RPP    : " << ( args.flag_A( Aov::RPP ) ? "set" : "not set" ) << std::endl ;
 	} catch ( const std::invalid_argument& e ) {
 		std::cerr << e.what() << std::endl ;
 

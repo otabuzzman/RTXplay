@@ -30,73 +30,56 @@ static const std::map<std::string, res> res_map = {
 	{ "UHD-2",  { 7680, 4320 } }
 } ;
 
-static const std::string aov_mne[] = {
-	"none",
-	"RPP"
-} ;
-#define AOV_NONE 0
-#define AOV_RPP  1
-static const std::map<std::string, int> aov_map = {
-	{ aov_mne[AOV_RPP], AOV_RPP }
+enum class Aov { NONE, RPP } ;
+static const std::string aov_name[] = { "none", "RPP" } ;
+static const std::map<std::string, Aov> aov_map = {
+	{ aov_name[static_cast<int>( Aov::RPP )], Aov::RPP }
 } ;
 
-static const std::string dns_mne[] = {
-	"none",
-	"SMP",
-	"NRM",
-	"ALB",
-	"NAA",
-	"AOV"
+enum class Dns { NONE, SMP, NRM, ALB, NAA, AOV } ;
+static const std::string dns_name[] = { "none", "SMP", "NRM", "ALB", "NAA", "AOV" } ;
+static const std::map<std::string, Dns> dns_map = {
+	{ dns_name[static_cast<int>( Dns::SMP )], Dns::SMP },
+	{ dns_name[static_cast<int>( Dns::NRM )], Dns::NRM },
+	{ dns_name[static_cast<int>( Dns::ALB )], Dns::ALB },
+	{ dns_name[static_cast<int>( Dns::NAA )], Dns::NAA },
+	{ dns_name[static_cast<int>( Dns::AOV )], Dns::AOV }
 } ;
-#define DNS_NONE 0
-#define DNS_SMP  1
-#define DNS_NRM  2
-#define DNS_ALB  3
-#define DNS_NAA  4
-#define DNS_AOV  5
-static const std::map<std::string, int> dns_map = {
-	{ dns_mne[DNS_SMP], DNS_SMP },
-	{ dns_mne[DNS_NRM], DNS_NRM },
-	{ dns_mne[DNS_ALB], DNS_ALB },
-	{ dns_mne[DNS_NAA], DNS_NAA },
-	{ dns_mne[DNS_AOV], DNS_AOV }
-} ;
-#define DNS_NUM 5
 
 class Args {
 	public:
 		Args( const int argc, char* const* argv ) noexcept( false ) ;
 
-		int param_w( const int dEfault )        const ;
-		int param_h( const int dEfault )        const ;
-		int param_spp  ( const int dEfault )    const ;
-		int param_depth( const int dEfault )    const ;
-		int param_denoiser( const int dEfault ) const ;
+		int param_w( const int dEfault ) const ; // -g, --geometry <w>x<h>
+		int param_h( const int dEfault ) const ;
+		int param_s( const int dEfault ) const ; // -s, --samples-per-pixel
+		int param_d( const int dEfault ) const ; // -t, --trace-depth
 
-		bool flag_verbose() const ;
-		bool flag_help()    const ;
-		bool flag_quiet()   const ;
-		bool flag_tracesm() const ;
-		bool flag_statinf() const ;
+		Dns param_D( const Dns dEfault, const char** mnemonic = 0 ) const ; // -D, --apply-denoiser
 
-		bool flag_aov_rpp() const ;
+		bool flag_v() const ; // -v, --verbose
+		bool flag_h() const ; // -h, --help
+		bool flag_q() const ; // -q, --quiet
+		bool flag_t() const ; // -t, --trace-sm
+		bool flag_S() const ; // -S, --print-statistics
+
+		bool flag_A( const Aov select ) const ; // -A, --print-aov
 
 		static void usage() ;
 
 	private:
-		int w_        = -1 ;
-		int h_        = -1 ;
-		int spp_      = -1 ;
-		int depth_    = -1 ;
-		int denoiser_ = DNS_NONE ;
+		int g_w_   = -1 ;
+		int g_h_   = -1 ;
+		int s_     = -1 ;
+		int d_     = -1 ;
+		Dns D_typ_ = Dns::NONE ;
 
-		int verbose_  =  0 ;
-		int help_     =  0 ;
-		int quiet_    =  0 ;
-		int tracesm_  =  0 ;
-		int statinf_  =  0 ;
-
-		int aov_rpp_  = AOV_NONE ;
+		int v_     =  0 ;
+		int h_     =  0 ;
+		int q_     =  0 ;
+		int t_     =  0 ;
+		int S_     =  0 ;
+		Aov A_rpp_ = Aov::NONE ;
 } ;
 
 #endif // ARGS_H

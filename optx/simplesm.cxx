@@ -34,7 +34,7 @@ void SimpleSM::transition( const Event& event ) {
 	const int s = static_cast<int>( h_state_.top() ) ;
 	const int e = static_cast<int>( event ) ;
 
-	if ( args->flag_tracesm() ) std::cerr << "SM event " << eventName[e] << " : " ;
+	if ( args->flag_t() ) std::cerr << "SM event " << event_name[e] << " : " ;
 
 	h_event_.push( event ) ;
 	( this->*EATab[s][e] )() ;
@@ -62,25 +62,24 @@ void SimpleSM::eaCtlDns() {
 	EA_ENTER() ;
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		smparam->denoiser = nullptr ; // delete denoiser if set
-		smparam->dns_type = ( smparam->dns_type+1 )%DNS_NUM ;
-		switch ( smparam->dns_type ) {
-			case DNS_SMP:
-				smparam->denoiser = new DenoiserSMP( lp_general.image_w, lp_general.image_h ) ;
-				break ;
-			case DNS_NRM:
-				break ;
-			case DNS_ALB:
-				break ;
-			case DNS_NAA:
-				break ;
-			case DNS_AOV:
-				break ;
-			default: // DNS_NONE
-				break ;
+		smparam->denoiser = nullptr ; // delete denoiser
+		if ( smparam->dns_type == Dns::NONE )
+			smparam->denoiser = new DenoiserSMP( lp_general.image_w, lp_general.image_h ) ;
+		else if ( smparam->dns_type == Dns::SMP )
+			smparam->denoiser = nullptr ; // new DenoiserNRM( lp_general.image_w, lp_general.image_h ) ;
+		else if ( smparam->dns_type == Dns::NRM )
+			smparam->denoiser = nullptr ; // new DenoiserALB( lp_general.image_w, lp_general.image_h ) ;
+		else if ( smparam->dns_type == Dns::ALB )
+			smparam->denoiser = nullptr ; // new DenoiserNAA( lp_general.image_w, lp_general.image_h ) ;
+		else if ( smparam->dns_type == Dns::NAA )
+			smparam->denoiser = nullptr ; // new DenoiserAOV( lp_general.image_w, lp_general.image_h ) ;
+		else // Dns::AOV
+			smparam->denoiser = nullptr ;
+		if ( args->flag_v() ) {
+			const char *mnemonic ;
+			args->param_D( Dns::NONE, &mnemonic ) ;
+			std::cerr << "denoiser " << mnemonic << std::endl ;
 		}
-		if ( args->flag_verbose() )
-			std::cerr << "denoiser " << ( smparam->dns_exec ? smparam->dns_type : -1 ) << std::endl ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -279,22 +278,17 @@ void SimpleSM::eaCtlRsz() {
 		CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, smparam->pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 		// resize denoiser
-		smparam->denoiser = nullptr ;
-		switch ( smparam->dns_type ) {
-			case DNS_SMP:
-				smparam->denoiser = new DenoiserSMP( w, h ) ;
-				break ;
-			case DNS_NRM:
-				break ;
-			case DNS_ALB:
-				break ;
-			case DNS_NAA:
-				break ;
-			case DNS_AOV:
-				break ;
-			default: // DNS_NONE
-				break ;
-		}
+		smparam->denoiser = nullptr ; // delete denoiser
+		if ( smparam->dns_type == Dns::SMP )
+			smparam->denoiser = new DenoiserSMP( lp_general.image_w, lp_general.image_h ) ;
+		else if ( smparam->dns_type == Dns::NRM )
+			smparam->denoiser = nullptr ; // new DenoiserNRM( lp_general.image_w, lp_general.image_h ) ;
+		else if ( smparam->dns_type == Dns::ALB )
+			smparam->denoiser = nullptr ; // new DenoiserALB( lp_general.image_w, lp_general.image_h ) ;
+		else if ( smparam->dns_type == Dns::NAA )
+			smparam->denoiser = nullptr ; // new DenoiserNAA( lp_general.image_w, lp_general.image_h ) ;
+		else // Dns::AOV
+			smparam->denoiser = nullptr ; // new DenoiserAOV( lp_general.image_w, lp_general.image_h ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -457,6 +451,6 @@ void SimpleSM::eaFocRet() {
 void SimpleSM::eaReject() {
 	const int s = static_cast<int>( h_state_.top() ) ;
 
-	if ( args->flag_tracesm() ) std::cerr << " rejected in state " << stateName[s] << std::endl ;
+	if ( args->flag_t() ) std::cerr << " rejected in state " << state_name[s] << std::endl ;
 	h_event_.pop() ;
 }
