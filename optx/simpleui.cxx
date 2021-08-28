@@ -381,8 +381,8 @@ void SimpleUI::usage() {
   right button + move  - change camera direction\n\
   right button + scoll - roll camera\n\
   'a' key              - toggle scene animation\n\
-  'd' key              - enable next in list (--usage) of\n\
-                         available denoiser (loop)\n\
+  'd' key              - enable/ disable denoising and select\n\
+                         type (loop)\n\
   'f' key              - enter focus mode (<ESC> to leave)\n\
       scroll           - change aperture\n\
   'z' key              - enter zoom mode (<ESC> to leave)\n\

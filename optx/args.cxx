@@ -132,8 +132,8 @@ bool Args::flag_aov_rpp()  const { return aov_rpp_ != AOV_NONE ; }
 
 void Args::usage() {
 	std::cerr << "Usage: rtwo [OPTION...]\n\
-  `rtwo´ renders the image from Pete Shirley's Ray Tracing in One Weekend\n\
-  tutorial using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
+  `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in\n\
+  One Weekend using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
   (PPM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
 \n\
   If the host execs an X server (GLX enabled) as well, `rtwo´ continuously\n\
@@ -141,10 +141,10 @@ void Args::usage() {
   interactions.\n\
 \n\
 Examples:\n\
-  # render and convert image to PNG. Print statistical information.\n\
+  # render and convert image to PNG. Print statistical information on stderr.\n\
   rtwo -S | magick ppm:- rtwo.png\n\
 \n\
-  # convert image and AOV (yields rtwo-0.png (image), rtwo-1.png (RPP)).\n\
+  # convert image and AOV (yields rtwo-0.png (image) and rtwo-1.png (RPP)).\n\
   rtwo --print-aov RPP | magick - rtwo.png\n\
 \n\
   # improve AOV RPP contrast.\n\
@@ -152,11 +152,10 @@ Examples:\n\
 \n\
 Options:\n\
   -g, --geometry {<width>[x<height>]|RES}\n\
-    Set image resolution to particular dimensions or substitute RES with\n\
-    a predefined value. In case of X server exec'ing, this option defines\n\
-    initial values that will change on resizing the window.\n\
+    Set image resolution to particular dimensions or common values predefined\n\
+    by RES. \n\
 \n\
-    Prefedined values for RES:\n\
+    Prefedined resolutions for RES:\n\
       CGA    - 320x200      8:5\n\
       HVGA   - 480x320      3:2\n\
       VGA    - 640x480      4:3\n\
@@ -181,11 +180,11 @@ Options:\n\
 \n\
     Default resolution is HD.\n\
 \n\
-  -s, --samples-per-pixel n\n\
-    Use n samples per pixel (SPP). Default is 50.\n\
+  -s, --samples-per-pixel N\n\
+    Use N samples per pixel (SPP). Default is 50.\n\
 \n\
-  -d, --trace-depth n\n\
-    Trace n rays per sample (RPS). A minimum value of 1 means just trace\n\
+  -d, --trace-depth N\n\
+    Trace N rays per sample (RPS). A minimum value of 1 means just trace\n\
     primary rays. Default is 16 or 50, depending on whether `rtwo´ was\n\
     compiled for recursive or iterative ray tracing respectively.\n\
 \n\
@@ -208,12 +207,12 @@ Options:\n\
     Print this help. Takes precedence over any other options\n\
 \n\
   -A, --print-aov <AOV>[,...]\n\
-    Print AOVs after image on stdout. Print all if no AOVs given (order as\n\
-    in list below) or pick particular AOVs (order as given).\n\
+    Print AOVs after image on stdout.\n\
 \n\
     Available AOVs:\n\
-      RPP (Rays per pixel) - Sort of AOV. Pixel values sum up total number of\n\
-                             rays that have been traced by each sample (PGM).\n\
+      RPP (Rays per pixel) - Sort of `data´ AOV (opposed to AOVs for lighting\n\
+                             or shading). Values add up total number of rays\n\
+                             traced for each pixel.\n\
 \n\
     This option is not available in interactive mode.\n\
 \n\
@@ -221,13 +220,14 @@ Options:\n\
     Print statistical information on stderr.\n\
 \n\
   -D, --apply-denoiser <TYP>\n\
-    Apply denoiser type TYP after rendering using 1 SPP. In interactive mode\n\
-    denoising is applied in scene animation and while moving camera position\n\
-    and direction, zooming, etc. When finished there is a final still\n\
-    rendering with SPP as given by --samples-per-pixels or default.\n\
-    Output in batch mode is a denoised image rendered with 1 SPP.\n\
+    Enable denoiser and apply type TYP after rendering with 1 SPP.\n\
+    In interactive mode denoising applies to scene animation and while\n\
+    changing camera position and direction, as well as zooming.\n\
+    When finished there is a final still image rendered with SPP as given\n\
+    by -s, --samples-per-pixels or default.\n\
+    Output in batch mode is a type TYP denoised image with 1 SPP.\n\
 \n\
-    Available denoiser for TYP:\n\
+    Available types for TYP:\n\
       SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw RGB\n\
             rendering output into denoiser and retrieves result.\n\
       NRM - Simple type plus hit point normals.\n\
