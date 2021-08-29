@@ -65,6 +65,11 @@ extern "C" __global__ void __closesthit__diffuse() {
 	Frand48* state = reinterpret_cast<Frand48*>( util::fit64( sh, sl ) ) ;
 #endif // CURAND
 
+	// assemble DGV pointer from payload
+	unsigned int dh = optixGetPayload_6() ;
+	unsigned int dl = optixGetPayload_7() ;
+	DenoiserGuideValues* dgv = reinterpret_cast<DenoiserGuideValues*>( util::fit64( dh, dl ) ) ;
+
 	// finally the diffuse reflection according to RTOW
 	// see CPU version of RTOW, optics.h: Diffuse.spray()
 		const float3 dir = N+V::rndVon1sphere( state ) ;
@@ -89,7 +94,8 @@ extern "C" __global__ void __closesthit__diffuse() {
 			// payloads
 			r, g, b, // up: color
 			sh, sl,  // down: RNG state pointer
-			depth    // down: current recursion depth, up: final recursion depth (rays per trace)
+			depth,   // down: current recursion depth, up: final recursion depth (rays per trace)
+			dh, dl   // up: denoiser guide values (DGV)
 			) ;
 
 	// update this ray's diffuse color according to RTOW and propagate
@@ -99,6 +105,12 @@ extern "C" __global__ void __closesthit__diffuse() {
 	optixSetPayload_2( __float_as_uint( albedo.z*__uint_as_float( b ) ) ) ;
 
 	optixSetPayload_5( depth ) ;
+
+	// update denoiser guide values on first hit on diffuse
+	if ( util::isnull( dgv->normal ) )
+		dgv->normal = N ;
+	if ( util::isnull( dgv->albedo ) )
+		dgv->albedo = albedo ;
 }
 
 extern "C" __global__ void __closesthit__reflect() {
@@ -155,6 +167,11 @@ extern "C" __global__ void __closesthit__reflect() {
 	Frand48* state = reinterpret_cast<Frand48*>( util::fit64( sh, sl ) ) ;
 #endif // CURAND
 
+	// assemble DGV pointer from payload
+	unsigned int dh = optixGetPayload_6() ;
+	unsigned int dl = optixGetPayload_7() ;
+	DenoiserGuideValues* dgv = reinterpret_cast<DenoiserGuideValues*>( util::fit64( dh, dl ) ) ;
+
 	// finally the reflection according to RTOW
 	// see CPU version of RTOW, optics.h:  Reflect.spray()
 		const float3 d1V     = V::unitV( d ) ;              // v.h: reflect()
@@ -184,7 +201,8 @@ extern "C" __global__ void __closesthit__reflect() {
 				// payloads
 				r, g, b, // up: color
 				sh, sl,  // down: RNG state pointer
-				depth    // down: current recursion depth, up: final recursion depth (rays per trace)
+				depth,   // down: current recursion depth, up: final recursion depth (rays per trace)
+				dh, dl   // up: denoiser guide values (DGV)
 				) ;
 
 		// update this ray's reflect color according to RTOW and propagate
@@ -199,6 +217,12 @@ extern "C" __global__ void __closesthit__reflect() {
 	}
 
 	optixSetPayload_5( depth ) ;
+
+	// update denoiser guide values on first hit on reflect
+	if ( util::isnull( dgv->normal ) )
+		dgv->normal = N ;
+	if ( util::isnull( dgv->albedo ) )
+		dgv->albedo = optics.reflect.albedo ;
 }
 
 extern "C" __global__ void __closesthit__refract() {
@@ -255,6 +279,11 @@ extern "C" __global__ void __closesthit__refract() {
 	Frand48* state = reinterpret_cast<Frand48*>( util::fit64( sh, sl ) ) ;
 #endif // CURAND
 
+	// assemble DGV pointer from payload
+	unsigned int dh = optixGetPayload_6() ;
+	unsigned int dl = optixGetPayload_7() ;
+	DenoiserGuideValues* dgv = reinterpret_cast<DenoiserGuideValues*>( util::fit64( dh, dl ) ) ;
+
 	// finally the refraction according to RTOW
 	// see CPU version of RTOW, optics.h: Refract.spray()
 		const float3 d1V = V::unitV( d ) ;
@@ -300,7 +329,8 @@ extern "C" __global__ void __closesthit__refract() {
 			// payloads
 			r, g, b, // up: color
 			sh, sl,  // down: RNG state pointer
-			depth    // down: current recursion depth, up: final recursion depth (rays per trace)
+			depth,   // down: current recursion depth, up: final recursion depth (rays per trace)
+			dh, dl   // up: denoiser guide values (DGV)
 			) ;
 
 	// update this ray's refract color according to RTOW and propagate

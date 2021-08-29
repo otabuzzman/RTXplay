@@ -38,10 +38,18 @@ extern "C" __global__ void __raygen__camera() {
 	unsigned int sh, sl ;
 	util::cut64( &state, sh, sl ) ;
 
+	// payloads to carry back DGV from trace
+	DenoiserGuideValues dgv = {} ;
+	unsigned int dh, dl ;
+	util::cut64( &dgv, dh, dl ) ;
+
 	// pixel color accumulator
 	float3 color = {} ;
 	// rays per pixel accumulator
 	unsigned int rpp = 0 ;
+	// denoiser guide value accumulators
+	float3 normal = {} ;
+	float3 albedo = {} ;
 	for ( int i = 0 ; lp_general.spp>i ; i++ ) {
 		// transform x/y pixel coords (range 0/0 to w/h)
 		// into s/t viewport coords (range -1/-1 to 1/1)
@@ -53,6 +61,9 @@ extern "C" __global__ void __raygen__camera() {
 
 		// payload to propagate depth count down and recursion depth up
 		unsigned int depth = 0 ;
+
+		dgv.normal = {} ;
+		dgv.albedo = {} ;
 
 		// shoot initial ray
 		optixTrace(
@@ -70,19 +81,30 @@ extern "C" __global__ void __raygen__camera() {
 				// payloads
 				r, g, b, // up: color
 				sh, sl,  // down: RNG state pointer
-				depth    // down: current recursion depth, up: final recursion depth (rays per trace)
+				depth,   // down: current recursion depth, up: final recursion depth (rays per trace)
+				dh, dl   // up: denoiser guide values (DGV)
 				) ;
 
-		// accumulate this ray's color
+		// accumulate this ray's colors
 		color = color+make_float3( __uint_as_float( r ), __uint_as_float( g ), __uint_as_float( b ) ) ;
 		// accumulate rays per pixel
 		rpp = rpp+depth ;
+
+		// acccumulate this trace's normals and albedos
+		normal = normal+dgv.normal ;
+		albedo = albedo+dgv.albedo ;
 	}
 
 	// update pixel in image buffer with mean color
 	lp_general.rawRGB[pix] = util::clamp( color/lp_general.spp, 0.f, 1.f ) ;
 	// save rpp at respective buffer index
 	lp_general.rpp[pix] = rpp ;
+
+	// update denoiser guide layers if appropriate
+	if ( lp_general.normals )
+		lp_general.normals[pix] = normal/lp_general.spp ;
+	if ( lp_general.albedos )
+		lp_general.albedos[pix] = albedo/lp_general.spp ;
 }
 
 extern "C" __global__ void __miss__ambient() {

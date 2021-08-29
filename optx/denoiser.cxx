@@ -5,43 +5,33 @@
 
 #include "denoiser.h"
 
-DenoiserSMP::DenoiserSMP( const unsigned int w, const unsigned int h ) : w_( w ), h_( h ) {
-	OptixDenoiserOptions dns_options = {} ;
-	OPTX_CHECK( optixDenoiserCreate(
-		optx_context,
-		OPTIX_DENOISER_MODEL_KIND_LDR ,
-		&dns_options,
-		&denoiser_
-		) ) ;
+DenoiserNRM::DenoiserNRM( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_LDR, OptixDenoiserOptions{ 1, 0 } ) {}
 
-	OptixDenoiserSizes dns_sizes ;
-	OPTX_CHECK( optixDenoiserComputeMemoryResources(
-		denoiser_,
-		w_,
-		h_,
-		&dns_sizes
-		) );
-	scratch_size_ = static_cast<unsigned int>( dns_sizes.withoutOverlapScratchSizeInBytes ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &scratch_ ), scratch_size_ ) ) ;
-	state_size_ = static_cast<unsigned int>( dns_sizes.stateSizeInBytes );
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &state_ ), state_size_ ) ) ;
-
-	OPTX_CHECK( optixDenoiserSetup(
-		denoiser_,
-		nullptr,
-		w_,
-		h_,
-		state_,
-		state_size_,
-		scratch_,
-		scratch_size_
-		) ) ;
+DenoiserNRM::~DenoiserNRM() noexcept ( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
 }
 
+DenoiserALB::DenoiserALB( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_LDR, OptixDenoiserOptions{ 0, 1 } ) {}
+
+DenoiserALB::~DenoiserALB() noexcept ( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
+}
+
+DenoiserNAA::DenoiserNAA( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_LDR, OptixDenoiserOptions{ 1, 1 } ) {}
+
+DenoiserNAA::~DenoiserNAA() noexcept ( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
+}
+
+DenoiserAOV::DenoiserAOV( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_AOV, OptixDenoiserOptions{ 1, 1 } ) {}
+
+DenoiserAOV::~DenoiserAOV() noexcept ( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrAverageColor ) ) ) ;
+}
+
+DenoiserSMP::DenoiserSMP( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_LDR, OptixDenoiserOptions{ 0, 0 } ) {}
+
 DenoiserSMP::~DenoiserSMP() noexcept ( false ) {
-	OPTX_CHECK( optixDenoiserDestroy( denoiser_ ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( scratch_   ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( state_     ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
 }
 
@@ -97,3 +87,42 @@ void DenoiserSMP::beauty( const float3* rawRGB, const float3* beauty ) noexcept 
 		throw std::runtime_error( comment.str() ) ;
 	}
 }
+
+Denoiser::Denoiser( const unsigned int w, const unsigned int h, const OptixDenoiserModelKind kind, const OptixDenoiserOptions options ) : w_( w ), h_( h ) {
+	OPTX_CHECK( optixDenoiserCreate(
+		optx_context,
+		kind ,
+		&options,
+		&denoiser_
+		) ) ;
+
+	OptixDenoiserSizes dns_sizes ;
+	OPTX_CHECK( optixDenoiserComputeMemoryResources(
+		denoiser_,
+		w_,
+		h_,
+		&dns_sizes
+		) );
+	scratch_size_ = static_cast<unsigned int>( dns_sizes.withoutOverlapScratchSizeInBytes ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &scratch_ ), scratch_size_ ) ) ;
+	state_size_ = static_cast<unsigned int>( dns_sizes.stateSizeInBytes );
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &state_ ), state_size_ ) ) ;
+
+	OPTX_CHECK( optixDenoiserSetup(
+		denoiser_,
+		nullptr,
+		w_,
+		h_,
+		state_,
+		state_size_,
+		scratch_,
+		scratch_size_
+		) ) ;
+}
+
+Denoiser::~Denoiser() noexcept ( false ) {
+	OPTX_CHECK( optixDenoiserDestroy( denoiser_ ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( scratch_   ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( state_     ) ) ) ;
+}
+

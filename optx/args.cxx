@@ -104,18 +104,12 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 	} while ( c>-1 && MAXOPT>n++ ) ;
 }
 
-int Args::param_w( const int dEfault ) const { return 0>g_w_ ? dEfault : g_w_ ; }
-int Args::param_h( const int dEfault ) const { return 0>g_h_ ? dEfault : g_h_ ; }
-int Args::param_s( const int dEfault ) const { return 0>s_ ? dEfault : s_ ; }
-int Args::param_d( const int dEfault ) const { return 0>d_ ? dEfault : d_ ; }
-
-Dns Args::param_D( const Dns dEfault, const char** mnemonic ) const {
-	Dns param = D_typ_ == Dns::NONE ? dEfault : D_typ_ ;
-	if ( mnemonic )
-		*mnemonic = dns_name[static_cast<int>( param )].c_str() ;
-
-	return param ;
-}
+int  Args::param_w( const int dEfault ) const { return 0>g_w_ ? dEfault : g_w_ ; }
+int  Args::param_h( const int dEfault ) const { return 0>g_h_ ? dEfault : g_h_ ; }
+int  Args::param_s( const int dEfault ) const { return 0>s_ ? dEfault : s_ ; }
+int  Args::param_d( const int dEfault ) const { return 0>d_ ? dEfault : d_ ; }
+Dns  Args::param_D( const Dns dEfault ) const { return D_typ_ == Dns::NONE ? dEfault : D_typ_ ; }
+void Args::param_D( const Dns select, const char** mnemonic ) const { *mnemonic = dns_name[static_cast<int>( select )].c_str() ; }
 
 bool Args::flag_v() const { return v_>0 ; }
 bool Args::flag_h() const { return h_>0 ; }
@@ -123,10 +117,19 @@ bool Args::flag_q() const { return q_>0 ; }
 bool Args::flag_t() const { return t_>0 ; }
 bool Args::flag_S() const { return S_>0 ; }
 
-bool Args::flag_A( const Aov select ) const {
+bool Args::flag_A( const Aov select, const char** mnemonic ) const {
+	bool flag = false ;
+
 	if ( select == Aov::RPP )
-		return A_rpp_ == Aov::RPP ;
-	return false ;
+		flag = A_rpp_ == select ;
+	// else if ( select == Aov::XXX )
+	// 	flag = A_xxx_ == select ;
+	// ... go on for more AOVs
+
+	if ( mnemonic )
+		*mnemonic = aov_name[static_cast<int>( flag ? select : Aov::NONE )].c_str() ;
+
+	return flag ;
 }
 
 void Args::usage() {
@@ -254,8 +257,8 @@ int main( int argc, char* argv[] ) {
 		std::cout << "spp        : " << args.param_s( 4711 ) << std::endl ;
 		std::cout << "depth      : " << args.param_d( 4711 ) << std::endl ;
 		const char* mnemonic ;
-		int dns = static_cast<int>( args.param_D( Dns::NONE, &mnemonic ) ) ;
-		std::cout << "denoiser   : " << mnemonic << " (" << dns << ")" << std::endl ;
+		args.param_D( args.param_D( Dns::NONE ), &mnemonic ) ;
+		std::cout << "denoiser   : " << mnemonic << std::endl ;
 
 		std::cout << "verbose    : " << ( args.flag_v() ? "set" : "not set" ) << std::endl ;
 		std::cout << "quiet      : " << ( args.flag_q() ? "set" : "not set" ) << std::endl ;
@@ -263,7 +266,8 @@ int main( int argc, char* argv[] ) {
 		std::cout << "trace-sm   : " << ( args.flag_t() ? "set" : "not set" ) << std::endl ;
 		std::cout << "statistics : " << ( args.flag_S() ? "set" : "not set" ) << std::endl ;
 
-		std::cout << "aov RPP    : " << ( args.flag_A( Aov::RPP ) ? "set" : "not set" ) << std::endl ;
+		bool rpp = args.flag_A( Aov::RPP, &mnemonic ) ;
+		std::cout << "aov RPP    : " << ( rpp ? "set" : "not set" )<< " (" << mnemonic << ")"  << std::endl ;
 	} catch ( const std::invalid_argument& e ) {
 		std::cerr << e.what() << std::endl ;
 

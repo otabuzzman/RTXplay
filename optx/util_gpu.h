@@ -25,6 +25,8 @@ __forceinline__ __device__ float3 clamp( const float3& x, const float min, const
 __forceinline__ __device__ void  cut64( const void* addr64, unsigned int& h32, unsigned int& l32 ) { const unsigned long long int64 = reinterpret_cast<unsigned long long>( addr64 ) ; h32 = int64 >> 32 ; l32 = int64&0x00000000ffffffff ; }
 __forceinline__ __device__ void* fit64( const unsigned int h32, const unsigned int l32 )           { return reinterpret_cast<void*>( static_cast<unsigned long long>( h32 ) << 32|l32 ) ; }
 
+__forceinline__ __device__ bool isnull( const float3 x ) { return x.x == 0.f && x.y == 0.f && x.z == 0.f ; }
+
 }
 
 #endif // UTIL_GPU_H

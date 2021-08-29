@@ -22,7 +22,7 @@ extern "C" __global__ void __raygen__camera() {
 	// calculate pixel index for image buffer access
 	const unsigned int pix = dim.x*idx.y+idx.x ;
 
-	RayParam rayparam ;
+	RayParam rayparam = {} ;
 	// payload to propagate ray parameter along the trace
 	// pointer split due to 32 bit limit of payload values
 	unsigned int ph, pl ;
@@ -39,6 +39,9 @@ extern "C" __global__ void __raygen__camera() {
 	float3 color = {} ;
 	// rays per pixel accumulator
 	unsigned int rpp = 0 ;
+	// denoiser guide value accumulators
+	float3 normal = {} ;
+	float3 albedo = {} ;
 	for ( int i = 0 ; lp_general.spp>i ; i++ ) {
 		// transform x/y pixel coords (range 0/0 to w/h)
 		// into s/t viewport coords (range -1/-1 to 1/1)
@@ -48,10 +51,12 @@ extern "C" __global__ void __raygen__camera() {
 		float3 ori, dir ;
 		lp_general.camera.ray( s, t, ori, dir, &rayparam.rng ) ;
 
-		rayparam.color = { 1.f, 1.f, 1.f } ;
-		rayparam.hit   = ori ;
-		rayparam.dir   = dir ;
-		rayparam.stat  = RP_STAT_CONT ;
+		rayparam.color  = { 1.f, 1.f, 1.f } ;
+		rayparam.hit    = ori ;
+		rayparam.dir    = dir ;
+		rayparam.stat   = RP_STAT_CONT ;
+		rayparam.normal = {} ;
+		rayparam.albedo = {} ;
 
 		unsigned int depth = 0 ;
 		while ( lp_general.depth>depth && rayparam.stat == RP_STAT_CONT ) {
@@ -73,16 +78,26 @@ extern "C" __global__ void __raygen__camera() {
 			depth++ ;
 		}
 
-		// accumulate this trace's color
+		// accumulate this trace's colors
 		color = color+rayparam.color ;
 		// accumulate rays per trace
 		rpp = rpp+depth ;
+
+		// acccumulate this trace's normals and albedos
+		normal = normal+rayparam.normal ;
+		albedo = albedo+rayparam.albedo ;
 	}
 
 	// update pixel in image buffer with mean color
 	lp_general.rawRGB[pix] = util::clamp( color/lp_general.spp, 0.f, 1.f ) ;
 	// save rpp at respective buffer index
 	lp_general.rpp[pix] = rpp ;
+
+	// update denoiser guide layers if appropriate
+	if ( lp_general.normals )
+		lp_general.normals[pix] = normal/lp_general.spp ;
+	if ( lp_general.albedos )
+		lp_general.albedos[pix] = albedo/lp_general.spp ;
 }
 
 extern "C" __global__ void __miss__ambient() {

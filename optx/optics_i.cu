@@ -60,6 +60,12 @@ extern "C" __global__ void __closesthit__diffuse() {
 	rayparam->color *= optics.diffuse.albedo ;
 
 	rayparam->stat = RP_STAT_CONT ;
+
+	// update denoiser guide values on first hit on diffuse
+	if ( util::isnull( rayparam->normal ) )
+		rayparam->normal = N ;
+	if ( util::isnull( rayparam->albedo ) )
+		rayparam->albedo = optics.diffuse.albedo ;
 }
 
 extern "C" __global__ void __closesthit__reflect() {
@@ -109,7 +115,7 @@ extern "C" __global__ void __closesthit__reflect() {
 	rayparam->hit = hit ;
 	rayparam->dir = dir ;
 
-	// update color dependent of hit point normal and reflected ray directions.
+	// update color dependent of hit point normal and reflected ray direction
 	if ( V::dot( dir, N )>0 ) {
 		rayparam->color *= optics.reflect.albedo ;
 		rayparam->stat   = RP_STAT_CONT ;
@@ -117,6 +123,12 @@ extern "C" __global__ void __closesthit__reflect() {
 		rayparam->color  = { 0.f, 0.f, 0.f } ;
 		rayparam->stat   = RP_STAT_STOP ;
 	}
+
+	// update denoiser guide values on first hit on reflect
+	if ( util::isnull( rayparam->normal ) )
+		rayparam->normal = N ;
+	if ( util::isnull( rayparam->albedo ) )
+		rayparam->albedo = optics.reflect.albedo ;
 }
 
 extern "C" __global__ void __closesthit__refract() {

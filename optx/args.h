@@ -50,12 +50,14 @@ class Args {
 	public:
 		Args( const int argc, char* const* argv ) noexcept( false ) ;
 
-		int param_w( const int dEfault ) const ; // -g, --geometry <w>x<h>
-		int param_h( const int dEfault ) const ;
-		int param_s( const int dEfault ) const ; // -s, --samples-per-pixel
-		int param_d( const int dEfault ) const ; // -t, --trace-depth
+		int  param_w( const int dEfault ) const ; // -g, --geometry <w>x<h>
+		int  param_h( const int dEfault ) const ;
+		int  param_s( const int dEfault ) const ; // -s, --samples-per-pixel
+		int  param_d( const int dEfault ) const ; // -t, --trace-depth
 
-		Dns param_D( const Dns dEfault, const char** mnemonic = nullptr ) const ; // -D, --apply-denoiser
+		Dns  param_D( const Dns dEfault ) const ; // -D, --apply-denoiser
+		// retrieve denoiser type mnemonic
+		void param_D( const Dns select, const char** mnemonic ) const ;
 
 		bool flag_v() const ; // -v, --verbose
 		bool flag_h() const ; // -h, --help
@@ -63,7 +65,7 @@ class Args {
 		bool flag_t() const ; // -t, --trace-sm
 		bool flag_S() const ; // -S, --print-statistics
 
-		bool flag_A( const Aov select ) const ; // -A, --print-aov
+		bool flag_A( const Aov select, const char** mnemonic = nullptr ) const ; // -A, --print-aov
 
 		static void usage() ;
 

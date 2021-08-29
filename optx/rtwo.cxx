@@ -122,7 +122,7 @@ int main( int argc, char* argv[] ) {
 #define MAX_DEPTH 50
 #endif // RECURSIVE
 	const int depth    = args->param_d( MAX_DEPTH ) ; // recursion depth or number of iterations
-	lp_general.depth   = 1>depth ? 1 : depth>MAX_DEPTH ? MAX_DEPTH : depth ;
+	lp_general.depth   = depth>MAX_DEPTH ? MAX_DEPTH : depth ;
 
 	float aspratio = static_cast<float>( lp_general.image_w )/static_cast<float>( lp_general.image_h ) ;
 	lp_general.camera.set(
@@ -290,7 +290,7 @@ int main( int argc, char* argv[] ) {
 			pipeline_cc_options.usesMotionBlur                   = false ;
 			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
 #ifdef RECURSIVE
-			pipeline_cc_options.numPayloadValues                 = 6 ; // R, G, B, RNG (2x), depth
+			pipeline_cc_options.numPayloadValues                 = 8 ; // R, G, B, RNG (2x), depth, DGV (2x)
 #else
 			pipeline_cc_options.numPayloadValues                 = 2 ; // RayParam (2x)
 #endif // RECURSIVE

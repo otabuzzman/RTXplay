@@ -8,6 +8,10 @@ struct LpGeneral { // launch parameter
 
 	float3*                rawRGB ; // from RG prgram
 
+	// denoiser guide layers (average values if SPP>1)
+	float3*                normals ; // pixel normals
+	float3*                albedos ; // pixel color approximations
+
 	Camera                 camera ;
 
 	unsigned int           spp ;   // samples per pixel
@@ -15,6 +19,7 @@ struct LpGeneral { // launch parameter
 
 	OptixTraversableHandle as_handle ;
 
+	// arbitrary output variables (AOV)
 	unsigned int*          rpp ;   // rays per pixel
 } ;
 
@@ -31,6 +36,7 @@ typedef SbtRecord<NoData> SbtRecordRG ; // Ray Generation program group SBT reco
 typedef SbtRecord<float3> SbtRecordMS ; // Miss program group SBT record type
 typedef SbtRecord<Thing>  SbtRecordHG ; // Hit Group program group SBT record type
 
+// used by iterative programs (instead of separate ray payloads)
 struct RayParam {
 	float3       color ;
 	float3       hit ;
@@ -46,6 +52,16 @@ struct RayParam {
 #define RP_STAT_STOP 2 // HG shader reached end of trace
 #define RP_STAT_MISS 4 // MS shader returned color (end of trace)
 	unsigned int stat = RP_STAT_NONE ;
+
+	// denoiser guide values
+	float3       normal ;
+	float3       albedo ;
+} ;
+
+// used by recursive programs (as additional separate ray payload)
+struct DenoiserGuideValues {
+	float3 normal ;
+	float3 albedo ;
 } ;
 
 #endif // RTWO_H

@@ -301,6 +301,13 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		***/
 
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
+
+		auto t3 = std::chrono::high_resolution_clock::now() ;
+		if ( args->flag_S() ) { // output statistics
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
+		}
+
 		if ( smparam.anm_exec ) {
 			// rotate eye around y (WCS)
 			Camera* camera = &lp_general.camera ;
@@ -315,12 +322,6 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			GLFW_CHECK( glfwPollEvents() ) ;
 		} else
 			GLFW_CHECK( glfwWaitEvents() ) ;
-
-		if ( args->flag_S() ) { // output statistics
-			auto t3 = std::chrono::high_resolution_clock::now() ;
-			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
-			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
-		}
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
 
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_lp_general ) ) ) ;
