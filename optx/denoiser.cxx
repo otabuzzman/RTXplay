@@ -11,10 +11,16 @@ DenoiserNRM::~DenoiserNRM() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
 }
 
+void DenoiserNRM::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( false ) {
+}
+
 DenoiserALB::DenoiserALB( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_LDR, OptixDenoiserOptions{ 0, 1 } ) {}
 
 DenoiserALB::~DenoiserALB() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
+}
+
+void DenoiserALB::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( false ) {
 }
 
 DenoiserNAA::DenoiserNAA( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_LDR, OptixDenoiserOptions{ 1, 1 } ) {}
@@ -23,10 +29,16 @@ DenoiserNAA::~DenoiserNAA() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
 }
 
+void DenoiserNAA::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( false ) {
+}
+
 DenoiserAOV::DenoiserAOV( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_AOV, OptixDenoiserOptions{ 1, 1 } ) {}
 
 DenoiserAOV::~DenoiserAOV() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrAverageColor ) ) ) ;
+}
+
+void DenoiserAOV::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( false ) {
 }
 
 DenoiserSMP::DenoiserSMP( const unsigned int w, const unsigned int h ) : Denoiser( w, h, OPTIX_DENOISER_MODEL_KIND_LDR, OptixDenoiserOptions{ 0, 0 } ) {}
@@ -64,14 +76,13 @@ void DenoiserSMP::beauty( const float3* rawRGB, const float3* beauty ) noexcept 
 		scratch_size_
 		) ) ;
 
-	OptixDenoiserGuideLayer dns_guidelayer = {} ;
 	OPTX_CHECK( optixDenoiserInvoke(
 		denoiser_,
 		nullptr,
 		&params_,
 		state_,
 		state_size_,
-		&dns_guidelayer,
+		&guidelayer_,
 		&dns_layer,
 		1,
 		0,
@@ -91,7 +102,7 @@ void DenoiserSMP::beauty( const float3* rawRGB, const float3* beauty ) noexcept 
 Denoiser::Denoiser( const unsigned int w, const unsigned int h, const OptixDenoiserModelKind kind, const OptixDenoiserOptions options ) : w_( w ), h_( h ) {
 	OPTX_CHECK( optixDenoiserCreate(
 		optx_context,
-		kind ,
+		kind,
 		&options,
 		&denoiser_
 		) ) ;
@@ -125,4 +136,3 @@ Denoiser::~Denoiser() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( scratch_   ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( state_     ) ) ) ;
 }
-

@@ -15,14 +15,15 @@ class Denoiser {
 		virtual void beauty( const float3* rawRGB, const float3* beauty = nullptr ) = 0 ;
 
 	protected:
-		unsigned int        w_ = 0 ;
-		unsigned int        h_ = 0 ;
-		OptixDenoiser       denoiser_ = {}  ;
-		OptixDenoiserParams params_   = {}  ;
-		CUdeviceptr         scratch_      = 0 ;
-		unsigned int        scratch_size_ = 0 ;
-		CUdeviceptr         state_        = 0 ;
-		unsigned int        state_size_   = 0 ;
+		unsigned int            w_ = 0 ;
+		unsigned int            h_ = 0 ;
+		OptixDenoiser           denoiser_   = {} ;
+		OptixDenoiserParams     params_     = {} ;
+		OptixDenoiserGuideLayer guidelayer_ = {} ;
+		CUdeviceptr             scratch_      = 0 ;
+		unsigned int            scratch_size_ = 0 ;
+		CUdeviceptr             state_        = 0 ;
+		unsigned int            state_size_   = 0 ;
 } ;
 
 class DenoiserSMP : public Denoiser {
