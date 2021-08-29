@@ -63,18 +63,25 @@ void SimpleSM::eaCtlDns() {
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		smparam->denoiser = nullptr ; // delete denoiser
-		if ( smparam->dns_type == Dns::NONE )
+		if ( smparam->dns_type == Dns::NONE ) {
+			smparam->dns_type = Dns::SMP ;
 			smparam->denoiser = new DenoiserSMP( lp_general.image_w, lp_general.image_h ) ;
-		else if ( smparam->dns_type == Dns::SMP )
+		} else if ( smparam->dns_type == Dns::SMP ) {
+			smparam->dns_type = Dns::NONE ;
 			smparam->denoiser = nullptr ; // new DenoiserNRM( lp_general.image_w, lp_general.image_h ) ;
-		else if ( smparam->dns_type == Dns::NRM )
+		} else if ( smparam->dns_type == Dns::NRM ) {
+			smparam->dns_type = Dns::NONE ;
 			smparam->denoiser = nullptr ; // new DenoiserALB( lp_general.image_w, lp_general.image_h ) ;
-		else if ( smparam->dns_type == Dns::ALB )
+		} else if ( smparam->dns_type == Dns::ALB ) {
+			smparam->dns_type = Dns::NONE ;
 			smparam->denoiser = nullptr ; // new DenoiserNAA( lp_general.image_w, lp_general.image_h ) ;
-		else if ( smparam->dns_type == Dns::NAA )
+		} else if ( smparam->dns_type == Dns::NAA ) {
+			smparam->dns_type = Dns::NONE ;
 			smparam->denoiser = nullptr ; // new DenoiserAOV( lp_general.image_w, lp_general.image_h ) ;
-		else // Dns::AOV
+		} else { // Dns::AOV
+			smparam->dns_type = Dns::NONE ;
 			smparam->denoiser = nullptr ;
+		}
 		if ( args->flag_v() ) {
 			const char *mnemonic ;
 			args->param_D( Dns::NONE, &mnemonic ) ;

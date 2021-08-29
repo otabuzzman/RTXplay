@@ -29,16 +29,20 @@ struct SmParam {
 	Denoiser*             denoiser = nullptr ;
 } ;
 
-#define EA_ENTER()                                                                            \
-	if ( args->flag_t() ) {                                                                   \
-		const int s = static_cast<int>( h_state_.top() ) ;                                    \
-		std::cerr << " changing state " << state_name[s] << " ... " ;                         \
-	} else
+#define EA_ENTER()                                                                                \
+	do {                                                                                          \
+		if ( args->flag_t() ) {                                                                   \
+			const int s = static_cast<int>( h_state_.top() ) ;                                    \
+			std::cerr << " changing state " << state_name[s] << " ... " ;                         \
+		}                                                                                         \
+	} while ( false )
 
-#define EA_LEAVE( state )                                                                     \
-	if ( args->flag_t() ) {                                                                   \
-		std::cerr << "new state now " << state_name[static_cast<int>( state )] << std::endl ; \
-	} else
+#define EA_LEAVE( state )                                                                         \
+	do {                                                                                          \
+		if ( args->flag_t() ) {                                                                   \
+			std::cerr << "new state now " << state_name[static_cast<int>( state )] << std::endl ; \
+		}                                                                                         \
+	} while ( false )
 
 class SimpleSM {
 	public:

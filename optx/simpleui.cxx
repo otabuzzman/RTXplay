@@ -353,12 +353,14 @@ static void keyCb( GLFWwindow* /*window*/, int key, int /*scancode*/, int act, i
 	switch ( key ) {
 		case GLFW_KEY_A:
 			simplesm->transition( Event::ANM ) ; break ;
-		case GLFW_KEY_Z:
-			simplesm->transition( Event::ZOM ) ; break ;
 		case GLFW_KEY_B:
 			simplesm->transition( Event::BLR ) ; break ;
+		case GLFW_KEY_D:
+			simplesm->transition( Event::DNS ) ; break ;
 		case GLFW_KEY_F:
 			simplesm->transition( Event::FOC ) ; break ;
+		case GLFW_KEY_Z:
+			simplesm->transition( Event::ZOM ) ; break ;
 		case GLFW_KEY_ESCAPE:
 			simplesm->transition( Event::RET ) ; break ;
 	}
@@ -381,12 +383,14 @@ void SimpleUI::usage() {
   right button + move  - change camera direction\n\
   right button + scoll - roll camera\n\
   'a' key              - toggle scene animation\n\
+  'b' key              - enter blur mode (<ESC> to leave)\n\
+      scroll (wheel)   - change defocus blur\n\
   'd' key              - enable/ disable denoising and select\n\
                          type (loop)\n\
   'f' key              - enter focus mode (<ESC> to leave)\n\
-      scroll           - change aperture\n\
+      scroll (wheel)   - change aperture\n\
   'z' key              - enter zoom mode (<ESC> to leave)\n\
-      scroll           - zoom in and out\n\
+      scroll (wheel)   - zoom in and out\n\
   <ESC> key            - leave RTWO\n\
 \n\
 " ;

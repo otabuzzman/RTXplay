@@ -111,7 +111,8 @@ int Args::param_d( const int dEfault ) const { return 0>d_ ? dEfault : d_ ; }
 
 Dns Args::param_D( const Dns dEfault, const char** mnemonic ) const {
 	Dns param = D_typ_ == Dns::NONE ? dEfault : D_typ_ ;
-	*mnemonic = dns_name[static_cast<int>( param )].c_str() ;
+	if ( mnemonic )
+		*mnemonic = dns_name[static_cast<int>( param )].c_str() ;
 
 	return param ;
 }

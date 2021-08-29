@@ -55,7 +55,7 @@ class Args {
 		int param_s( const int dEfault ) const ; // -s, --samples-per-pixel
 		int param_d( const int dEfault ) const ; // -t, --trace-depth
 
-		Dns param_D( const Dns dEfault, const char** mnemonic = 0 ) const ; // -D, --apply-denoiser
+		Dns param_D( const Dns dEfault, const char** mnemonic = nullptr ) const ; // -D, --apply-denoiser
 
 		bool flag_v() const ; // -v, --verbose
 		bool flag_h() const ; // -h, --help
