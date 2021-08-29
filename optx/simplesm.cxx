@@ -48,6 +48,15 @@ void SimpleSM::eaCtlAnm() {
 		smparam->anm_exec = ! smparam->anm_exec ;
 		// toggle denoising
 		smparam->dns_exec = ! smparam->dns_exec ;
+		// reduce RT quality while animating
+		if ( smparam->dns_exec ) {
+			i_sexchg_.push( lp_general.spp ) ;
+			lp_general.spp = 1 ;
+		// restore RT quality after animating
+		} else {
+			lp_general.spp = i_sexchg_.top() ;
+			i_sexchg_.pop() ;
+		}
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
