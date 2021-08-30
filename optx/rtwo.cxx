@@ -53,6 +53,24 @@ const char* optics_ptx = &optics_i_ptx[0] ;
 extern "C" void pp_none( const float3* src, uchar4* dst, const int w, const int h ) ;
 extern "C" void pp_sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
+// output device image on stdout
+template<typename T>
+static void imgtoppm( const CUdeviceptr rgb, const int w, const int h ) {
+	std::vector<T> image ;
+	image.resize( w*h ) ;
+	CUDA_CHECK( cudaMemcpy(
+		image.data(),
+		reinterpret_cast<void*>( rgb ),
+		w*h*sizeof( T ),
+		cudaMemcpyDeviceToHost
+		) ) ;
+	imgtoppm( image, w, h ) ;
+}
+// output local image on stdout
+static void imgtopnm( const std::vector<uchar4>       rgb,  const int w, const int h ) ; // output PPM, ignore A channel
+static void imgtopnm( const std::vector<float3>       rgb,  const int w, const int h ) ; // output PPM
+static void imgtopnm( const std::vector<unsigned int> mono, const int w, const int h ) ; // output PGM
+
 
 
 const Things scene() {
@@ -220,8 +238,8 @@ int main( int argc, char* argv[] ) {
 						) ) ;
 
 			// allocate GPU memory for acceleration structure compaction buffer size
-//			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf_size ), sizeof( unsigned long long ) ) ) ;
 //			CUDABuffer d_as_zipbuf_size ;
+//			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf_size ), sizeof( unsigned long long ) ) ) ;
 
 			// provide request description for acceleration structure compaction buffer size
 //			OptixAccelEmitDesc oas_request ;
@@ -596,7 +614,7 @@ int main( int argc, char* argv[] ) {
 					long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 					rpp.resize( w*h ) ;
 					CUDA_CHECK( cudaMemcpy(
-								reinterpret_cast<void*>( rpp.data() ),
+								rpp.data(),
 								lp_general.rpp,
 								w*h*sizeof( unsigned int ),
 								cudaMemcpyDeviceToHost
@@ -616,8 +634,9 @@ int main( int argc, char* argv[] ) {
 
 
 			// apply denoiser
-			if ( args->param_D( Dns::NONE ) != Dns::NONE ) {
-				Denoiser* denoiser = new DenoiserSMP( w, h ) ;
+			const Dns type = args->param_D( Dns::NONE ) ;
+			if ( type != Dns::NONE ) {
+				Denoiser* denoiser = new Denoiser( type, w, h ) ;
 				denoiser->beauty( lp_general.rawRGB ) ;
 				delete denoiser ;
 			}
@@ -635,7 +654,7 @@ int main( int argc, char* argv[] ) {
 				std::vector<uchar4> image ;
 				image.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(
-							reinterpret_cast<void*>( image.data() ),
+							image.data(),
 							lp_general.image,
 							w*h*sizeof( uchar4 ),
 							cudaMemcpyDeviceToHost
@@ -660,7 +679,7 @@ int main( int argc, char* argv[] ) {
 					if ( rpp.size() == 0 ) {
 						rpp.resize( w*h ) ;
 						CUDA_CHECK( cudaMemcpy(
-									reinterpret_cast<void*>( rpp.data() ),
+									rpp.data(),
 									lp_general.rpp,
 									w*h*sizeof( unsigned int ),
 									cudaMemcpyDeviceToHost
@@ -713,4 +732,48 @@ int main( int argc, char* argv[] ) {
 	}
 
 	return 0 ;
+}
+
+static void rgbtopnm( const std::vector<uchar4> rgb, const int w, const int h ) {
+	std::cout
+		<< "P3\n" // magic PPM header
+		<< w << ' ' << h << '\n' << 255 << '\n' ;
+
+	for ( int y = h-1 ; y>=0 ; --y ) {
+		for ( int x = 0 ; x<w ; ++x ) {
+			auto p = rgb.data()[w*y+x] ;
+			std::cout
+				<< static_cast<int>( p.x ) << ' '
+				<< static_cast<int>( p.y ) << ' '
+				<< static_cast<int>( p.z ) << '\n' ;
+		}
+	}
+}
+
+static void imgtopnm( const std::vector<float3> rgb, const int w, const int h ) {
+	std::cout
+		<< "P3\n" // magic PPM header
+		<< w << ' ' << h << '\n' << 255 << '\n' ;
+
+	for ( int y = h-1 ; y>=0 ; --y ) {
+		for ( int x = 0 ; x<w ; ++x ) {
+			auto p = rgb.data()[w*y+x] ;
+			std::cout
+				<< static_cast<int>( p.x*255 ) << ' '
+				<< static_cast<int>( p.y*255 ) << ' '
+				<< static_cast<int>( p.z*255 ) << '\n' ;
+		}
+	}
+}
+
+static void imgtopnm( const std::vector<unsigned int> mono, const int w, const int h ) {
+	std::cout
+		<< '\n'
+		<< "P2\n" // magic PGM header
+		<< w << ' ' << h << '\n' << 65535 << '\n' ;
+
+	for ( int y = h-1 ; y>=0 ; --y )
+		for ( int x = 0 ; x<w ; ++x )
+			std::cout
+				<< mono.data()[w*y+x] << '\n' ;
 }

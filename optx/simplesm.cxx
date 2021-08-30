@@ -72,24 +72,21 @@ void SimpleSM::eaCtlDns() {
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		smparam->denoiser = nullptr ; // delete denoiser
-		if ( smparam->dns_type == Dns::NONE ) {
-			smparam->dns_type = Dns::SMP ;
-			smparam->denoiser = new DenoiserSMP( lp_general.image_w, lp_general.image_h ) ;
-		} else if ( smparam->dns_type == Dns::SMP ) {
+		// select next denoieser type from list 
+		if ( smparam->dns_type == Dns::AOV ) {
 			smparam->dns_type = Dns::NONE ;
-			smparam->denoiser = nullptr ; // new DenoiserNRM( lp_general.image_w, lp_general.image_h ) ;
-		} else if ( smparam->dns_type == Dns::NRM ) {
-			smparam->dns_type = Dns::NONE ;
-			smparam->denoiser = nullptr ; // new DenoiserALB( lp_general.image_w, lp_general.image_h ) ;
-		} else if ( smparam->dns_type == Dns::ALB ) {
-			smparam->dns_type = Dns::NONE ;
-			smparam->denoiser = nullptr ; // new DenoiserNAA( lp_general.image_w, lp_general.image_h ) ;
-		} else if ( smparam->dns_type == Dns::NAA ) {
-			smparam->dns_type = Dns::NONE ;
-			smparam->denoiser = nullptr ; // new DenoiserAOV( lp_general.image_w, lp_general.image_h ) ;
-		} else { // Dns::AOV
-			smparam->dns_type = Dns::NONE ;
-			smparam->denoiser = nullptr ;
+		} else {
+			if ( smparam->dns_type == Dns::NONE )
+				smparam->dns_type = Dns::SMP ;
+			else if ( smparam->dns_type == Dns::SMP )
+				smparam->dns_type = Dns::NRM ;
+			else if ( smparam->dns_type == Dns::NRM )
+				smparam->dns_type = Dns::ALB ;
+			else if ( smparam->dns_type == Dns::ALB )
+				smparam->dns_type = Dns::NAA ;
+			else // smparam->dns_type == Dns::NAA
+				smparam->dns_type = Dns::AOV ;
+			smparam->denoiser = new Denoiser( smparam->dns_type, lp_general.image_w, lp_general.image_h ) ;
 		}
 		if ( args->flag_v() ) {
 			const char *mnemonic ;
@@ -295,16 +292,8 @@ void SimpleSM::eaCtlRsz() {
 		GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 		// resize denoiser
 		smparam->denoiser = nullptr ; // delete denoiser
-		if ( smparam->dns_type == Dns::SMP )
-			smparam->denoiser = new DenoiserSMP( lp_general.image_w, lp_general.image_h ) ;
-		else if ( smparam->dns_type == Dns::NRM )
-			smparam->denoiser = nullptr ; // new DenoiserNRM( lp_general.image_w, lp_general.image_h ) ;
-		else if ( smparam->dns_type == Dns::ALB )
-			smparam->denoiser = nullptr ; // new DenoiserALB( lp_general.image_w, lp_general.image_h ) ;
-		else if ( smparam->dns_type == Dns::NAA )
-			smparam->denoiser = nullptr ; // new DenoiserNAA( lp_general.image_w, lp_general.image_h ) ;
-		else // Dns::AOV
-			smparam->denoiser = nullptr ; // new DenoiserAOV( lp_general.image_w, lp_general.image_h ) ;
+		if ( smparam->dns_type != Dns::NONE )
+			smparam->denoiser = new Denoiser( smparam->dns_type, lp_general.image_w, lp_general.image_h ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;

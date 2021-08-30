@@ -233,7 +233,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
-				reinterpret_cast<void*>( rpp.data() ),
+				rpp.data(),
 				lp_general.rpp,
 				w*h*sizeof( unsigned int ),
 				cudaMemcpyDeviceToHost

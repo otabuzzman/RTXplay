@@ -1,22 +1,28 @@
 #ifndef DENOISER_H
 #define DENOISER_H
 
+#include <vector>
+
 #include <vector_functions.h>
 #include <vector_types.h>
+
+#include "args.h"
 
 // common globals
 extern OptixDeviceContext optx_context ;
 
 class Denoiser {
 	public:
-		Denoiser( const unsigned int w, const unsigned int h, const OptixDenoiserModelKind kind, const OptixDenoiserOptions options ) ;
-		virtual ~Denoiser() noexcept ( false ) ;
+		Denoiser( const Dns type, const unsigned int w, const unsigned int h ) ;
+		~Denoiser() noexcept ( false ) ;
 
-		virtual void beauty( const float3* rawRGB, const float3* beauty = nullptr ) = 0 ;
+		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) ;
+		void guides( std::vector<float3>& normals, std::vector<float3>& albedos ) ;
 
-	protected:
-		unsigned int            w_ = 0 ;
-		unsigned int            h_ = 0 ;
+	private:
+		Dns                     type_ = Dns::NONE ;
+		unsigned int            w_    = 0 ;
+		unsigned int            h_    = 0 ;
 		OptixDenoiser           denoiser_   = {} ;
 		OptixDenoiserParams     params_     = {} ;
 		OptixDenoiserGuideLayer guidelayer_ = {} ;
@@ -24,46 +30,6 @@ class Denoiser {
 		unsigned int            scratch_size_ = 0 ;
 		CUdeviceptr             state_        = 0 ;
 		unsigned int            state_size_   = 0 ;
-} ;
-
-class DenoiserSMP : public Denoiser {
-	public:
-		DenoiserSMP( const unsigned int w, const unsigned int h ) ;
-		~DenoiserSMP() noexcept ( false ) ;
-
-		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) noexcept ( false ) override ;
-} ;
-
-class DenoiserNRM : public Denoiser {
-	public:
-		DenoiserNRM( const unsigned int w, const unsigned int h ) ;
-		~DenoiserNRM() noexcept ( false ) ;
-
-		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) noexcept ( false ) override ;
-} ;
-
-class DenoiserALB : public Denoiser {
-	public:
-		DenoiserALB( const unsigned int w, const unsigned int h ) ;
-		~DenoiserALB() noexcept ( false ) ;
-
-		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) noexcept ( false ) override ;
-} ;
-
-class DenoiserNAA : public Denoiser {
-	public:
-		DenoiserNAA( const unsigned int w, const unsigned int h ) ;
-		~DenoiserNAA() noexcept ( false ) ;
-
-		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) noexcept ( false ) override ;
-} ;
-
-class DenoiserAOV : public Denoiser {
-	public:
-		DenoiserAOV( const unsigned int w, const unsigned int h ) ;
-		~DenoiserAOV() noexcept ( false ) ;
-
-		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) noexcept ( false ) override ;
 } ;
 
 #endif // DENOISER_H

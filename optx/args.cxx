@@ -222,12 +222,12 @@ Options:\n\
     Print statistical information on stderr.\n\
 \n\
   -D, --apply-denoiser <TYP>\n\
-    Enable denoiser and apply type TYP after rendering with 1 SPP.\n\
-    In interactive mode denoising applies to scene animation and while\n\
+    Enable denoiser for batch mode and apply type TYP after rendering with\n\
+    1 SPP. To enable for interactive mode see UI functions section below.\n\
+    Denoising in interactive mode applies to scene animation and while\n\
     changing camera position and direction, as well as zooming.\n\
     When finished there is a final still image rendered with SPP as given\n\
     by -s, --samples-per-pixels or default.\n\
-    Output in batch mode is a type TYP denoised image with 1 SPP.\n\
 \n\
     Available types for TYP:\n\
       SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw RGB\n\
