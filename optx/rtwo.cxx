@@ -730,6 +730,7 @@ static void imgtopnm( const std::vector<uchar4> rgb, const int w, const int h ) 
 				<< static_cast<int>( p.z ) << '\n' ;
 		}
 	}
+	std::cout << std::endl ;
 }
 
 static void imgtopnm( const std::vector<float3> rgb, const int w, const int h ) {
@@ -741,16 +742,16 @@ static void imgtopnm( const std::vector<float3> rgb, const int w, const int h ) 
 		for ( int x = 0 ; x<w ; ++x ) {
 			auto p = rgb.data()[w*y+x] ;
 			std::cout
-				<< static_cast<int>( p.x*255 ) << ' '
-				<< static_cast<int>( p.y*255 ) << ' '
-				<< static_cast<int>( p.z*255 ) << '\n' ;
+				<< static_cast<int>( util::clamp( p.x, 0.f, 1.f )*255 ) << ' '
+				<< static_cast<int>( util::clamp( p.y, 0.f, 1.f )*255 ) << ' '
+				<< static_cast<int>( util::clamp( p.z, 0.f, 1.f )*255 ) << '\n' ;
 		}
 	}
+	std::cout << std::endl ;
 }
 
 static void imgtopnm( const std::vector<unsigned int> mono, const int w, const int h ) {
 	std::cout
-		<< '\n'
 		<< "P2\n" // magic PGM header
 		<< w << ' ' << h << '\n' << 65535 << '\n' ;
 
@@ -758,4 +759,5 @@ static void imgtopnm( const std::vector<unsigned int> mono, const int w, const i
 		for ( int x = 0 ; x<w ; ++x )
 			std::cout
 				<< mono.data()[w*y+x] << '\n' ;
+	std::cout << std::endl ;
 }

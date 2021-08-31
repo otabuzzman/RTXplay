@@ -84,6 +84,8 @@ inline float rnd( const float min, const float max ) { return min+rnd()*( max-mi
 inline float deg( const float rad ) { return rad*180.f/kPi ; }
 inline float rad( const float deg ) { return deg*kPi/180.f ; }
 
+inline float  clamp( const float   x, const float min, const float max ) { return min>x ? min : x>max ? max : x ; }
+
 inline static void optxLogStderr( unsigned int level, const char* tag, const char* message, void* /*cbdata*/ ) {
 	std::cerr
 		<< "OptiX API message : "
