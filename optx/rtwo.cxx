@@ -53,23 +53,23 @@ const char* optics_ptx = &optics_i_ptx[0] ;
 extern "C" void pp_none( const float3* src, uchar4* dst, const int w, const int h ) ;
 extern "C" void pp_sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
+// output local image on stdout
+static void imgtopnm( const std::vector<uchar4>       img, const int w, const int h ) ; // output PPM, ignore A channel
+static void imgtopnm( const std::vector<float3>       img, const int w, const int h ) ; // output PPM
+static void imgtopnm( const std::vector<unsigned int> img, const int w, const int h ) ; // output PGM
 // output device image on stdout
 template<typename T>
-static void imgtopnm( const CUdeviceptr rgb, const int w, const int h ) {
+static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
 	std::vector<T> image ;
 	image.resize( w*h ) ;
 	CUDA_CHECK( cudaMemcpy(
 		image.data(),
-		reinterpret_cast<void*>( rgb ),
+		reinterpret_cast<void*>( img ),
 		w*h*sizeof( T ),
 		cudaMemcpyDeviceToHost
 		) ) ;
 	imgtopnm( image, w, h ) ;
 }
-// output local image on stdout
-static void imgtopnm( const std::vector<uchar4>       rgb,  const int w, const int h ) ; // output PPM, ignore A channel
-static void imgtopnm( const std::vector<float3>       rgb,  const int w, const int h ) ; // output PPM
-static void imgtopnm( const std::vector<unsigned int> mono, const int w, const int h ) ; // output PGM
 
 
 

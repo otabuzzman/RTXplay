@@ -2,6 +2,7 @@
 #define ARGS_H
 
 #include <map>
+#include <string>
 
 #define MAXOPT 32
 
