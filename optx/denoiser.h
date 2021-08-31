@@ -17,7 +17,6 @@ class Denoiser {
 		~Denoiser() noexcept ( false ) ;
 
 		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) ;
-		void guides( std::vector<float3>& normals, std::vector<float3>& albedos ) ;
 
 	private:
 		Dns                     type_ = Dns::NONE ;

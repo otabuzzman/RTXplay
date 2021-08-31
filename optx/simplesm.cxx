@@ -72,21 +72,38 @@ void SimpleSM::eaCtlDns() {
 	{ // perform action
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		smparam->denoiser = nullptr ; // delete denoiser
-		// select next denoieser type from list 
+		if ( lp_general.normals ) {
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals ) ) ) ;
+			lp_general.normals = nullptr ;
+		}
+		if ( lp_general.albedos ) {
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.albedos ) ) ) ;
+			lp_general.albedos = nullptr ;
+		}
+		// select next denoiser type from list
 		if ( smparam->dns_type == Dns::AOV ) {
 			smparam->dns_type = Dns::NONE ;
 		} else {
+			const int w = lp_general.image_w ;
+			const int h = lp_general.image_h ;
 			if ( smparam->dns_type == Dns::NONE )
 				smparam->dns_type = Dns::SMP ;
-			else if ( smparam->dns_type == Dns::SMP )
+			else if ( smparam->dns_type == Dns::SMP ) {
 				smparam->dns_type = Dns::NRM ;
-			else if ( smparam->dns_type == Dns::NRM )
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+			} else if ( smparam->dns_type == Dns::NRM ) {
 				smparam->dns_type = Dns::ALB ;
-			else if ( smparam->dns_type == Dns::ALB )
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+			} else if ( smparam->dns_type == Dns::ALB ) {
 				smparam->dns_type = Dns::NAA ;
-			else // smparam->dns_type == Dns::NAA
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+			} else { // smparam->dns_type == Dns::NAA
 				smparam->dns_type = Dns::AOV ;
-			smparam->denoiser = new Denoiser( smparam->dns_type, lp_general.image_w, lp_general.image_h ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+			}
+			smparam->denoiser = new Denoiser( smparam->dns_type, w, h ) ;
 		}
 		if ( args->flag_v() ) {
 			const char *mnemonic ;

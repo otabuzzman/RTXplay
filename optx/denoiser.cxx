@@ -1,9 +1,16 @@
 #include <optix.h>
 #include <optix_stubs.h>
 
+#include "args.h"
+#include "camera.h"
+#include "thing.h"
+#include "rtwo.h"
 #include "util.h"
 
 #include "denoiser.h"
+
+// common globals
+extern LpGeneral lp_general ;
 
 Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h ) : type_( type ), w_( w ), h_( h ) {
 	OptixDenoiserModelKind kind = type_ == Dns::AOV ? OPTIX_DENOISER_MODEL_KIND_AOV : OPTIX_DENOISER_MODEL_KIND_LDR ;
@@ -12,38 +19,43 @@ Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h )
 	if ( type_ == Dns::SMP )
 		options = { 0, 0 } ;
 	else if ( type_ == Dns::NRM ) {
-		options = { 0, 1 } ;
-
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &guidelayer_.normal.data ), w_*h_*sizeof( float3 ) ) ) ;
-		guidelayer_.normal.width              = w_ ;
-		guidelayer_.normal.height             = h_ ;
-		guidelayer_.normal.rowStrideInBytes   = static_cast<unsigned int>( w_*sizeof( float3 ) ) ;
-		guidelayer_.normal.pixelStrideInBytes = sizeof( float3 ) ;
-		guidelayer_.normal.format             = OPTIX_PIXEL_FORMAT_FLOAT3 ;
+		options            = { 0, 1 } ;
+		guidelayer_.normal = {
+			reinterpret_cast<CUdeviceptr>( lp_general.normals ), // OptixImage2D.data
+			w_,                                                  // OptixImage2D.width
+			h_,                                                  // OptixImage2D.height
+			static_cast<unsigned int>( w_*sizeof( float3 ) ),    // OptixImage2D.rowStrideInBytes
+			sizeof( float3 ),                                    // OptixImage2D.pixelStrideInBytes
+			OPTIX_PIXEL_FORMAT_FLOAT3                            // OptixImage2D.format
+		} ;
 	} else if ( type_ == Dns::ALB ) {
-		options = { 1, 0 } ;
-
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &guidelayer_.albedo.data ), w_*h_*sizeof( float3 ) ) ) ;
-		guidelayer_.albedo.width              = w_ ;
-		guidelayer_.albedo.height             = h_ ;
-		guidelayer_.albedo.rowStrideInBytes   = static_cast<unsigned int>( w_*sizeof( float3 ) ) ;
-		guidelayer_.albedo.pixelStrideInBytes = sizeof( float3 ) ;
-		guidelayer_.albedo.format             = OPTIX_PIXEL_FORMAT_FLOAT3 ;
+		options            = { 1, 0 } ;
+		guidelayer_.albedo = {
+			reinterpret_cast<CUdeviceptr>( lp_general.albedos ),
+			w_,
+			h_,
+			static_cast<unsigned int>( w_*sizeof( float3 ) ),
+			sizeof( float3 ),
+			OPTIX_PIXEL_FORMAT_FLOAT3
+		} ;
 	} else { // if ( type_ == Dns::NAA || type_ == Dns::AOV )
-		options = { 1, 1 } ;
-
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &guidelayer_.normal.data ), w_*h_*sizeof( float3 ) ) ) ;
-		guidelayer_.normal.width              = w_ ;
-		guidelayer_.normal.height             = h_ ;
-		guidelayer_.normal.rowStrideInBytes   = static_cast<unsigned int>( w_*sizeof( float3 ) ) ;
-		guidelayer_.normal.pixelStrideInBytes = sizeof( float3 ) ;
-		guidelayer_.normal.format             = OPTIX_PIXEL_FORMAT_FLOAT3 ;
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &guidelayer_.albedo.data ), w_*h_*sizeof( float3 ) ) ) ;
-		guidelayer_.albedo.width              = w_ ;
-		guidelayer_.albedo.height             = h_ ;
-		guidelayer_.albedo.rowStrideInBytes   = static_cast<unsigned int>( w_*sizeof( float3 ) ) ;
-		guidelayer_.albedo.pixelStrideInBytes = sizeof( float3 ) ;
-		guidelayer_.albedo.format             = OPTIX_PIXEL_FORMAT_FLOAT3 ;
+		options            = { 1, 1 } ;
+		guidelayer_.normal = {
+			reinterpret_cast<CUdeviceptr>( lp_general.normals ),
+			w_,
+			h_,
+			static_cast<unsigned int>( w_*sizeof( float3 ) ),
+			sizeof( float3 ),
+			OPTIX_PIXEL_FORMAT_FLOAT3
+		} ;
+		guidelayer_.albedo = {
+			reinterpret_cast<CUdeviceptr>( lp_general.albedos ),
+			w_,
+			h_,
+			static_cast<unsigned int>( w_*sizeof( float3 ) ),
+			sizeof( float3 ),
+			OPTIX_PIXEL_FORMAT_FLOAT3
+		} ;
 	}
 
 	OPTX_CHECK( optixDenoiserCreate(
@@ -81,27 +93,17 @@ Denoiser::~Denoiser() noexcept ( false ) {
 	OPTX_CHECK( optixDenoiserDestroy( denoiser_ ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( scratch_   ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( state_     ) ) ) ;
-
-	if ( guidelayer_.normal.data )
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( guidelayer_.normal.data ) ) ) ;
-	if ( guidelayer_.albedo.data )
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( guidelayer_.albedo.data ) ) ) ;
-
-	if ( type_ == Dns::AOV )
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity ) ) ) ;
-	else
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrAverageColor ) ) ) ;
 }
 
 void Denoiser::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( false ) {
 	OptixDenoiserLayer dns_layer = {} ;
 	dns_layer.input = {
-		reinterpret_cast<CUdeviceptr>( rawRGB ),
-		w_,
-		h_,
-		static_cast<unsigned int>( w_*sizeof( float3 ) ),
-		sizeof( float3 ),
-		OPTIX_PIXEL_FORMAT_FLOAT3
+		reinterpret_cast<CUdeviceptr>( rawRGB ),          // OptixImage2D.data
+		w_,                                               // OptixImage2D.width
+		h_,                                               // OptixImage2D.height
+		static_cast<unsigned int>( w_*sizeof( float3 ) ), // OptixImage2D.rowStrideInBytes
+		sizeof( float3 ),                                 // OptixImage2D.pixelStrideInBytes
+		OPTIX_PIXEL_FORMAT_FLOAT3                         // OptixImage2D.format
 		} ;
 	dns_layer.output = {
 		beauty ? reinterpret_cast<CUdeviceptr>( beauty ) : reinterpret_cast<CUdeviceptr>( rawRGB ),
@@ -154,26 +156,5 @@ void Denoiser::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( f
 		std::ostringstream comment ;
 		comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
 		throw std::runtime_error( comment.str() ) ;
-	}
-}
-
-void Denoiser::guides( std::vector<float3>& normals, std::vector<float3>& albedos ) {
-	if ( guidelayer_.normal.data ) {
-		normals.resize( w_*h_ ) ;
-		CUDA_CHECK( cudaMemcpy(
-			normals.data(),
-			reinterpret_cast<void*>( guidelayer_.normal.data ),
-			w_*h_*sizeof( float3 ),
-			cudaMemcpyDeviceToHost
-			) ) ;
-	}
-	if ( guidelayer_.albedo.data ) {
-		normals.resize( w_*h_ ) ;
-		CUDA_CHECK( cudaMemcpy(
-			albedos.data(),
-			reinterpret_cast<void*>( guidelayer_.albedo.data ),
-			w_*h_*sizeof( float3 ),
-			cudaMemcpyDeviceToHost
-			) ) ;
 	}
 }

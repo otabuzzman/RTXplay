@@ -582,8 +582,17 @@ int main( int argc, char* argv[] ) {
 				CUstream cuda_stream ;
 				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
-				if ( args->param_D( Dns::NONE ) != Dns::NONE )
+				if ( args->param_D( Dns::NONE ) != Dns::NONE ) {
 					lp_general.spp = 1 ;
+					if ( args->param_D( Dns::NONE ) == Dns::NRM )
+						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+					else if ( args->param_D( Dns::NONE ) == Dns::ALB )
+						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+					else { // if ( args->param_D( Dns::NONE ) == Dns::NAA || args->param_D( Dns::NONE ) == Dns::AOV )
+						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+					}
+				}
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
 
@@ -641,13 +650,8 @@ int main( int argc, char* argv[] ) {
 
 				// output guides
 				if ( ! args->flag_q() && args->flag_G() ) {
-					std::vector<float3> normals ;
-					std::vector<float3> albedos ;
-					denoiser->guides( normals, albedos ) ;
-					if ( normals.size()>0 )
-						imgtopnm( normals, w, h ) ;
-					if ( albedos.size()>0 )
-						imgtopnm( normals, w, h ) ;
+					if ( lp_general.normals ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.normals ), w, h ) ;
+					if ( lp_general.albedos ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.albedos ), w, h ) ;
 				}
 
 				delete denoiser ;
@@ -673,6 +677,8 @@ int main( int argc, char* argv[] ) {
 					imgtopnm( rpp, w, h ) ;
 			}
 
+			if ( lp_general.normals ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals    ) ) ) ;
+			if ( lp_general.albedos ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.albedos    ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image  ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp    ) ) ) ;
