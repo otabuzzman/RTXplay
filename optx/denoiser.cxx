@@ -12,7 +12,7 @@ Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h )
 	if ( type_ == Dns::SMP )
 		options = { 0, 0 } ;
 	else if ( type_ == Dns::NRM ) {
-		options = { 1, 0 } ;
+		options = { 0, 1 } ;
 
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &guidelayer_.normal.data ), w_*h_*sizeof( float3 ) ) ) ;
 		guidelayer_.normal.width              = w_ ;
@@ -21,7 +21,7 @@ Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h )
 		guidelayer_.normal.pixelStrideInBytes = sizeof( float3 ) ;
 		guidelayer_.normal.format             = OPTIX_PIXEL_FORMAT_FLOAT3 ;
 	} else if ( type_ == Dns::ALB ) {
-		options = { 0, 1 } ;
+		options = { 1, 0 } ;
 
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &guidelayer_.albedo.data ), w_*h_*sizeof( float3 ) ) ) ;
 		guidelayer_.albedo.width              = w_ ;

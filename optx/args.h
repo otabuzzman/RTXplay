@@ -63,6 +63,7 @@ class Args {
 		bool flag_h() const ; // -h, --help
 		bool flag_q() const ; // -q, --quiet
 		bool flag_t() const ; // -t, --trace-sm
+		bool flag_G() const ; // -G, --print-guides
 		bool flag_S() const ; // -S, --print-statistics
 
 		bool flag_A( const Aov select, const char** mnemonic = nullptr ) const ; // -A, --print-aov
@@ -80,6 +81,7 @@ class Args {
 		int h_     =  0 ;
 		int q_     =  0 ;
 		int t_     =  0 ;
+		int G_     =  0 ;
 		int S_     =  0 ;
 		Aov A_rpp_ = Aov::NONE ;
 } ;

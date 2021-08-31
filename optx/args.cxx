@@ -7,7 +7,7 @@
 Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 	int c, n = 0 ;
 
-	const char*         s_opts   = "g:a:s:d:vtqhA:SD:" ;
+	const char*         s_opts   = "g:a:s:d:vtqhA:GSD:" ;
 	const struct option l_opts[] = {
 		{ "geometry",          required_argument, 0, 'g' },
 		{ "aspect-ratio",      required_argument, 0, 'a' },
@@ -20,6 +20,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		{ "help",              no_argument,       &h_, 1 },
 		{ "usage",             no_argument,       &h_, 1 },
 		{ "print-aov",         required_argument, 0, 'A' },
+		{ "print-guides",      no_argument,       &G_, 1 },
 		{ "print-statistics",  no_argument,       &S_, 1 },
 		{ "apply-denoiser",    required_argument, 0, 'D' },
 		{ 0, 0, 0, 0 }
@@ -83,6 +84,9 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 					}
 				}
 				break ;
+			case 'G':
+				G_ = 1 ;
+				break ;
 			case 'S':
 				S_ = 1 ;
 				break ;
@@ -115,6 +119,7 @@ bool Args::flag_v() const { return v_>0 ; }
 bool Args::flag_h() const { return h_>0 ; }
 bool Args::flag_q() const { return q_>0 ; }
 bool Args::flag_t() const { return t_>0 ; }
+bool Args::flag_G() const { return G_>0 ; }
 bool Args::flag_S() const { return S_>0 ; }
 
 bool Args::flag_A( const Aov select, const char** mnemonic ) const {
@@ -203,26 +208,30 @@ Options:\n\
 \n\
   -q, --quiet, --silent\n\
     Omit result output on stdout. This option takes precedence over\n\
-    -A, --print-aov options.\n\
+    -A, --print-aov and -G, --print-guides options.\n\
 \n\
   -h, --help, --usage\n\
     Print this help. Takes precedence over any other options\n\
 \n\
   -A, --print-aov <AOV>[,...]\n\
-    Print AOVs after image on stdout.\n\
+    Print AOVs after image on stdout. Output format is PGM. Option not\n\
+    available in interactive mode.\n\
 \n\
     Available AOVs:\n\
       RPP (Rays per pixel) - Sort of `data´ AOV (opposed to AOVs for lighting\n\
                              or shading). Values add up total number of rays\n\
                              traced for each pixel.\n\
 \n\
-    This option is not available in interactive mode.\n\
+  -G, --print-guides\n\
+    Print denoiser guide layers before image on stdout. Available guide layers\n\
+    depend on denoiser type: SMP/ none, NRM/ normals, ALB/ albedos, NAA/ both,\n\
+    AOV/ both. Output format is PPM. Option not available in interactive mode.\n\
 \n\
   -S, --print-statistics\n\
     Print statistical information on stderr.\n\
 \n\
   -D, --apply-denoiser <TYP>\n\
-    Enable denoiser for batch mode and apply type TYP after rendering with\n\
+    Enable denoiser in batch mode and apply type TYP after rendering with\n\
     1 SPP. To enable for interactive mode see UI functions section below.\n\
     Denoising in interactive mode applies to scene animation and while\n\
     changing camera position and direction, as well as zooming.\n\
@@ -264,6 +273,7 @@ int main( int argc, char* argv[] ) {
 		std::cout << "quiet      : " << ( args.flag_q() ? "set" : "not set" ) << std::endl ;
 		std::cout << "silent     : " << ( args.flag_q() ? "set" : "not set" ) << std::endl ;
 		std::cout << "trace-sm   : " << ( args.flag_t() ? "set" : "not set" ) << std::endl ;
+		std::cout << "guides     : " << ( args.flag_G() ? "set" : "not set" ) << std::endl ;
 		std::cout << "statistics : " << ( args.flag_S() ? "set" : "not set" ) << std::endl ;
 
 		bool rpp = args.flag_A( Aov::RPP, &mnemonic ) ;

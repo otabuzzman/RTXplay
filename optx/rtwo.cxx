@@ -55,7 +55,7 @@ extern "C" void pp_sRGB( const float3* src, uchar4* dst, const int w, const int 
 
 // output device image on stdout
 template<typename T>
-static void imgtoppm( const CUdeviceptr rgb, const int w, const int h ) {
+static void imgtopnm( const CUdeviceptr rgb, const int w, const int h ) {
 	std::vector<T> image ;
 	image.resize( w*h ) ;
 	CUDA_CHECK( cudaMemcpy(
@@ -64,7 +64,7 @@ static void imgtoppm( const CUdeviceptr rgb, const int w, const int h ) {
 		w*h*sizeof( T ),
 		cudaMemcpyDeviceToHost
 		) ) ;
-	imgtoppm( image, w, h ) ;
+	imgtopnm( image, w, h ) ;
 }
 // output local image on stdout
 static void imgtopnm( const std::vector<uchar4>       rgb,  const int w, const int h ) ; // output PPM, ignore A channel
@@ -638,6 +638,18 @@ int main( int argc, char* argv[] ) {
 			if ( type != Dns::NONE ) {
 				Denoiser* denoiser = new Denoiser( type, w, h ) ;
 				denoiser->beauty( lp_general.rawRGB ) ;
+
+				// output guides
+				if ( ! args->flag_q() && args->flag_G() ) {
+					std::vector<float3> normals ;
+					std::vector<float3> albedos ;
+					denoiser->guides( normals, albedos ) ;
+					if ( normals.size()>0 )
+						imgtopnm( normals, w, h ) ;
+					if ( albedos.size()>0 )
+						imgtopnm( normals, w, h ) ;
+				}
+
 				delete denoiser ;
 			}
 
@@ -650,53 +662,17 @@ int main( int argc, char* argv[] ) {
 
 
 			// output image
-			if ( ! args->flag_q() ) {
-				std::vector<uchar4> image ;
-				image.resize( w*h ) ;
-				CUDA_CHECK( cudaMemcpy(
-							image.data(),
-							lp_general.image,
-							w*h*sizeof( uchar4 ),
-							cudaMemcpyDeviceToHost
-							) ) ;
+			if ( ! args->flag_q() )
+				imgtopnm<uchar4>( reinterpret_cast<CUdeviceptr>( lp_general.image ), w, h ) ;
 
-				std::cout
-					<< "P3\n" // magic PPM header
-					<< w << ' ' << h << '\n' << 255 << '\n' ;
-
-				for ( int y = h-1 ; y>=0 ; --y ) {
-					for ( int x = 0 ; x<w ; ++x ) {
-						auto p = image.data()[w*y+x] ;
-						std::cout
-							<< static_cast<int>( p.x ) << ' '
-							<< static_cast<int>( p.y ) << ' '
-							<< static_cast<int>( p.z ) << '\n' ;
-					}
-				}
-
-				// output AOV RPP (rays per pixel)
-				if ( args->flag_A( Aov::RPP ) ) {
-					if ( rpp.size() == 0 ) {
-						rpp.resize( w*h ) ;
-						CUDA_CHECK( cudaMemcpy(
-									rpp.data(),
-									lp_general.rpp,
-									w*h*sizeof( unsigned int ),
-									cudaMemcpyDeviceToHost
-									) ) ;
-					}
-
-					std::cout
-						<< '\n'
-						<< "P2\n" // magic PGM header
-						<< w << ' ' << h << '\n' << 65535 << '\n' ;
-
-					for ( int y = h-1 ; y>=0 ; --y )
-						for ( int x = 0 ; x<w ; ++x )
-							std::cout
-								<< rpp.data()[w*y+x] << '\n' ;
-				}
+			// output AOV rays per pixel (RPP)
+			if ( ! args->flag_q() && args->flag_A( Aov::RPP ) ) {
+				if ( rpp.size() == 0 )
+					imgtopnm<unsigned int>( reinterpret_cast<CUdeviceptr>( lp_general.rpp ), w, h ) ;
+				else
+					imgtopnm( rpp, w, h ) ;
 			}
+
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image  ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp    ) ) ) ;
@@ -734,7 +710,7 @@ int main( int argc, char* argv[] ) {
 	return 0 ;
 }
 
-static void rgbtopnm( const std::vector<uchar4> rgb, const int w, const int h ) {
+static void imgtopnm( const std::vector<uchar4> rgb, const int w, const int h ) {
 	std::cout
 		<< "P3\n" // magic PPM header
 		<< w << ' ' << h << '\n' << 255 << '\n' ;
