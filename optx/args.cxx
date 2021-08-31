@@ -164,7 +164,7 @@ Examples:\n\
 Options:\n\
   -g, --geometry {<width>[x<height>]|RES}\n\
     Set image resolution to particular dimensions or common values predefined\n\
-    by RES. \n\
+    by RES.\n\
 \n\
     Prefedined resolutions for RES:\n\
       CGA    - 320x200      8:5\n\
