@@ -107,7 +107,7 @@ void SimpleSM::eaCtlDns() {
 		}
 		if ( args->flag_v() ) {
 			const char *mnemonic ;
-			args->param_D( Dns::NONE, &mnemonic ) ;
+			args->param_D( smparam->dns_type, &mnemonic ) ;
 			std::cerr << "denoiser " << mnemonic << std::endl ;
 		}
 	}

@@ -151,11 +151,15 @@ Examples:\n\
   # render and convert image to PNG. Print statistical information on stderr.\n\
   rtwo -S | magick ppm:- rtwo.png\n\
 \n\
-  # convert image and AOV (yields rtwo-0.png (image) and rtwo-1.png (RPP)).\n\
+  # output image and AOV (yields rtwo-0.png (image) and rtwo-1.png (RPP)).\n\
   rtwo --print-aov RPP | magick - rtwo.png\n\
 \n\
   # improve AOV RPP contrast.\n\
   magick rtwo-1.png -auto-level -level 0%,25% rtwo-rpp.png\n\
+\n\
+  # apply denoiser and output guide layers (yields rtwo-0.png (normals),\n\
+  # rtwo-1.png (albedos),and rtwo-2.png (image)).\n\
+  rtwo --print-guides --apply-denoiser NAA | magick - rtwo.png\n\
 \n\
 Options:\n\
   -g, --geometry {<width>[x<height>]|RES}\n\
