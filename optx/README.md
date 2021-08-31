@@ -1,5 +1,5 @@
 # RTWO
-This is *Ray Tracing with OptiX* (RTWO), another implementation of Pete Shirley's famous *Ray Tracing in One Weekend* (RTOW). It run's in batch mode just like Pete's but turns interactive in case of an X server exec'ing on the same host. A rather simple UI provides camera and denoiser controls. Compile and run `rtwo -h` for a complete list of functions:
+This is *Ray Tracing with OptiX* (RTWO), another implementation of Pete Shirley's famous *Ray Tracing in One Weekend* (RTOW). It runs in batch mode just like Pete's but turns interactive in case of an X server exec'ing on the same host. A rather simple UI provides camera and denoiser controls. Compile and run `rtwo -h` for a complete list of functions:
 ```
 Usage: rtwo [OPTION...]
   `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in
