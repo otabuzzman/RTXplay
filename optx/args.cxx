@@ -158,7 +158,7 @@ Examples:\n\
   magick rtwo-1.png -auto-level -level 0%,25% rtwo-rpp.png\n\
 \n\
   # apply denoiser and output guide layers (yields rtwo-0.png (normals),\n\
-  # rtwo-1.png (albedos),and rtwo-2.png (image)).\n\
+  # rtwo-1.png (albedos), and rtwo-2.png (image)).\n\
   rtwo --print-guides --apply-denoiser NAA | magick - rtwo.png\n\
 \n\
 Options:\n\
@@ -215,16 +215,16 @@ Options:\n\
     -A, --print-aov and -G, --print-guides options.\n\
 \n\
   -h, --help, --usage\n\
-    Print this help. Takes precedence over any other options\n\
+    Print this help. Takes precedence over any other options.\n\
 \n\
   -A, --print-aov <AOV>[,...]\n\
-    Print AOVs after image on stdout. Output format is PGM. Option not\n\
-    available in interactive mode.\n\
+    Print AOVs after image on stdout. Option not available in interactive\n\
+    mode.\n\
 \n\
     Available AOVs:\n\
       RPP (Rays per pixel) - Sort of `data´ AOV (opposed to AOVs for lighting\n\
                              or shading). Values add up total number of rays\n\
-                             traced for each pixel.\n\
+                             traced for each pixel. Output format is PGM.\n\
 \n\
   -G, --print-guides\n\
     Print denoiser guide layers before image on stdout. Available guide layers\n\

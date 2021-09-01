@@ -1,5 +1,5 @@
 # RTWO
-This is *Ray Tracing with OptiX* (RTWO), another implementation of Pete Shirley's famous *Ray Tracing in One Weekend* (RTOW). It runs in batch mode just like Pete's but turns interactive in case of an X server exec'ing on the same host. A rather simple UI provides camera and denoiser controls. Compile and run `rtwo -h` for a complete list of functions:
+This is *Ray Tracing with OptiX* (RTWO), another implementation of the 1st book from Pete Shirley's instructive and entertaining [*Ray Tracing in One Weekend*](https://github.com/RayTracing/raytracing.github.io/) (RTOW) series. It runs in batch mode just like Pete's but turns interactive in case of an X server exec'ing on the same host. A rather simple UI provides camera and denoiser controls. The complete list of functions:
 ```
 Usage: rtwo [OPTION...]
   `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in
@@ -21,7 +21,7 @@ Examples:
   magick rtwo-1.png -auto-level -level 0%,25% rtwo-rpp.png
 
   # apply denoiser and output guide layers (yields rtwo-0.png (normals),
-  # rtwo-1.png (albedos),and rtwo-2.png (image)).
+  # rtwo-1.png (albedos), and rtwo-2.png (image)).
   rtwo --print-guides --apply-denoiser NAA | magick - rtwo.png
 
 Options:
@@ -78,16 +78,16 @@ Options:
     -A, --print-aov and -G, --print-guides options.
 
   -h, --help, --usage
-    Print this help. Takes precedence over any other options
+    Print this help. Takes precedence over any other options.
 
   -A, --print-aov <AOV>[,...]
-    Print AOVs after image on stdout. Output format is PGM. Option not
-    available in interactive mode.
+    Print AOVs after image on stdout. Option not available in interactive
+    mode.
 
     Available AOVs:
       RPP (Rays per pixel) - Sort of `data´ AOV (opposed to AOVs for lighting
                              or shading). Values add up total number of rays
-                             traced for each pixel.
+                             traced for each pixel. Output format is PGM.
 
   -G, --print-guides
     Print denoiser guide layers before image on stdout. Available guide layers
@@ -115,61 +115,60 @@ Options:
             denoising result even if no AOVs provided
 
 UI functions:
-  window resize        - change viewport dimensions
-  left button + move   - change camera position
-  right button + move  - change camera direction
-  right button + scoll - roll camera
-  'a' key              - toggle scene animation
-  'b' key              - enter blur mode (<ESC> to leave)
-      scroll (wheel)   - change defocus blur
-  'd' key              - enable/ disable denoising and select
-                         type (loop)
-  'f' key              - enter focus mode (<ESC> to leave)
-      scroll (wheel)   - change aperture
-  'z' key              - enter zoom mode (<ESC> to leave)
-      scroll (wheel)   - zoom in and out
-  <ESC> key            - leave RTWO
+  window resize         - change viewport dimensions
+  left button + move    - change camera position
+  right button + move   - change camera direction
+  right button + scroll - roll camera
+  'a' key               - toggle scene animation
+  'b' key               - enter blur mode (<ESC> to leave)
+      scroll (wheel)    - change defocus blur
+  'd' key               - enable/ disable denoising and select
+                          type (loop)
+  'f' key               - enter focus mode (<ESC> to leave)
+      scroll (wheel)    - change aperture
+  'z' key               - enter zoom mode (<ESC> to leave)
+      scroll (wheel)    - zoom in and out
+  <ESC> key             - leave RTWO
 ```
 
 ### Gallery
 |    |    |
 |:---|:---|
-|1) The well-known image from RTOW chapter 12|2) AOV reflecting number of rays per pixel|
-|![The well-known image from RTOW chapter 12](img/rtwo-0.png)|![AOV reflecting number of rays per pixel](img/rtwo-rpp.png)|
-|3) SMP (simple) denoiser result|4) NRM denoiser with normals guide layer|
+|1) The well-known image from [RTOW chapter 13](https://raytracing.github.io/books/RayTracingInOneWeekend.html#wherenext?) rendered with 50 samples per pixel (SPP). Small glass spheres and the large sphere in the foreground show faceted surfaces, due to coarser triangle-meshes.|2) AOV reflecting number of rays per pixel (the brighter the more).|
+|![The well-known image from RTOW chapter 13](img/rtwo-0.png)|![AOV reflecting number of rays per pixel](img/rtwo-rpp.png)|
+|3) SMP (simple) denoiser result. Mind the yellow artifacts but all in all pretty good considering only 1 SPP.|4) NRM denoiser with normals guide layer. More artifacts and quite fuzzy, thus slightly worse than SMP.|
 |![SMP (simple) denoiser result](img/rtwo_smp.png)|![NRM denoiser with normals guide layer](img/rtwo_nrm.png)|
-|5) ALB denoiser with albedos guide layer|6) NAA denoiser with both<br>(all OPTIX_DENOISER_MODEL_KIND_LDR)|
+|5) ALB denoiser with albedos guide layer. Even more artifacts but less fuzzy. Better than NRM, but still worse than SMP.|6) NAA denoiser with both<br>(so far all OPTIX_DENOISER_MODEL_KIND_LDR). Result comparable to previous.|
 |![ALB denoiser with albedos guide layer](img/rtwo_alb.png)|![NAA denoiser with both](img/rtwo_naa.png)|
-|7) AOV denoiser with both (no AOV)<br>(OPTIX_DENOISER_MODEL_KIND_AOV)|8) Denoiser normals guide layer|
+|7) AOV denoiser with both (no AOV)<br>(OPTIX_DENOISER_MODEL_KIND_AOV). Looks good. Few artifacts with acceptable fuzzyness. Flip a coin to pick SMP or AOV.|8) Denoiser guide layer showing normals.|
 |![AOV denoiser with both](img/rtwo_aov.png)|![Denoiser normals guide layer](img/rtwo_A-0.png)|
-|9) Denoiser albedos guide layer||
+|9) Denoiser guide layer showing albedos.||
 |![Denoiser albedos guide layer](img/rtwo_A-1.png)||
 
 ### Build
-On your Linux box with NVIDIA Turing or Ampere graphics card install:
-- Common development tools (gcc, g++, make ...
+On your Linux box with NVIDIA Turing or Ampere graphics card install these (cues in Linux section of [../README.md](../README.md#linux)):
+- Common development tools (gcc, g++, make ...)
 - CUDA 11.4
 - OptiX 7.3
 - ImageMagick 7
+- GLFW (see [below](#compile-optiX-7-course))
+- Download RTXplay repo (this)
+- Run `make` in `optx` subfolder (follow first-time instructions)
+- Run `make` again
 
-Installation details in Linux section of [../README.md](../README.md#linux)
-
-- Download RTXplay repo (this) and cd into
-- Run `make` in `optx` subfolder
-
-If all went well there is `rtwo.png`.
+If all went well you now have `rtwo.png`.
 
 - Start X server
 - Run `DISPLAY=:0 ./rtwo` (interactive now)
 
 ### No Turing or Ampere
-RTWO should work on older architectures as well, of course without RT Cores then. In `Makefile` set `-arch` flag in `NVCCFLAGS` variable according to archtecture in question ([list](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list)) before compiling.
+RTWO should work on older architectures as well, of course without RT Cores then. In `Makefile` set `-arch` flag in `NVCCFLAGS` variable according to architecture in question ([list](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list)) before compiling.
 
 ### No NVIDIA graphics card
 Try a cloud service. RTWO developement actually happened on Windows (compilation only, no linking) and got its final cut on AWS. Any other provider should do as well. See [README.md](../README.md) in parent folder for setting up Windows and AWS. 
 
 ### Simple GPU workstation on AWS (VNC)
-The faster RDP would have been a better approach but it's not compatible with Nvidia's GLX for Xorg (see [xrdp issues](https://github.com/neutrinolabs/xrdp/issues/721#issuecomment-293241800) *xorgxrdp driver not supporting Nvidia's GLX* [and](https://github.com/neutrinolabs/xrdp/issues/1550#issuecomment-614910727) *not seen that (Nvidia's GLX) work yet with xrdpdev*) which has been confirmed by tests with numerous configurations which all failed. Due to these obstacles and despite it is slow, falling back on VNC is considered ok because it works after all and it's only for testing anyway.
+The faster RDP would have been a better approach but it's not compatible with NVIDIA's GLX for Xorg (see [xrdp issues](https://github.com/neutrinolabs/xrdp/issues/721#issuecomment-293241800) *xorgxrdp driver not supporting Nvidia's GLX* [and](https://github.com/neutrinolabs/xrdp/issues/1550#issuecomment-614910727) *not seen that (Nvidia's GLX) work yet with xrdpdev*) which has been confirmed by tests with numerous configurations which all failed. Due to these obstacles and despite it is slow, falling back on VNC is considered ok because it works after all and it's only for testing anyway.
 
 Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-types/g4/) (`g4dn.xlarge`) with [Amazon Linux 2 AMI](https://aws.amazon.com/amazon-linux-2/).
 
@@ -244,10 +243,10 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
 
 ### Performance cues
 
-#### Low hanging fruits
+#### Low hangings
 - Use iterative instead of recursive raytracing
 
-  Repo contains programs (`*.cu`) for both but `Makefile` defaults to *iterative*.
+  `Makefile` defaults to *iterative* but repo contains programs (`*.cu`) for both.
   ```
   # to try recursive
   make lclean
@@ -256,7 +255,7 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
 - Use full optimization (`OPTIX_COMPILE_OPTIMIZATION_DEFAULT`) for module compilation
 - Use `Frand48` (default) instead of CUDA `curand` RNG
 
-  Code support both but `Makefile` defaults to `Frand48`.
+  `Makefile` defaults to `Frand48` but code supports both.
   ```
   # try curand
   make lclean
@@ -264,15 +263,14 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
   ```
 - Try `OPTIX_GEOMETRY_FLAG_NONE` instead of `OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT` (`rtwo.cxx`, `*.cu`)
 
-  OptiX documentation and develper forum recommend use of `OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT` even if there is no Anyhit Program. See [time series chart](https://docs.google.com/spreadsheets/d/1HAkMM2-QL5F1pwvjQTtyEAV1Zo2fghDp/edit?usp=sharing&ouid=100581696502355527803&rtpof=true&sd=true) for comparisons of various measures.
+  OptiX documentation and develper forum recommend use of `OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT` even if there is no Anyhit Program at all. See [time series chart](https://docs.google.com/spreadsheets/d/1HAkMM2-QL5F1pwvjQTtyEAV1Zo2fghDp/edit?usp=sharing&ouid=100581696502355527803&rtpof=true&sd=true) for comparisons of various measures.
 
 #### Kernel profiling with Nsight Compute
-- Install Nsight Compute 2021.2 (Windows version)
+- Install [Nsight Compute 2021.2](https://developer.nvidia.com/gameworksdownload#?dn=nsight-compute-2021-2-1) (Windows version)
 - Nsight Compute CLI (`ncu`) is part od CUDA Toolkit
-- Prepare module compile options in OptiX app (`rtwo.cxx`) and run NVCC with `-lineinfo` option (`Makefile`)
-  ```
-  OptixModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO ; // or OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT
-  ```
+- Compile RTWO to provide line information to Nsight (default)<br>
+  Run NVCC with `-lineinfo` option (`NVCCFLAGS` variable in `Makefile`)<br>
+  Set `OptixModuleCompileOptions.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_LINEINFO` (`rtwo.cxx`)
 
 - Run `ncu` on OptiX app (mind [developer forum thread on kernel selection](https://forums.developer.nvidia.com/t/optix-and-performance-counter-reports-in-nsight-compute/180642))
   ```

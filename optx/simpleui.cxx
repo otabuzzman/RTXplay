@@ -379,20 +379,20 @@ void glfwGetScroll( GLFWwindow* /*window*/, double* x, double* y ) {
 
 void SimpleUI::usage() {
 	std::cerr << "UI functions:\n\
-  window resize        - change viewport dimensions\n\
-  left button + move   - change camera position\n\
-  right button + move  - change camera direction\n\
-  right button + scoll - roll camera\n\
-  'a' key              - toggle scene animation\n\
-  'b' key              - enter blur mode (<ESC> to leave)\n\
-      scroll (wheel)   - change defocus blur\n\
-  'd' key              - enable/ disable denoising and select\n\
-                         type (loop)\n\
-  'f' key              - enter focus mode (<ESC> to leave)\n\
-      scroll (wheel)   - change aperture\n\
-  'z' key              - enter zoom mode (<ESC> to leave)\n\
-      scroll (wheel)   - zoom in and out\n\
-  <ESC> key            - leave RTWO\n\
+  window resize         - change viewport dimensions\n\
+  left button + move    - change camera position\n\
+  right button + move   - change camera direction\n\
+  right button + scroll - roll camera\n\
+  'a' key               - toggle scene animation\n\
+  'b' key               - enter blur mode (<ESC> to leave)\n\
+      scroll (wheel)    - change defocus blur\n\
+  'd' key               - enable/ disable denoising and select\n\
+                          type (loop)\n\
+  'f' key               - enter focus mode (<ESC> to leave)\n\
+      scroll (wheel)    - change aperture\n\
+  'z' key               - enter zoom mode (<ESC> to leave)\n\
+      scroll (wheel)    - zoom in and out\n\
+  <ESC> key             - leave RTWO\n\
 \n\
 " ;
 }
