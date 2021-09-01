@@ -199,8 +199,10 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 	CUdeviceptr d_lp_general ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), sizeof( LpGeneral ) ) ) ;
 
+	auto t0 = std::chrono::high_resolution_clock::now() ; // session start time
+
 	do {
-		auto t0 = std::chrono::high_resolution_clock::now() ;
+		auto t1 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
@@ -217,7 +219,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		const int w = lp_general.image_w ;
 		const int h = lp_general.image_h ;
 
-		auto t1 = std::chrono::high_resolution_clock::now() ;
+		auto t2 = std::chrono::high_resolution_clock::now() ;
 		OPTX_CHECK( optixLaunch(
 			pipeline,
 			cuda_stream,
@@ -226,10 +228,10 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			&sbt,
 			w/*x*/, h/*y*/, 1/*z*/ ) ) ;
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
-		auto t2 = std::chrono::high_resolution_clock::now() ;
+		auto t3 = std::chrono::high_resolution_clock::now() ;
 
 		if ( args->flag_S() ) { // output statistics
-			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t2-t1 ).count() ;
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t2 ).count() ;
 			std::vector<unsigned int> rpp ;
 			rpp.resize( w*h ) ;
 			CUDA_CHECK( cudaMemcpy(
@@ -239,7 +241,8 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 				cudaMemcpyDeviceToHost
 				) ) ;
 			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-			fprintf( stderr, "%9u %12llu %4llu (pixels, rays, milliseconds)", w*h, sr, dt ) ;
+			long long tl = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+			fprintf( stderr, "%6llu %9u %12llu %4llu (lapse, pixels, rays, msec)", tl, w*h, sr, dt ) ;
 		}
 
 		// apply denoiser
@@ -302,9 +305,9 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
 
-		auto t3 = std::chrono::high_resolution_clock::now() ;
+		auto t4 = std::chrono::high_resolution_clock::now() ;
 		if ( args->flag_S() ) { // output statistics
-			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t4-t1 ).count() ;
 			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
 		}
 

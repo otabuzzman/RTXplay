@@ -1,5 +1,5 @@
 # RTWO
-This is *Ray Tracing with OptiX* (RTWO), another implementation of the 1st book from Pete Shirley's instructive and entertaining [*Ray Tracing in One Weekend*](https://github.com/RayTracing/raytracing.github.io/) (RTOW) series. It runs in batch mode just like Pete's but turns interactive in case of an X server exec'ing on the same host. A rather simple UI provides camera and denoiser controls. The complete list of functions:
+This is *Ray Tracing with OptiX* (RTWO), another implementation of the 1st book from Pete Shirley's instructive and entertaining [*Ray Tracing in One Weekend*](https://github.com/RayTracing/raytracing.github.io/) (RTOW) series. It runs in batch mode just like Pete's and turns interactive in case of an X server exec'ing on the same host. A rather simple UI provides camera and denoiser controls. The complete list of functions:
 ```
 Usage: rtwo [OPTION...]
   `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in
