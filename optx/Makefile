@@ -98,7 +98,7 @@ IGNORED_WARNINGS = \
 	/wd5045 \
 
 CXXFLAGS  = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG $$CXXDEFS
-LDFLAGS   = /NODEFAULTLIB:MSVCRT # /VERBOSE:LIB
+LDFLAGS   = /WX /NODEFAULTLIB:MSVCRT # /VERBOSE:LIB
 NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
@@ -123,7 +123,7 @@ args.exe: args.cxx
 
 else
 CXXFLAGS  = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS
-LDFLAGS   =
+LDFLAGS   = --fatal-warnings
 NVCCFLAGS = -std c++11 -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
