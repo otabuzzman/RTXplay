@@ -5,7 +5,7 @@ Code in the top-level folder was created while working through the [first book](
 
 The `optx` folder contains RTWO. Work started out with the *optixTriangle* sample from the OptiX SDK which has been modified step by step as shown by the repository's commit history.
 
-First aim was a 1:1 port of RTOW to OptiX to get RTWO. Result is in `manastra` branch. After that, work proceeded with arbitrarily picked objectives to explore various OptiX features. See commit history of `main` branch for details. In addition, see [notes](notes.md) on findings, stepped across during the course.
+First aim was a 1:1 port of RTOW to OptiX to get RTWO. Result is in `manastra` branch. After that, work proceeded with arbitrarily picked objectives to explore various OptiX features. See commit history of `main` branch for details.
 
 ### Build
 Due to lack of appropriate hardware development and tests had been split on Windows and Linux respectively.
