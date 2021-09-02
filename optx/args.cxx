@@ -116,11 +116,17 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		}
 	} while ( c>-1 && MAXOPT>n++ ) ;
 #else
-	if ( argc == 2 && ( ! strcasecmp( argv[1], "/h" ) || ! strcasecmp( argv[1], "/help" ) ) )
-		h_ = 1 ;
-	else {
-		std::cerr << "rtwo: unknown options" << std::endl ;
-		throw std::invalid_argument( "try 'rtwo /help' for more information." ) ;
+	switch ( argc ) {
+		case 1:
+			break ;
+		case 2:
+			if ( ! strcasecmp( argv[1], "/h" ) || ! strcasecmp( argv[1], "/help" ) ) {
+				h_ = 1 ;
+				break ;
+			}
+		default:
+			std::cerr << "rtwo: unknown options" << std::endl ;
+			throw std::invalid_argument( "try 'rtwo /help' for more information." ) ;
 	}
 #endif // _MSC_VER
 }
@@ -157,11 +163,11 @@ bool Args::flag_A( const Aov select, const char** mnemonic ) const {
 void Args::usage() {
 #ifndef _MSC_VER
 	std::cerr << "Usage: rtwo [OPTION...]\n\
-  `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in\n\
+  rtwo renders the final image from Pete Shirley's book Ray Tracing in\n\
   One Weekend using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
   (PPM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
 \n\
-  If the host execs an X server (GLX enabled) as well, `rtwo´ continuously\n\
+  If the host execs an X server (GLX enabled) as well, rtwo continuously\n\
   renders and displays results. A (rather) simple UI allows for basic\n\
   interactions.\n\
 \n\
@@ -214,7 +220,7 @@ Options:\n\
 \n\
   -d, --trace-depth N\n\
     Trace N rays per sample (RPS). A minimum value of 1 means just trace\n\
-    primary rays. Default is 16 or 50, depending on whether `rtwo´ was\n\
+    primary rays. Default is 16 or 50, depending on whether rtwo was\n\
     compiled for recursive or iterative ray tracing respectively.\n\
 \n\
   -a, --aspect-ratio <width>:<height>\n\
@@ -272,11 +278,11 @@ Options:\n\
 " ;
 #else
 	std::cerr << "Usage: rtwo [/h|/help]\n\
-  `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in\n\
+  rtwo renders the final image from Pete Shirley's book Ray Tracing in\n\
   One Weekend using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
   (PPM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
 \n\
-  If the host execs an X server (GLX enabled) as well, `rtwo´ continuously\n\
+  If the host execs an X server (GLX enabled) as well, rtwo continuously\n\
   renders and displays results. A (rather) simple UI allows for basic\n\
   interactions.\n\
 \n\
