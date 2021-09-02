@@ -108,7 +108,7 @@ INC = \
 	-I$$(cygpath -w /usr/local/include) \
 
 LIB = \
-	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/lib/x64) -lcudart \
+	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/lib/x64) \
 	-L$$(cygpath -w /usr/local/lib) -lglfw3_mt -lopengl32 \
 	-ladvapi32 -lshell32 -luser32 -lgdi32 -lkernel32 \
 
