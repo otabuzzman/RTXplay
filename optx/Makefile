@@ -78,7 +78,8 @@ IGNORED_WARNINGS = \
 	/wd5039 \
 
 CXXFLAGS = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG $$CXXFLAGS
-NVCCFLAGS = -rdc true -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
+LDFLAGS  = /WX
+NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math
 
 INC = \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/include) \
@@ -88,10 +89,10 @@ INC = \
 LIB = \
 	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/lib/x64) \
 
-LD = nvcc
 else
 CXXFLAGS = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXFLAGS
-NVCCFLAGS = -rdc true -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math
+LDFLAGS  =
+NVCCFLAGS = -std c++11 -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math
 
 INC = \
 	-I/usr/local/cuda/include \
@@ -101,7 +102,6 @@ LIB = \
 	-L/usr/local/cuda/lib64 -lcudart -lpthread -lrt -ldl \
 	-lm \
 
-LD = g++
 endif
 
 .PHONY: all clean tidy
@@ -126,7 +126,8 @@ endif
 all: $(EXE) $(IMG)
 
 $(EXE): $(OBJ)
-	$(LD) -o $@ $^ \
+	nvcc -o $@ $^ \
+		$(NVCCFLAGS) \
 		$(LIB) \
 
 
