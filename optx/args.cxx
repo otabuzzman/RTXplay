@@ -1,10 +1,19 @@
 #include <iostream>
 #include <vector>
+#ifndef _MSC_VER
 #include <getopt.h>
+#else
+#ifdef __GNUG__
+#include <cstring>
+#else
+#define strcasecmp _stricmp
+#endif // __GNUG__
+#endif // _MSC_VER
 
 #include "args.h"
 
 Args::Args( const int argc, char* const* argv ) noexcept( false ) {
+#ifndef _MSC_VER
 	int c, n = 0 ;
 
 	const char*         s_opts   = "g:a:s:d:vtqhA:GSD:" ;
@@ -80,7 +89,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 						if ( s != aov_map.end() ) {
 							if ( s->second == Aov::RPP ) A_rpp_ = Aov::RPP ;
 						} else
-							std::cerr << argv[0] << ": unknown argument for option A ignored -- " << aov << std::endl ;
+							std::cerr << "rtwo: unknown argument for option A ignored -- " << aov << std::endl ;
 					}
 				}
 				break ;
@@ -96,7 +105,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 					if ( s != dns_map.end() )
 						D_typ_ = s->second ;
 					else
-						std::cerr << argv[0] << ": unknown argument for option D ignored -- " << optarg << std::endl ;
+						std::cerr << "rtwo: unknown argument for option D ignored -- " << optarg << std::endl ;
 				}
 				break ;
 			case '?':
@@ -106,6 +115,14 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 				break ;
 		}
 	} while ( c>-1 && MAXOPT>n++ ) ;
+#else
+	if ( argc == 2 && ( ! strcasecmp( argv[1], "/h" ) || ! strcasecmp( argv[1], "/help" ) ) )
+		h_ = 1 ;
+	else {
+		std::cerr << "rtwo: unknown options" << std::endl ;
+		throw std::invalid_argument( "try 'rtwo /help' for more information." ) ;
+	}
+#endif // _MSC_VER
 }
 
 int  Args::param_w( const int dEfault ) const { return 0>g_w_ ? dEfault : g_w_ ; }
@@ -138,6 +155,7 @@ bool Args::flag_A( const Aov select, const char** mnemonic ) const {
 }
 
 void Args::usage() {
+#ifndef _MSC_VER
 	std::cerr << "Usage: rtwo [OPTION...]\n\
   `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in\n\
   One Weekend using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
@@ -252,6 +270,27 @@ Options:\n\
             denoising result even if no AOVs provided\n\
 \n\
 " ;
+#else
+	std::cerr << "Usage: rtwo [/h|/help]\n\
+  `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in\n\
+  One Weekend using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
+  (PPM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
+\n\
+  If the host execs an X server (GLX enabled) as well, `rtwo´ continuously\n\
+  renders and displays results. A (rather) simple UI allows for basic\n\
+  interactions.\n\
+\n\
+Example:\n\
+  # render and convert image to PNG.\n\
+  rtwo | magick ppm:- rtwo.png\n\
+\n\
+Options:\n\
+\n\
+  /h, /help\n\
+    Print this help.\n\
+\n\
+" ;
+#endif // _MSC_VER
 }
 
 #ifdef MAIN

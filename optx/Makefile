@@ -98,7 +98,8 @@ IGNORED_WARNINGS = \
 	/wd5045 \
 
 CXXFLAGS  = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG $$CXXDEFS
-NVCCFLAGS = -ccbin cl.exe -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math -lineinfo
+LDFLAGS   = /NODEFAULTLIB:MSVCRT # /VERBOSE:LIB
+NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
 	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/include) \
@@ -106,13 +107,10 @@ INC = \
 	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/include) \
 	-I$$(cygpath -w /usr/local/include) \
 
-LDFLAGS = -arch sm_75
-
 LIB = \
 	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/lib/x64) -lcudart \
-	-L$$(cygpath -w /usr/local/lib) -lglfw3 \
-
-LD = nvcc
+	-L$$(cygpath -w /usr/local/lib) -lglfw3_mt -lopengl32 \
+	-ladvapi32 -lshell32 -luser32 -lgdi32 -lkernel32 \
 
 # native OpenGL image viewer
 glxview.exe: glxview.cxx glad.o vert.o frag.o | stb_image.h
@@ -120,18 +118,13 @@ glxview.exe: glxview.cxx glad.o vert.o frag.o | stb_image.h
 		-I. -I/usr/local/include \
 		-L/usr/local/lib -lglfw3 \
 
-# GNU getopt_long(3) missing on Windows
-args.o: getopt.h
-
-getopt.h:
-	ln $$(cygpath -w /usr/include/$@) $@
-
 args.exe: args.cxx
 	g++ -DMAIN -o $@ $< \
 
 else
 CXXFLAGS  = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS
-NVCCFLAGS = -std c++11 -ccbin g++ -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -arch sm_75 -use_fast_math -lineinfo
+LDFLAGS   =
+NVCCFLAGS = -std c++11 -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
 	-I/usr/local/cuda/include \
@@ -142,10 +135,6 @@ LIB = \
 	-L/usr/local/cuda/lib64 -lcudart -lpthread -lrt -ldl \
 	-L/usr/local/lib -lglfw3 \
 	-lm \
-
-LDFLAGS =
-
-LD = g++
 
 # interop'ed OpenGL image viewer
 glxview: glxview.cxx glad.o vert.o frag.o | stb_image.h
@@ -192,8 +181,8 @@ postproc_h.o: postproc.cu
 	bin2c -c -p 0 -n $(basename $<)_glsl $< > $@
 
 $(EXE): $(OBJ)
-	$(LD) -o $@ $^ \
-		$(LDFLAGS) \
+	nvcc -o $@ $^ \
+		$(NVCCFLAGS) \
 		$(LIB) \
 
 
