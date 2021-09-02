@@ -395,7 +395,7 @@ void SimpleUI::usage() {
       scroll (wheel)    - change aperture\n\
   'z' key               - enter zoom mode (<ESC> to leave)\n\
       scroll (wheel)    - zoom in and out\n\
-  <ESC> key             - leave RTWO\n\
+  <ESC> key             - leave rtwo\n\
 \n\
 " ;
 }
