@@ -2,11 +2,11 @@
 This is *Ray Tracing with OptiX* (RTWO), another implementation of the 1st book from Pete Shirley's instructive and entertaining [*Ray Tracing in One Weekend*](https://github.com/RayTracing/raytracing.github.io/) (RTOW) series. It runs in batch mode just like Pete's and turns interactive in case of an X server exec'ing on the same host. A rather simple UI provides camera and denoiser controls. The complete list of functions:
 ```
 Usage: rtwo [OPTION...]
-  `rtwo´ renders the final image from Pete Shirley's book Ray Tracing in
+  rtwo renders the final image from Pete Shirley's book Ray Tracing in
   One Weekend using NVIDIA's OptiX Ray Tracing Engine and pipes the result
   (PPM) to stdout for easy batch post-processing (e.g. ImageMagick).
 
-  If the host execs an X server (GLX enabled) as well, `rtwo´ continuously
+  If the host execs an X server (GLX enabled) as well, rtwo continuously
   renders and displays results. A (rather) simple UI allows for basic
   interactions.
 
@@ -59,7 +59,7 @@ Options:
 
   -d, --trace-depth N
     Trace N rays per sample (RPS). A minimum value of 1 means just trace
-    primary rays. Default is 16 or 50, depending on whether `rtwo´ was
+    primary rays. Default is 16 or 50, depending on whether rtwo was
     compiled for recursive or iterative ray tracing respectively.
 
   -a, --aspect-ratio <width>:<height>
@@ -128,7 +128,7 @@ UI functions:
       scroll (wheel)    - change aperture
   'z' key               - enter zoom mode (<ESC> to leave)
       scroll (wheel)    - zoom in and out
-  <ESC> key             - leave RTWO
+  <ESC> key             - leave rtwo
 ```
 
 ### Gallery
