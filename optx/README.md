@@ -119,7 +119,7 @@ UI functions:
   left button + move    - change camera position
   right button + move   - change camera direction
   right button + scroll - roll camera
-  'a' key               - toggle scene animation
+  'a' key               - animate scene (<ESC> to stop)
   'b' key               - enter blur mode (<ESC> to leave)
       scroll (wheel)    - change defocus blur
   'd' key               - enable/ disable denoising and select

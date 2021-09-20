@@ -311,20 +311,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
 		}
 
-		if ( smparam.anm_exec ) {
-			// rotate eye around y (WCS)
-			Camera* camera = &lp_general.camera ;
-			const float3 eye = camera->eye() ;
-			const float3 pat = camera->pat() ;
-			const float  len = V::len( eye-pat ) ;
-			Paddle paddle( eye, pat, camera->vup() ) ;
-
-			paddle.start( 0, 0 ) ;
-			camera->eye( pat+len*paddle.move( -1, 0 ) ) ;
-
-			GLFW_CHECK( glfwPollEvents() ) ;
-		} else
-			GLFW_CHECK( glfwWaitEvents() ) ;
+		GLFW_CHECK( ( *smparam.glfwPoWaEvents )() ) ;
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
 
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_lp_general ) ) ) ;
@@ -386,7 +373,7 @@ void SimpleUI::usage() {
   left button + move    - change camera position\n\
   right button + move   - change camera direction\n\
   right button + scroll - roll camera\n\
-  'a' key               - toggle scene animation\n\
+  'a' key               - animate scene (<ESC> to stop)\n\
   'b' key               - enter blur mode (<ESC> to leave)\n\
       scroll (wheel)    - change defocus blur\n\
   'd' key               - enable/ disable denoising and select\n\

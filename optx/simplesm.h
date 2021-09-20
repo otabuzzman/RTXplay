@@ -13,16 +13,16 @@
 // missing in GLFW
 extern "C" void glfwGetScroll( GLFWwindow* /*window*/, double* xscroll, double* yscroll ) ;
 
-enum class State { BLR, CTL, DIR, FOC, POS, ZOM, n } ;
-static const std::string state_name[] = { "BLR", "CTL", "DIR", "FOC", "POS", "ZOM" } ;
-enum class Event { ANM, BLR, DIR, DNS, FOC, MOV, POS, RET, RSZ, SCR, ZOM, n } ;
-static const std::string event_name[] = { "ANM", "BLR", "DIR", "DNS", "FOC", "MOV", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
+enum class State { ANM, BLR, DIR, FOC, POS, STL, ZOM, n } ;
+static const std::string state_name[] = { "ANM", "BLR", "DIR", "FOC", "POS", "STL", "ZOM" } ;
+enum class Event { ANM, BLR, DIR, DNS, FOC, MOV, PCD, POS, RET, RSZ, SCR, ZOM, n } ;
+static const std::string event_name[] = { "ANM", "BLR", "DIR", "DNS", "FOC", "MOV", "PCD", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
 struct SmParam {
 	GLuint                pbo ;
 	cudaGraphicsResource* glx ;
 
-	bool                  anm_exec = false ;
+	void                  ( *glfwPoWaEvents )() ;
 
 	bool                  dns_exec = false ;
 	Dns                   dns_type = Dns::NONE ;
@@ -52,21 +52,30 @@ class SimpleSM {
 		void transition( const Event& event ) ;
 
 		// event/ action implementations
-		void eaCtlAnm() ;
-		void eaCtlDns() ;
-		void eaCtlRet() ;
-		void eaCtlDir() ;
-		void eaAnmCtl() ;
+		void eaStlAnm() ;
+		void eaStlDns() ;
+		void eaAnmDns() ;
+		void eaStlRet() ;
+		void eaAnmRet() ;
+		void eaStlDir() ;
+		void eaAnmDir() ;
 		void eaDirScr() ;
 		void eaDirMov() ;
 		void eaDirRet() ;
-		void eaCtlPos() ;
+		void eaStlPos() ;
+		void eaAnmPos() ;
 		void eaPosMov() ;
 		void eaPosRet() ;
-		void eaCtlRsz() ;
-		void eaCtlZom() ;
-		void eaCtlBlr() ;
-		void eaCtlFoc() ;
+		void eaStlPcd() ;
+		void eaAnmPcd() ;
+		void eaStlRsz() ;
+		void eaAnmRsz() ;
+		void eaStlZom() ;
+		void eaAnmZom() ;
+		void eaStlBlr() ;
+		void eaAnmBlr() ;
+		void eaStlFoc() ;
+		void eaAnmFoc() ;
 		void eaZomScr() ;
 		void eaZomRet() ;
 		void eaBlrScr() ;
@@ -90,16 +99,23 @@ class SimpleSM {
 		// event/ action table
 		typedef void ( SimpleSM::*EAImp )() ;
 		EAImp EATab[static_cast<int>( State::n )][static_cast<int>( Event::n )] = {
-			/* S/ E ANM                  BLR                  DIR                  DNS                  FOC                  MOV                  POS                  RET                  RSZ                  SCR                  ZOM               */
-			/*BLR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaBlrRet, &SimpleSM::eaReject, &SimpleSM::eaBlrScr, &SimpleSM::eaReject,
-			/*CTL*/ &SimpleSM::eaCtlAnm, &SimpleSM::eaCtlBlr, &SimpleSM::eaCtlDir, &SimpleSM::eaCtlDns, &SimpleSM::eaCtlFoc, &SimpleSM::eaReject, &SimpleSM::eaCtlPos, &SimpleSM::eaCtlRet, &SimpleSM::eaCtlRsz, &SimpleSM::eaReject, &SimpleSM::eaCtlZom,
-			/*DIR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirMov, &SimpleSM::eaReject, &SimpleSM::eaDirRet, &SimpleSM::eaReject, &SimpleSM::eaDirScr, &SimpleSM::eaReject,
-			/*FOC*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocRet, &SimpleSM::eaReject, &SimpleSM::eaFocScr, &SimpleSM::eaReject,
-			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject,
-			/*ZOM*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaZomRet, &SimpleSM::eaReject, &SimpleSM::eaZomScr, &SimpleSM::eaReject
+			/* S/ E ANM                  BLR                  DIR                  DNS                  FOC                  MOV                  PCD                  POS                  RET                  RSZ                  SCR                  ZOM               */
+			/*ANM*/ &SimpleSM::eaReject, &SimpleSM::eaAnmBlr, &SimpleSM::eaAnmDir, &SimpleSM::eaAnmDns, &SimpleSM::eaAnmFoc, &SimpleSM::eaReject, &SimpleSM::eaAnmPcd, &SimpleSM::eaAnmPos, &SimpleSM::eaAnmRet, &SimpleSM::eaAnmRsz, &SimpleSM::eaReject, &SimpleSM::eaAnmZom,
+			/*BLR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaBlrRet, &SimpleSM::eaReject, &SimpleSM::eaBlrScr, &SimpleSM::eaReject,
+			/*DIR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirRet, &SimpleSM::eaReject, &SimpleSM::eaDirScr, &SimpleSM::eaReject,
+			/*FOC*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocRet, &SimpleSM::eaReject, &SimpleSM::eaFocScr, &SimpleSM::eaReject,
+			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject,
+			/*STL*/ &SimpleSM::eaStlAnm, &SimpleSM::eaStlBlr, &SimpleSM::eaStlDir, &SimpleSM::eaStlDns, &SimpleSM::eaStlFoc, &SimpleSM::eaReject, &SimpleSM::eaStlPcd, &SimpleSM::eaStlPos, &SimpleSM::eaStlRet, &SimpleSM::eaStlRsz, &SimpleSM::eaReject, &SimpleSM::eaStlZom,
+			/*ZOM*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaZomRet, &SimpleSM::eaReject, &SimpleSM::eaZomScr, &SimpleSM::eaReject
 		} ;
 
 		void eaReject() ;
+
+		// group actions
+		void eaRdlDns() ;
+		void eaRdlDir() ;
+		void eaRdlPos() ;
+		void eaRdlRsz() ;
 } ;
 
 #endif // SIMPLESM_H
