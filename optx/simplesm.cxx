@@ -64,7 +64,7 @@ void SimpleSM::eaStlAnm() {
 void SimpleSM::eaStlDns() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlDns() ; // RDL group action
+		SimpleSM::eaRdlDns() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -78,7 +78,7 @@ void SimpleSM::eaStlDns() {
 void SimpleSM::eaAnmDns() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlDns() ; // RDL group action
+		SimpleSM::eaRdlDns() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -127,7 +127,7 @@ void SimpleSM::eaAnmRet() {
 void SimpleSM::eaStlDir() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlDir() ; // RDL group action
+		SimpleSM::eaRdlDir() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -141,7 +141,7 @@ void SimpleSM::eaStlDir() {
 void SimpleSM::eaAnmDir() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlDir() ; // RDL group action
+		SimpleSM::eaRdlDir() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -215,7 +215,7 @@ void SimpleSM::eaDirRet() {
 void SimpleSM::eaStlPos() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlPos() ; // RDL group action
+		SimpleSM::eaRdlPos() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -229,7 +229,7 @@ void SimpleSM::eaStlPos() {
 void SimpleSM::eaAnmPos() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlPos() ; // RDL group action
+		SimpleSM::eaRdlPos() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -317,7 +317,7 @@ void SimpleSM::eaAnmPcd() {
 void SimpleSM::eaStlRsz() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlRsz() ; // RDL group action
+		SimpleSM::eaRdlRsz() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -331,7 +331,7 @@ void SimpleSM::eaStlRsz() {
 void SimpleSM::eaAnmRsz() {
 	EA_ENTER() ;
 	{ // perform action
-		eaRdlRsz() ; // RDL group action
+		SimpleSM::eaRdlRsz() ; // RDL group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
