@@ -311,6 +311,8 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
 		}
 
+		simplesm->transition( Event::PCD ) ;
+
 		GLFW_CHECK( ( *smparam.glfwPoWaEvents )() ) ;
 	} while ( ! glfwWindowShouldClose( window_ ) ) ;
 

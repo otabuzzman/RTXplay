@@ -22,11 +22,11 @@ struct SmParam {
 	GLuint                pbo ;
 	cudaGraphicsResource* glx ;
 
-	void                  ( *glfwPoWaEvents )() ;
+	void                  ( *glfwPoWaEvents )() = &glfwWaitEvents ;
 
-	bool                  dns_exec = false ;
-	Dns                   dns_type = Dns::NONE ;
-	Denoiser*             denoiser = nullptr ;
+	bool                  dns_exec              = false ;
+	Dns                   dns_type              = Dns::NONE ;
+	Denoiser*             denoiser              = nullptr ;
 } ;
 
 #define EA_ENTER()                                                                                \

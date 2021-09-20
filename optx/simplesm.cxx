@@ -302,6 +302,7 @@ void SimpleSM::eaAnmPcd() {
 		const float3 eye = camera.eye() ;
 		const float3 pat = camera.pat() ;
 		const float  len = V::len( eye-pat ) ;
+		paddle_->start( 0, 0 ) ;
 		camera.eye( pat+len*paddle_->move( -1, 0 ) ) ;
 	}
 	// clear history (comment to keep)
