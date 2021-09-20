@@ -29,6 +29,13 @@ struct SmParam {
 	Denoiser*             denoiser              = nullptr ;
 } ;
 
+// preserve state/ state group history values
+union SmFrame {
+	struct {
+		unsigned int          spp ;
+	} rdl ; // RDL state group
+} ;
+
 #define EA_ENTER()                                                                                \
 	do {                                                                                          \
 		if ( args->flag_t() ) {                                                                   \
@@ -88,13 +95,11 @@ class SimpleSM {
 		Paddle* paddle_ ;
 
 		// state/ event history
-		std::stack<State> h_state_ ;
-		std::stack<Event> h_event_ ;
+		std::stack<State>   h_state_ ;
+		std::stack<Event>   h_event_ ;
 
-		// inter-state exchange
-		std::stack<int>   i_sexchg_ ;
-		// std::stack<float> f_sexchg_ ;
-		// std::stack<void*> p_sexchg_ ;
+		// state/ state group history values
+		std::stack<SmFrame> h_values_ ;
 
 		// event/ action table
 		typedef void ( SimpleSM::*EAImp )() ;
@@ -111,7 +116,7 @@ class SimpleSM {
 
 		void eaReject() ;
 
-		// group actions
+		// state group actions
 		void eaRdlDns() ;
 		void eaRdlDir() ;
 		void eaRdlPos() ;

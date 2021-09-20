@@ -49,7 +49,9 @@ void SimpleSM::eaStlAnm() {
 		// turn on denoiser
 		smparam->dns_exec = true ;
 		// reduce RT quality while animating
-		i_sexchg_.push( lp_general.spp ) ;
+		SmFrame smframe ;
+		smframe.rdl.spp = lp_general.spp ;
+		h_values_.push( smframe ) ;
 		lp_general.spp = 1 ;
 	}
 	// clear history (comment to keep)
@@ -64,7 +66,7 @@ void SimpleSM::eaStlAnm() {
 void SimpleSM::eaStlDns() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlDns() ; // RDL group action
+		SimpleSM::eaRdlDns() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -78,7 +80,7 @@ void SimpleSM::eaStlDns() {
 void SimpleSM::eaAnmDns() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlDns() ; // RDL group action
+		SimpleSM::eaRdlDns() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -112,8 +114,9 @@ void SimpleSM::eaAnmRet() {
 		// turn off denoiser
 		smparam->dns_exec = false ;
 		// restore RT quality after animating
-		lp_general.spp = i_sexchg_.top() ;
-		i_sexchg_.pop() ;
+		SmFrame smframe = h_values_.top() ;
+		lp_general.spp = smframe.rdl.spp ;
+		h_values_.pop() ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -127,7 +130,7 @@ void SimpleSM::eaAnmRet() {
 void SimpleSM::eaStlDir() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlDir() ; // RDL group action
+		SimpleSM::eaRdlDir() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -141,7 +144,7 @@ void SimpleSM::eaStlDir() {
 void SimpleSM::eaAnmDir() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlDir() ; // RDL group action
+		SimpleSM::eaRdlDir() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -195,8 +198,9 @@ void SimpleSM::eaDirRet() {
 	EA_ENTER() ;
 	{ // perform action
 		// restore RT quality after moving
-		lp_general.spp = i_sexchg_.top() ;
-		i_sexchg_.pop() ;
+		SmFrame smframe = h_values_.top() ;
+		lp_general.spp = smframe.rdl.spp ;
+		h_values_.pop() ;
 		// toggle denoising
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		smparam->dns_exec = ! smparam->dns_exec ;
@@ -215,7 +219,7 @@ void SimpleSM::eaDirRet() {
 void SimpleSM::eaStlPos() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlPos() ; // RDL group action
+		SimpleSM::eaRdlPos() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -229,7 +233,7 @@ void SimpleSM::eaStlPos() {
 void SimpleSM::eaAnmPos() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlPos() ; // RDL group action
+		SimpleSM::eaRdlPos() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -264,8 +268,9 @@ void SimpleSM::eaPosRet() {
 	EA_ENTER() ;
 	{ // perform action
 		// restore RT quality after moving
-		lp_general.spp = i_sexchg_.top() ;
-		i_sexchg_.pop() ;
+		SmFrame smframe = h_values_.top() ;
+		lp_general.spp = smframe.rdl.spp ;
+		h_values_.pop() ;
 		// toggle denoising
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		smparam->dns_exec = ! smparam->dns_exec ;
@@ -317,7 +322,7 @@ void SimpleSM::eaAnmPcd() {
 void SimpleSM::eaStlRsz() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlRsz() ; // RDL group action
+		SimpleSM::eaRdlRsz() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -331,7 +336,7 @@ void SimpleSM::eaStlRsz() {
 void SimpleSM::eaAnmRsz() {
 	EA_ENTER() ;
 	{ // perform action
-		SimpleSM::eaRdlRsz() ; // RDL group action
+		SimpleSM::eaRdlRsz() ; // RDL state group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -346,7 +351,9 @@ void SimpleSM::eaStlZom() {
 	EA_ENTER() ;
 	{ // perform action
 		// reduce RT quality while zooming
-		i_sexchg_.push( lp_general.spp ) ;
+		SmFrame smframe ;
+		smframe.rdl.spp = lp_general.spp ;
+		h_values_.push( smframe ) ;
 		lp_general.spp = 1 ;
 		// toggle denoising
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
@@ -365,7 +372,9 @@ void SimpleSM::eaAnmZom() {
 	EA_ENTER() ;
 	{ // perform action
 		// reduce RT quality while zooming
-		i_sexchg_.push( lp_general.spp ) ;
+		SmFrame smframe ;
+		smframe.rdl.spp = lp_general.spp ;
+		h_values_.push( smframe ) ;
 		lp_general.spp = 1 ;
 		// toggle denoising
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
@@ -456,8 +465,9 @@ void SimpleSM::eaZomRet() {
 	EA_ENTER() ;
 	{ // perform action
 		// restore RT quality after zooming
-		lp_general.spp = i_sexchg_.top() ;
-		i_sexchg_.pop() ;
+		SmFrame smframe = h_values_.top() ;
+		lp_general.spp = smframe.rdl.spp ;
+		h_values_.pop() ;
 		// toggle denoising
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		smparam->dns_exec = ! smparam->dns_exec ;
@@ -591,7 +601,9 @@ void SimpleSM::eaRdlDir() {
 	glfwGetCursorPos( window_, &x, &y ) ;
 	paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	// reduce RT quality while moving
-	i_sexchg_.push( lp_general.spp ) ;
+	SmFrame smframe ;
+	smframe.rdl.spp = lp_general.spp ;
+	h_values_.push( smframe ) ;
 	lp_general.spp = 1 ;
 	// toggle denoising
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
@@ -603,7 +615,9 @@ void SimpleSM::eaRdlPos() {
 	glfwGetCursorPos( window_, &x, &y ) ;
 	paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	// reduce RT quality while moving
-	i_sexchg_.push( lp_general.spp ) ;
+	SmFrame smframe ;
+	smframe.rdl.spp = lp_general.spp ;
+	h_values_.push( smframe ) ;
 	lp_general.spp = 1 ;
 	// toggle denoising
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
