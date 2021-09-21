@@ -24,8 +24,6 @@ struct SmParam {
 
 	void                  ( *glfwPoWaEvents )() = &glfwWaitEvents ;
 
-	bool                  dns_exec              = false ;
-	Dns                   dns_type              = Dns::NONE ;
 	Denoiser*             denoiser              = nullptr ;
 } ;
 

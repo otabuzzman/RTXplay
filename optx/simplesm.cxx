@@ -46,8 +46,6 @@ void SimpleSM::eaStlAnm() {
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// set render loop to poll events
 		smparam->glfwPoWaEvents = &glfwPollEvents ;
-		// turn on denoiser
-		smparam->dns_exec = true ;
 		// reduce RT quality while animating
 		SmFrame smframe = { lp_general.spp } ;
 		h_values_.push( smframe ) ;
@@ -110,8 +108,6 @@ void SimpleSM::eaAnmRet() {
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		// set render loop to wait for events
 		smparam->glfwPoWaEvents = &glfwWaitEvents ;
-		// turn off denoiser
-		smparam->dns_exec = false ;
 		// restore RT quality after animating
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
@@ -200,9 +196,6 @@ void SimpleSM::eaDirRet() {
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
 		h_values_.pop() ;
-		// toggle denoising
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		smparam->dns_exec = ! smparam->dns_exec ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -270,9 +263,6 @@ void SimpleSM::eaPosRet() {
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
 		h_values_.pop() ;
-		// toggle denoising
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		smparam->dns_exec = ! smparam->dns_exec ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -353,9 +343,6 @@ void SimpleSM::eaStlZom() {
 		SmFrame smframe = { lp_general.spp } ;
 		h_values_.push( smframe ) ;
 		lp_general.spp = 1 ;
-		// toggle denoising
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		smparam->dns_exec = ! smparam->dns_exec ;
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -373,9 +360,6 @@ void SimpleSM::eaAnmZom() {
 		SmFrame smframe = { lp_general.spp } ;
 		h_values_.push( smframe ) ;
 		lp_general.spp = 1 ;
-		// toggle denoising
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		smparam->dns_exec = ! smparam->dns_exec ;
 	}
 	// clear history (comment to keep)
 	// h_state_.pop() ;
@@ -465,9 +449,6 @@ void SimpleSM::eaZomRet() {
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
 		h_values_.pop() ;
-		// toggle denoising
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		smparam->dns_exec = ! smparam->dns_exec ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -552,7 +533,6 @@ void SimpleSM::eaReject() {
 
 void SimpleSM::eaRdlDns() {
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-	smparam->denoiser = nullptr ; // delete denoiser
 	if ( lp_general.normals ) {
 		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals ) ) ) ;
 		lp_general.normals = nullptr ;
@@ -562,35 +542,29 @@ void SimpleSM::eaRdlDns() {
 		lp_general.albedos = nullptr ;
 	}
 	// select next denoiser type from list
-	if ( smparam->dns_type == Dns::AOV ) {
-		smparam->dns_type = Dns::NONE ;
-	} else {
-		const int w = lp_general.image_w ;
-		const int h = lp_general.image_h ;
-		if ( smparam->dns_type == Dns::NONE )
-			smparam->dns_type = Dns::SMP ;
-		else if ( smparam->dns_type == Dns::SMP ) {
-			smparam->dns_type = Dns::NRM ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-		} else if ( smparam->dns_type == Dns::NRM ) {
-			smparam->dns_type = Dns::ALB ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-		} else if ( smparam->dns_type == Dns::ALB ) {
-			smparam->dns_type = Dns::NAA ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-		} else { // smparam->dns_type == Dns::NAA
-			smparam->dns_type = Dns::AOV ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-		}
-		smparam->denoiser = new Denoiser( smparam->dns_type, w, h ) ;
-	}
-	if ( args->flag_v() ) {
-		const char *mnemonic ;
-		args->param_D( smparam->dns_type, &mnemonic ) ;
-		std::cerr << "denoiser " << mnemonic << std::endl ;
-	}
+	const int w = lp_general.image_w ;
+	const int h = lp_general.image_h ;
+	if ( ! smparam->denoiser )
+		smparam->denoiser = new Denoiser( Dns::SMP, w, h ) ;
+	else if ( smparam->denoiser->type() == Dns::SMP ) {
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+		smparam->denoiser = new Denoiser( Dns::NRM, w, h ) ;
+	} else if ( smparam->denoiser->type() == Dns::NRM ) {
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+		smparam->denoiser = new Denoiser( Dns::ALB, w, h ) ;
+	} else if ( smparam->denoiser->type() == Dns::ALB ) {
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+		smparam->denoiser = new Denoiser( Dns::NAA, w, h ) ;
+	} else if ( smparam->denoiser->type() == Dns::NAA ) {
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+		smparam->denoiser = new Denoiser( Dns::AOV, w, h ) ;
+	} else if ( smparam->denoiser->type() == Dns::AOV )
+		smparam->denoiser = nullptr ;
+
+	if ( smparam->denoiser && args->flag_v() )
+		std::cerr << "denoiser " << static_cast<int>( smparam->denoiser->type() ) << std::endl ;
 }
 
 void SimpleSM::eaRdlDir() {
@@ -601,9 +575,6 @@ void SimpleSM::eaRdlDir() {
 	SmFrame smframe = { lp_general.spp } ;
 	h_values_.push( smframe ) ;
 	lp_general.spp = 1 ;
-	// toggle denoising
-	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-	smparam->dns_exec = ! smparam->dns_exec ;
 }
 
 void SimpleSM::eaRdlPos() {
@@ -614,9 +585,6 @@ void SimpleSM::eaRdlPos() {
 	SmFrame smframe = { lp_general.spp } ;
 	h_values_.push( smframe ) ;
 	lp_general.spp = 1 ;
-	// toggle denoising
-	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-	smparam->dns_exec = ! smparam->dns_exec ;
 }
 
 void SimpleSM::eaRdlRsz() {
@@ -646,7 +614,6 @@ void SimpleSM::eaRdlRsz() {
 	CUDA_CHECK( cudaGraphicsGLRegisterBuffer( &smparam->glx, smparam->pbo, cudaGraphicsMapFlagsWriteDiscard ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 	// resize denoiser
-	smparam->denoiser = nullptr ; // delete denoiser
-	if ( smparam->dns_type != Dns::NONE )
-		smparam->denoiser = new Denoiser( smparam->dns_type, lp_general.image_w, lp_general.image_h ) ;
+	if ( smparam->denoiser )
+		smparam->denoiser = new Denoiser( smparam->denoiser->type(), lp_general.image_w, lp_general.image_h ) ;
 }

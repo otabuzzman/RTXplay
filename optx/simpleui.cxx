@@ -246,7 +246,7 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		}
 
 		// apply denoiser
-		if ( smparam.dns_exec && smparam.dns_type != Dns::NONE )
+		if ( smparam.denoiser )
 			smparam.denoiser->beauty( lp_general.rawRGB ) ;
 
 		// post processing

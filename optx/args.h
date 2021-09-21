@@ -57,17 +57,15 @@ class Args {
 		int  param_d( const int dEfault ) const ; // -t, --trace-depth
 
 		Dns  param_D( const Dns dEfault ) const ; // -D, --apply-denoiser
-		// retrieve denoiser type mnemonic
-		void param_D( const Dns select, const char** mnemonic ) const ;
 
-		bool flag_v() const ; // -v, --verbose
-		bool flag_h() const ; // -h, --help
-		bool flag_q() const ; // -q, --quiet
-		bool flag_t() const ; // -t, --trace-sm
-		bool flag_G() const ; // -G, --print-guides
-		bool flag_S() const ; // -S, --print-statistics
+		bool flag_v()                     const ; // -v, --verbose
+		bool flag_h()                     const ; // -h, --help
+		bool flag_q()                     const ; // -q, --quiet
+		bool flag_t()                     const ; // -t, --trace-sm
+		bool flag_G()                     const ; // -G, --print-guides
+		bool flag_S()                     const ; // -S, --print-statistics
 
-		bool flag_A( const Aov select, const char** mnemonic = nullptr ) const ; // -A, --print-aov
+		bool flag_A( const Aov select )   const ; // -A, --print-aov
 
 		static void usage() ;
 

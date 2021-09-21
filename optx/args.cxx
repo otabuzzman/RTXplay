@@ -136,29 +136,15 @@ int  Args::param_h( const int dEfault ) const { return 0>g_h_ ? dEfault : g_h_ ;
 int  Args::param_s( const int dEfault ) const { return 0>s_ ? dEfault : s_ ; }
 int  Args::param_d( const int dEfault ) const { return 0>d_ ? dEfault : d_ ; }
 Dns  Args::param_D( const Dns dEfault ) const { return D_typ_ == Dns::NONE ? dEfault : D_typ_ ; }
-void Args::param_D( const Dns select, const char** mnemonic ) const { *mnemonic = dns_name[static_cast<int>( select )].c_str() ; }
 
-bool Args::flag_v() const { return v_>0 ; }
-bool Args::flag_h() const { return h_>0 ; }
-bool Args::flag_q() const { return q_>0 ; }
-bool Args::flag_t() const { return t_>0 ; }
-bool Args::flag_G() const { return G_>0 ; }
-bool Args::flag_S() const { return S_>0 ; }
+bool Args::flag_v()                     const { return v_>0 ; }
+bool Args::flag_h()                     const { return h_>0 ; }
+bool Args::flag_q()                     const { return q_>0 ; }
+bool Args::flag_t()                     const { return t_>0 ; }
+bool Args::flag_G()                     const { return G_>0 ; }
+bool Args::flag_S()                     const { return S_>0 ; }
 
-bool Args::flag_A( const Aov select, const char** mnemonic ) const {
-	bool flag = false ;
-
-	if ( select == Aov::RPP )
-		flag = A_rpp_ == select ;
-	// else if ( select == Aov::XXX )
-	// 	flag = A_xxx_ == select ;
-	// ... go on for more AOVs
-
-	if ( mnemonic )
-		*mnemonic = aov_name[static_cast<int>( flag ? select : Aov::NONE )].c_str() ;
-
-	return flag ;
-}
+bool Args::flag_A( const Aov select )   const { return A_rpp_ == select ; }
 
 void Args::usage() {
 #ifndef _MSC_VER
@@ -267,13 +253,13 @@ Options:\n\
     by -s, --samples-per-pixels or default.\n\
 \n\
     Available types for TYP:\n\
-      SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw RGB\n\
-            rendering output into denoiser and retrieves result.\n\
-      NRM - Simple type plus hit point normals.\n\
-      ALB - Simple type plus albedo values for hit points.\n\
-      NAA - Simple type plus normals and albedos.\n\
-      AOV - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV. Might improve\n\
-            denoising result even if no AOVs provided\n\
+      SMP (1) - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw\n\
+                RGB rendering output into denoiser and retrieves result.\n\
+      NRM (2) - Simple type plus hit point normals.\n\
+      ALB (3) - Simple type plus albedo values for hit points.\n\
+      NAA (4) - Simple type plus normals and albedos.\n\
+      AOV (5) - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV.\n\
+                Might improve denoising result even if no AOVs provided\n\
 \n\
 " ;
 #else

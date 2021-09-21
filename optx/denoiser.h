@@ -17,6 +17,7 @@ class Denoiser {
 		~Denoiser() noexcept ( false ) ;
 
 		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) ;
+		const Dns type() const { return type_ ; } ;
 
 	private:
 		Dns                     type_ = Dns::NONE ;
