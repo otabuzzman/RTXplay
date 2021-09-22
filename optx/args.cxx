@@ -232,9 +232,9 @@ Options:\n\
     mode.\n\
 \n\
     Available AOVs:\n\
-      RPP (Rays per pixel) - Sort of `data´ AOV (opposed to AOVs for lighting\n\
-                             or shading). Values add up total number of rays\n\
-                             traced for each pixel. Output format is PGM.\n\
+      RPP (1) - Rays per pixel. Sort of `data´ AOV (opposed to AOVs for\n\
+                lighting or shading). Values add up total number of rays\n\
+                traced for each pixel. Output format is PGM.\n\
 \n\
   -G, --print-guides\n\
     Print denoiser guide layers before image on stdout. Available guide layers\n\
@@ -259,7 +259,7 @@ Options:\n\
       ALB (3) - Simple type plus albedo values for hit points.\n\
       NAA (4) - Simple type plus normals and albedos.\n\
       AOV (5) - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV.\n\
-                Might improve denoising result even if no AOVs provided\n\
+                Might improve denoising result even if no AOVs provided.\n\
 \n\
 " ;
 #else
@@ -300,9 +300,8 @@ int main( int argc, char* argv[] ) {
 		std::cout << "geometry   : " << args.param_w( 4711 ) << "x" << args.param_h( 4711 ) << std::endl ;
 		std::cout << "spp        : " << args.param_s( 4711 ) << std::endl ;
 		std::cout << "depth      : " << args.param_d( 4711 ) << std::endl ;
-		const char* mnemonic ;
-		args.param_D( args.param_D( Dns::NONE ), &mnemonic ) ;
-		std::cout << "denoiser   : " << mnemonic << std::endl ;
+
+		std::cout << "denoiser   : " << static_cast<int>( args.param_D( Dns::NONE ) ) << std::endl ;
 
 		std::cout << "verbose    : " << ( args.flag_v() ? "set" : "not set" ) << std::endl ;
 		std::cout << "quiet      : " << ( args.flag_q() ? "set" : "not set" ) << std::endl ;
@@ -311,8 +310,7 @@ int main( int argc, char* argv[] ) {
 		std::cout << "guides     : " << ( args.flag_G() ? "set" : "not set" ) << std::endl ;
 		std::cout << "statistics : " << ( args.flag_S() ? "set" : "not set" ) << std::endl ;
 
-		bool rpp = args.flag_A( Aov::RPP, &mnemonic ) ;
-		std::cout << "aov RPP    : " << ( rpp ? "set" : "not set" )<< " (" << mnemonic << ")"  << std::endl ;
+		std::cout << "aov RPP    : " << ( args.flag_A( Aov::RPP ) ? "set" : "not set" ) << std::endl ;
 	} catch ( const std::invalid_argument& e ) {
 		std::cerr << e.what() << std::endl ;
 

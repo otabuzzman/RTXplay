@@ -85,9 +85,9 @@ Options:
     mode.
 
     Available AOVs:
-      RPP (Rays per pixel) - Sort of `data´ AOV (opposed to AOVs for lighting
-                             or shading). Values add up total number of rays
-                             traced for each pixel. Output format is PGM.
+      RPP (1) - Rays per pixel. Sort of `data´ AOV (opposed to AOVs for
+                lighting or shading). Values add up total number of rays
+                traced for each pixel. Output format is PGM.
 
   -G, --print-guides
     Print denoiser guide layers before image on stdout. Available guide layers
@@ -106,13 +106,13 @@ Options:
     by -s, --samples-per-pixels or default.
 
     Available types for TYP:
-      SMP - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw RGB
-            rendering output into denoiser and retrieves result.
-      NRM - Simple type plus hit point normals.
-      ALB - Simple type plus albedo values for hit points.
-      NAA - Simple type plus normals and albedos.
-      AOV - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV. Might improve
-            denoising result even if no AOVs provided
+      SMP (1) - A simple type using OPTIX_DENOISER_MODEL_KIND_LDR. Feeds raw
+                RGB rendering output into denoiser and retrieves result.
+      NRM (2) - Simple type plus hit point normals.
+      ALB (3) - Simple type plus albedo values for hit points.
+      NAA (4) - Simple type plus normals and albedos.
+      AOV (5) - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV.
+                Might improve denoising result even if no AOVs provided.
 
 UI functions:
   window resize         - change viewport dimensions
