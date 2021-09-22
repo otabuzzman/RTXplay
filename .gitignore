@@ -11,6 +11,7 @@ vid/
 *.lib
 *.ncu-rep
 *.o
+*.obj
 *.out
 *.png
 !/optx/img/*.png

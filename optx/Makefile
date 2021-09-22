@@ -10,28 +10,32 @@ space = $(empty) $(empty)
 comma := ,
 
 ifdef winos
-EXE = rtwo.exe
+o = .obj
+x = .exe
 else
-EXE = rtwo
+o = .o
+x =
 endif
 
+EXE = rtwo$x
+
 OBJ = \
-	glad.o \
-	rtwo.o \
-	args.o \
-	sphere.o \
-	camera_i.o \
-	optics_i.o \
-	camera_r.o \
-	optics_r.o \
-	postproc_h.o \
-	postproc_d.o \
-	denoiser.o \
-	paddle.o \
-	simpleui.o \
-	simplesm.o \
-	frag.o \
-	vert.o \
+	glad$o \
+	rtwo$o \
+	args$o \
+	sphere$o \
+	camera_i$o \
+	optics_i$o \
+	camera_r$o \
+	optics_r$o \
+	postproc_h$o \
+	postproc_d$o \
+	denoiser$o \
+	paddle$o \
+	simpleui$o \
+	simplesm$o \
+	frag$o \
+	vert$o \
 
 IMG = rtwo.png
 
@@ -113,7 +117,7 @@ LIB = \
 	-ladvapi32 -lshell32 -luser32 -lgdi32 -lkernel32 \
 
 # native OpenGL image viewer
-glxview.exe: glxview.cxx glad.o vert.o frag.o | stb_image.h
+glxview.exe: glxview.cxx glad.obj vert.obj frag.obj | stb_image.h
 	g++ -o $@ $^ \
 		-I. -I/usr/local/include \
 		-L/usr/local/lib -lglfw3 \
@@ -150,21 +154,21 @@ vpath glad.c glad
 .PHONY: all clean tidy
 .SUFFIXES: .cxx .cu .glsl .png .ptx
 
-.c.o:
+%$o: %.c
 	gcc -c $< -o $@ \
 		-I. \
 
-.cxx.o:
+%$o: %.cxx
 	nvcc -dc $< -o $@ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \
 
 # NVCC separate compilation needed (UG)
-postproc_d.o: postproc_h.o
+postproc_d$o: postproc_h$o
 	nvcc -dlink $< -o $@ \
 		$(NVCCFLAGS) \
 
-postproc_h.o: postproc.cu
+postproc_h$o: postproc.cu
 	nvcc -dc $< -o $@ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \
@@ -188,10 +192,10 @@ $(EXE): $(OBJ)
 
 
 clean:
+	rm -f $(OBJ)
 ifdef winos
 	rm -f rtwo.lib rtwo.exp
 endif
-	rm -f $(OBJ)
 
 eclean: clean
 	rm -f $(EXE) $(IMG)
@@ -202,9 +206,6 @@ endif
 
 lclean: eclean
 	rm -rf glad KHR
-ifdef winos
-	rm -f getopt.h
-endif
 
 rclean: lclean
 	rm -f glad.zip stb_image.h
