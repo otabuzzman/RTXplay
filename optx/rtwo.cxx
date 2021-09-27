@@ -73,7 +73,7 @@ static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
 
 
 
-const Scene scene() {
+const Scene load() {
 	Optics o ;
 	Scene s ;
 
@@ -177,7 +177,7 @@ int main( int argc, char* argv[] ) {
 		CUdeviceptr d_as_outbuf ;
 		// acceleration structure compaction buffer
 //		CUdeviceptr d_as_zipbuf ;
-		Scene scene = scene() ;
+		Scene scene = load() ;
 		{
 			// build input structures of things in scene
 			std::vector<OptixBuildInput> obi_things ;
