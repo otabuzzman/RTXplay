@@ -21,7 +21,7 @@
 #include "denoiser.h"
 #include "simpleui.h"
 #include "sphere.h"
-#include "things.h"
+#include "scene.h"
 #include "util.h"
 #include "v.h"
 
@@ -73,9 +73,9 @@ static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
 
 
 
-const Things scene() {
+const Scene scene() {
 	Optics o ;
-	Things s ;
+	Scene s ;
 
 	o.type = OPTICS_TYPE_DIFFUSE ;
 	o.diffuse.albedo = { .5f, .5f, .5f } ;
@@ -177,39 +177,39 @@ int main( int argc, char* argv[] ) {
 		CUdeviceptr d_as_outbuf ;
 		// acceleration structure compaction buffer
 //		CUdeviceptr d_as_zipbuf ;
-		Things things = scene() ;
+		Scene scene = scene() ;
 		{
 			// build input structures of things in scene
 			std::vector<OptixBuildInput> obi_things ;
-			obi_things.resize( things.size() ) ;
+			obi_things.resize( scene.size() ) ;
 
 			// GPU pointers at vertices lists of things in scene
 			std::vector<CUdeviceptr> d_vces ;
-			d_vces.resize( things.size() ) ;
+			d_vces.resize( scene.size() ) ;
 
 			// GPU pointers at triangles lists of things in scene
 			std::vector<CUdeviceptr> d_ices ;
-			d_ices.resize( things.size() ) ;
+			d_ices.resize( scene.size() ) ;
 
 			// thing specific (or one fits all) flags per SBT record
 			// std::vector<std::vector<unsigned int>> obi_thing_flags ;
-			// obi_thing_flags.resize( things.size() ) ;
+			// obi_thing_flags.resize( scene.size() ) ;
 			const unsigned int obi_thing_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
 			// create build input strucure for each thing in scene
-			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
-				d_vces[i] = reinterpret_cast<CUdeviceptr>( things[i]->d_vces() ) ;
-				d_ices[i] = reinterpret_cast<CUdeviceptr>( things[i]->d_ices() ) ;
+			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
+				d_vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_vces() ) ;
+				d_ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_ices() ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = things[i]->num_vces() ;
+				obi_thing.triangleArray.numVertices                 = scene[i]->num_vces() ;
 				obi_thing.triangleArray.vertexBuffers               = &d_vces[i] ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = things[i]->num_ices() ;
+				obi_thing.triangleArray.numIndexTriplets            = scene[i]->num_ices() ;
 				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
 				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
@@ -533,15 +533,15 @@ int main( int argc, char* argv[] ) {
 
 			// SBT Record buffer for Hit Group program groups
 			std::vector<SbtRecordHG> sbt_record_buffer ;
-			sbt_record_buffer.resize( things.size() ) ;
+			sbt_record_buffer.resize( scene.size() ) ;
 
 			// set SBT record for each thing in scene
-			for ( unsigned int i = 0 ; things.size()>i ; i++ ) {
+			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
 				// this thing's SBT record
 				SbtRecordHG sbt_record_thing ;
-				sbt_record_thing.data = *things[i] ;
+				sbt_record_thing.data = *scene[i] ;
 				// setup SBT record header
-				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[things[i]->optics().type], &sbt_record_thing ) ) ;
+				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i]->optics().type], &sbt_record_thing ) ) ;
 				// save thing's SBT Record to buffer
 				sbt_record_buffer[i] = sbt_record_thing ;
 			}
@@ -692,7 +692,6 @@ int main( int argc, char* argv[] ) {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
-			for ( unsigned int i = 0 ; things.size()>i ; i++ ) things[i] = nullptr ; // force thing's dtor
 
 			OPTX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;
