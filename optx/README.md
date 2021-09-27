@@ -165,7 +165,7 @@ If all went well you now have `rtwo.png`.
 RTWO should work on older architectures as well, of course without RT Cores then. In `Makefile` set `-arch` flag in `NVCCFLAGS` variable according to architecture in question ([list](https://docs.nvidia.com/cuda/cuda-compiler-driver-nvcc/index.html#virtual-architecture-feature-list)) before compiling.
 
 ### No NVIDIA graphics card
-Try a cloud service. RTWO developement actually happened on Windows (compilation only, no linking) and got its final cut on AWS. Any other provider should do as well. See [README.md](../README.md) in parent folder for setting up Windows and AWS. 
+Try a cloud service. RTWO developement actually happened on Windows and got its final cut on AWS. Any other provider should do as well. See [README.md](../README.md) in parent folder for setting up Windows and AWS. 
 
 ### Which file for what
 |File|Comment|

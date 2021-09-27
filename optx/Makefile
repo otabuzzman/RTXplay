@@ -51,9 +51,9 @@ ifdef winos
 # prerequisites:
 # install VS2017 (Community)
 # install Cygwin (gcc, g++, make, ...)
-# unpack CUDA Toolkit somewhere
-# unpack OptiX SDK somewhere
-# add nvcc.exe and cl.exe to PATH
+# install CUDA Toolkit (use defaults)
+# install OptiX SDK (use defaults)
+# add cl.exe to PATH
 
 # ignored warnings (known):
 # C4061: unused enumerator
@@ -106,13 +106,12 @@ LDFLAGS   = /WX /NODEFAULTLIB:MSVCRT # /VERBOSE:LIB
 NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
-	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/include) \
-	-I$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/libcurand/curand_dev/include) \
-	-I$$(cygpath -w /usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64/include) \
+	-I"$$(cygpath -w '/cygdrive/c/program files/nvidia gpu computing toolkit/cuda/v11.4/include')" \
+	-I"$$(cygpath -w '/cygdrive/c/programdata/nvidia corporation/optix sdk 7.3.0/include')" \
 	-I$$(cygpath -w /usr/local/include) \
 
 LIB = \
-	-L$$(cygpath -w /usr/lab/cudacons/cuda_11.4.0_471.11_win10/cuda_cudart/cudart/lib/x64) \
+	-L"$$(cygpath -w '/cygdrive/c/program files/nvidia gpu computing toolkit/cuda/v11.4/lib/x64')" \
 	-L$$(cygpath -w /usr/local/lib) -lglfw3_mt -lopengl32 \
 	-ladvapi32 -lshell32 -luser32 -lgdi32 -lkernel32 \
 
@@ -159,6 +158,9 @@ vpath glad.c glad
 		-I. \
 
 %$o: %.cxx
+	@echo nvcc -dc $< -o $@ \
+		$(NVCCFLAGS) \
+		-I. $(INC)
 	nvcc -dc $< -o $@ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \
@@ -188,6 +190,11 @@ $(EXE): $(OBJ)
 	nvcc -o $@ $^ \
 		$(NVCCFLAGS) \
 		$(LIB) \
+
+sphere$x: sphere.cxx
+	nvcc -DMAIN -o $@ $^ \
+		$(NVCCFLAGS) \
+		$(INC) \
 
 
 
