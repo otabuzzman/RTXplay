@@ -148,18 +148,18 @@ int main( int argc, char* argv[] ) {
 
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
-				d_vces[i] = reinterpret_cast<CUdeviceptr>( scene[i].d_vces() ) ;
-				d_ices[i] = reinterpret_cast<CUdeviceptr>( scene[i].d_ices() ) ;
+				d_vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_vces() ) ;
+				d_ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_ices() ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = scene[i].num_vces() ;
+				obi_thing.triangleArray.numVertices                 = scene[i]->num_vces() ;
 				obi_thing.triangleArray.vertexBuffers               = &d_vces[i] ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = scene[i].num_ices() ;
+				obi_thing.triangleArray.numIndexTriplets            = scene[i]->num_ices() ;
 				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
 				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
@@ -489,9 +489,9 @@ int main( int argc, char* argv[] ) {
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
 				// this thing's SBT record
 				SbtRecordHG sbt_record_thing ;
-				sbt_record_thing.data = scene[i] ;
+				sbt_record_thing.data = *scene[i] ;
 				// setup SBT record header
-				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i].optics().type], &sbt_record_thing ) ) ;
+				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i]->optics().type], &sbt_record_thing ) ) ;
 				// save thing's SBT Record to buffer
 				sbt_record_buffer[i] = sbt_record_thing ;
 			}
