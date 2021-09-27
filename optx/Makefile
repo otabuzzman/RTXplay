@@ -23,6 +23,7 @@ OBJ = \
 	glad$o \
 	rtwo$o \
 	args$o \
+	scene$o \
 	sphere$o \
 	camera_i$o \
 	optics_i$o \
@@ -158,9 +159,6 @@ vpath glad.c glad
 		-I. \
 
 %$o: %.cxx
-	@echo nvcc -dc $< -o $@ \
-		$(NVCCFLAGS) \
-		-I. $(INC)
 	nvcc -dc $< -o $@ \
 		$(NVCCFLAGS) \
 		-I. $(INC) \

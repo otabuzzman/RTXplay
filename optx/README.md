@@ -172,7 +172,9 @@ Try a cloud service. RTWO developement actually happened on Windows and got its 
 |:---|:------|
 |`rtwo.cxx`|The `main` function with a long piece of spaghetti code still reflecting the program structure of `optixTriangle`, the OptiX SDK sample RTWO was derived from.|
 |`args.cxx`|Command line argument processing.|
-|`sphere.cxx`|A class to create triangle-meshed spheres. A tetrahedron *pumped up* by recursively subdividing triangular surfaces.|
+|`scene.cxx`|A collection of things.|
+|`thing.h`|A generalization of a *thing* in a scene.|
+|`sphere.cxx`|A specialization of *thing* to create triangle-meshed spheres. A tetrahedron *pumped up* by recursively subdividing triangular surfaces.|
 |`simpleui.cxx`|The CUDA OpenGL interop code to continuously render on X, as well as input event handling.|
 |`frag.gsgl`<br>`vert.gsgl`|Generic OpenGL fragment and vertex shaders.|
 |`paddle.cxx`|An abstraction of a control device inspired by the `Trackball` class in sutils of the OptiX SDK (name taken from Atari's [Pong](https://en.wikipedia.org/wiki/Pong) game).|

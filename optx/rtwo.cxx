@@ -27,9 +27,6 @@
 
 #include "rtwo.h"
 
-using V::operator- ;
-using V::operator* ;
-
 // common globals
 Args*              args ;
 LpGeneral          lp_general ;
@@ -69,54 +66,6 @@ static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
 		cudaMemcpyDeviceToHost
 		) ) ;
 	imgtopnm( image, w, h ) ;
-}
-
-
-
-const Scene load() {
-	Optics o ;
-	Scene s ;
-
-	o.type = OPTICS_TYPE_DIFFUSE ;
-	o.diffuse.albedo = { .5f, .5f, .5f } ;
-	s.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f, o, false, 9 ) ) ;
-
-	for ( int a = -11 ; a<11 ; a++ ) {
-		for ( int b = -11 ; b<11 ; b++ ) {
-			auto bbox = false ; // .3f>util::rnd() ? true : false ;
-			auto select = util::rnd() ;
-			float3 center = make_float3( a+.9f*util::rnd(), .2f, b+.9f*util::rnd() ) ;
-			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
-				if ( select<.8f ) {
-					o.type = OPTICS_TYPE_DIFFUSE ;
-					o.diffuse.albedo = V::rnd()*V::rnd() ;
-					s.push_back( std::make_shared<Sphere>( center, .2f, o, bbox ) ) ;
-				} else if ( select<.95f ) {
-					o.type = OPTICS_TYPE_REFLECT ;
-					o.reflect.albedo = V::rnd( .5f, 1.f ) ;
-					o.reflect.fuzz = util::rnd( 0.f, .5f ) ;
-					s.push_back( std::make_shared<Sphere>( center, .2f, o, bbox ) ) ;
-				} else {
-					o.type = OPTICS_TYPE_REFRACT ;
-					o.refract.index = 1.5f ;
-					s.push_back( std::make_shared<Sphere>( center, .2f, o, bbox, 3 ) ) ;
-				}
-			}
-		}
-	}
-
-	o.type = OPTICS_TYPE_REFRACT ;
-	o.refract.index  = 1.5f ;
-	s.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f, o, false, 8 ) ) ;
-	o.type = OPTICS_TYPE_DIFFUSE ;
-	o.diffuse.albedo = { .4f, .2f, .1f } ;
-	s.push_back( std::make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f, o ) ) ;
-	o.type = OPTICS_TYPE_REFLECT ;
-	o.reflect.albedo = { .7f, .6f, .5f } ;
-	o.reflect.fuzz   = 0.f ;
-	s.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f, o, false, 3 ) ) ;
-
-	return s ;
 }
 
 
@@ -177,8 +126,9 @@ int main( int argc, char* argv[] ) {
 		CUdeviceptr d_as_outbuf ;
 		// acceleration structure compaction buffer
 //		CUdeviceptr d_as_zipbuf ;
-		Scene scene = load() ;
+		Scene scene ;
 		{
+			scene.load() ;
 			// build input structures of things in scene
 			std::vector<OptixBuildInput> obi_things ;
 			obi_things.resize( scene.size() ) ;
@@ -198,18 +148,18 @@ int main( int argc, char* argv[] ) {
 
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
-				d_vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_vces() ) ;
-				d_ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_ices() ) ;
+				d_vces[i] = reinterpret_cast<CUdeviceptr>( scene[i].d_vces() ) ;
+				d_ices[i] = reinterpret_cast<CUdeviceptr>( scene[i].d_ices() ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = scene[i]->num_vces() ;
+				obi_thing.triangleArray.numVertices                 = scene[i].num_vces() ;
 				obi_thing.triangleArray.vertexBuffers               = &d_vces[i] ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = scene[i]->num_ices() ;
+				obi_thing.triangleArray.numIndexTriplets            = scene[i].num_ices() ;
 				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
 				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
@@ -539,9 +489,9 @@ int main( int argc, char* argv[] ) {
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
 				// this thing's SBT record
 				SbtRecordHG sbt_record_thing ;
-				sbt_record_thing.data = *scene[i] ;
+				sbt_record_thing.data = scene[i] ;
 				// setup SBT record header
-				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i]->optics().type], &sbt_record_thing ) ) ;
+				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i].optics().type], &sbt_record_thing ) ) ;
 				// save thing's SBT Record to buffer
 				sbt_record_buffer[i] = sbt_record_thing ;
 			}
@@ -693,7 +643,7 @@ int main( int argc, char* argv[] ) {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
 
-			OPTX_CHECK( optixPipelineDestroy    ( pipeline                ) ) ;
+			OPTX_CHECK( optixPipelineDestroy    ( pipeline              ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFLECT] ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFRACT] ) ) ;
