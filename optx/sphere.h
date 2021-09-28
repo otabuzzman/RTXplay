@@ -12,8 +12,6 @@ class Sphere : public Thing {
 		Sphere( const float radius, const Optics& optics, const bool bbox = false, const unsigned int ndiv = 6 ) ;
 		~Sphere() noexcept ( false ) ;
 
-		void transform( float const matrix[12] ) override ;
-
 	private:
 		float radius_ ;
 		int   ndiv_ ;

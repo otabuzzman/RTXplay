@@ -1,6 +1,8 @@
 #ifndef THING_H
 #define THING_H
 
+#include <cuda.h>
+
 #include <vector>
 
 #include <vector_functions.h>
@@ -10,7 +12,13 @@
 
 class Thing {
 	public:
-		virtual ~Thing() noexcept ( false ) {} ;
+		Thing() {
+			const size_t matrix_size = sizeof( float )*12 ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &matrix_ ), matrix_size ) ) ;
+		}
+		~Thing() noexcept ( false ) {
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( matrix_ ) ) ) ;
+		}
 
 		__host__ __device__ const float3* d_vces() const {
 			return d_vces_ ;
@@ -28,27 +36,29 @@ class Thing {
 			return static_cast<unsigned int>( ices_.size() ) ;
 		}
 
-		virtual void transform( float const matrix[12] ) {
-			for ( int i = 0 ; 12>i ; i++ )
-				matrix_[i] = matrix[i] ;
+		void transform( float const matrix[12] ) {
+			const size_t matrix_size = sizeof( float )*12 ;
+			CUDA_CHECK( cudaMemcpy(
+				reinterpret_cast<void*>( matrix_ ),
+				matrix,
+				matrix_size,
+				cudaMemcpyHostToDevice
+				) ) ;
 		}
 
-		__host__ __device__ const float* transform() const {
-			return &matrix_[0] ;
+		__host__ __device__ const CUdeviceptr transform() const {
+			return matrix_ ;
 		}
 
 		__host__ __device__ const Optics optics() const {
 			return optics_ ;
 		}
 
+	private:
+		// row-major 3x4 matrix (pre-multiplication 1x3 vector)
+		CUdeviceptr matrix_ ;
+
 	protected:
-		// row-major 3x4, pre-multiplication
-		float  matrix_[12] = {
-			1, 0, 0,
-			0, 1, 0,
-			0, 0, 1,
-			0, 0, 0
-		} ;
 		Optics optics_ ;
 		// CPU memory
 		std::vector<float3> vces_ ; // thing's unique vertices...
