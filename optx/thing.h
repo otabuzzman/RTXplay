@@ -10,6 +10,8 @@
 
 class Thing {
 	public:
+		virtual ~Thing() noexcept ( false ) {} ;
+
 		__host__ __device__ const float3* d_vces() const {
 			return d_vces_ ;
 		}
@@ -26,8 +28,13 @@ class Thing {
 			return static_cast<unsigned int>( ices_.size() ) ;
 		}
 
-		__device__ const float3 center() const {
-			return center_ ;
+		virtual void transform( float const matrix[12] ) {
+			for ( int i = 0 ; 12>i ; i++ )
+				matrix_[i] = matrix[i] ;
+		}
+
+		__host__ __device__ const float* transform() const {
+			return &matrix_[0] ;
 		}
 
 		__host__ __device__ const Optics optics() const {
@@ -35,7 +42,13 @@ class Thing {
 		}
 
 	protected:
-		float3 center_ ;
+		// row-major 3x4 pre-multiplication
+		float  matrix_[12] = {
+			1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 1, 0
+		//  0, 0, 0, 1
+		} ;
 		Optics optics_ ;
 		// CPU memory
 		std::vector<float3> vces_ ; // thing's unique vertices...

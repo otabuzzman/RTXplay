@@ -13,9 +13,8 @@
 using V::operator+ ;
 using V::operator* ;
 
-Sphere::Sphere( const float3& center, const float radius, const Optics& optics, const bool bbox, const unsigned int ndiv )
+Sphere::Sphere( const float radius, const Optics& optics, const bool bbox, const unsigned int ndiv )
 	: radius_( radius ), ndiv_( ndiv ) {
-	center_ = center ;
 	optics_ = optics ;
 
 	tetrahedron( bbox ) ;
@@ -45,20 +44,39 @@ Sphere::~Sphere() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_ices_ ) ) ) ;
 }
 
+void Sphere::transform( float const matrix[12] ) {
+	for ( unsigned int i = 0 ; vces_.size()>i ; i++ ) {
+		const float3 v = vces_[i] ;
+		const float x = v.x*matrix[0*4+0]+v.y*matrix[0*4+1]+v.z*matrix[0*4+2]+/* (v.w=1)* */matrix[0*4+3] ;
+		const float y = v.x*matrix[1*4+0]+v.y*matrix[1*4+1]+v.z*matrix[1*4+2]+/* (v.w=1)* */matrix[1*4+3] ;
+		const float z = v.x*matrix[2*4+0]+v.y*matrix[2*4+1]+v.z*matrix[2*4+2]+/* (v.w=1)* */matrix[2*4+3] ;
+		vces_[i] = { x, y, z } ;
+	}
+	// update on GPU
+	const size_t vces_size = sizeof( float3 )*vces_.size() ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( d_vces_ ),
+		vces_.data(),
+		vces_size,
+		cudaMemcpyHostToDevice
+		) ) ;
+	Thing::transform( matrix ) ;
+}
+
 void Sphere::tetrahedron( const bool bbox ) {
 	vces_.clear() ;
 	ices_.clear() ;
 
 	if ( bbox ) {
 		// tetrahedron's bounding box vertices
-		float3 v00 = center_+radius_*make_float3( -1.f,  1.f, -1.f ) ;
-		float3 v01 = center_+radius_*make_float3(  1.f,  1.f, -1.f ) ;
-		float3 v02 = center_+radius_*make_float3(  1.f, -1.f, -1.f ) ;
-		float3 v03 = center_+radius_*make_float3( -1.f, -1.f, -1.f ) ;
-		float3 v04 = center_+radius_*make_float3( -1.f,  1.f,  1.f ) ;
-		float3 v05 = center_+radius_*make_float3(  1.f,  1.f,  1.f ) ;
-		float3 v06 = center_+radius_*make_float3(  1.f, -1.f,  1.f ) ;
-		float3 v07 = center_+radius_*make_float3( -1.f, -1.f,  1.f ) ;
+		float3 v00 = radius_*make_float3( -1.f,  1.f, -1.f ) ;
+		float3 v01 = radius_*make_float3(  1.f,  1.f, -1.f ) ;
+		float3 v02 = radius_*make_float3(  1.f, -1.f, -1.f ) ;
+		float3 v03 = radius_*make_float3( -1.f, -1.f, -1.f ) ;
+		float3 v04 = radius_*make_float3( -1.f,  1.f,  1.f ) ;
+		float3 v05 = radius_*make_float3(  1.f,  1.f,  1.f ) ;
+		float3 v06 = radius_*make_float3(  1.f, -1.f,  1.f ) ;
+		float3 v07 = radius_*make_float3( -1.f, -1.f,  1.f ) ;
 
 		// tetrahedron's bounding box triangles
 		vtmp_.push_back( v00 ) ; vtmp_.push_back( v01 ) ; vtmp_.push_back( v02 ) ;
@@ -111,9 +129,9 @@ void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const un
 		pumpup( ca, bc,  c, cdiv-1 ) ;
 		pumpup( ab, bc, ca, cdiv-1 ) ;
 	} else {
-		vtmp_.push_back( center_+radius_*a ) ;
-		vtmp_.push_back( center_+radius_*b ) ;
-		vtmp_.push_back( center_+radius_*c ) ;
+		vtmp_.push_back( radius_*a ) ;
+		vtmp_.push_back( radius_*b ) ;
+		vtmp_.push_back( radius_*c ) ;
 	}
 }
 

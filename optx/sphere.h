@@ -9,13 +9,14 @@
 
 class Sphere : public Thing {
 	public:
-		Sphere( const float3& center, const float radius, const Optics& optics, const bool bbox = false, const unsigned int ndiv = 6 ) ;
+		Sphere( const float radius, const Optics& optics, const bool bbox = false, const unsigned int ndiv = 6 ) ;
 		~Sphere() noexcept ( false ) ;
 
-	private:
-		float  radius_ ;
+		void transform( float const matrix[12] ) override ;
 
-		int ndiv_ ;
+	private:
+		float radius_ ;
+		int   ndiv_ ;
 
 		std::vector<float3> vtmp_ ;
 
