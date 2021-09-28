@@ -298,7 +298,7 @@ int main( int argc, char* argv[] ) {
 		// create program groups
 		OptixProgramGroup program_group_camera    = nullptr ;
 		OptixProgramGroup program_group_ambient   = nullptr ;
-		OptixProgramGroup program_group_optics[OPTICS_TYPE_NUM] = {} ;
+		OptixProgramGroup program_group_optics[Optics::TYPE_NUM] = {} ;
 		{
 			OptixProgramGroupOptions program_group_options = {} ;
 
@@ -338,15 +338,15 @@ int main( int argc, char* argv[] ) {
 			// Hit Group program groups
 			OptixProgramGroupDesc program_group_optics_desc[3] = {} ;
 			// multiple program groups at once
-			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].hitgroup.entryFunctionNameCH = "__closesthit__diffuse" ;
-			program_group_optics_desc[OPTICS_TYPE_DIFFUSE].hitgroup.moduleCH            = module_optics ;
-			program_group_optics_desc[OPTICS_TYPE_REFLECT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[OPTICS_TYPE_REFLECT].hitgroup.moduleCH            = module_optics ;
-			program_group_optics_desc[OPTICS_TYPE_REFLECT].hitgroup.entryFunctionNameCH = "__closesthit__reflect" ;
-			program_group_optics_desc[OPTICS_TYPE_REFRACT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
-			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.moduleCH            = module_optics ;
-			program_group_optics_desc[OPTICS_TYPE_REFRACT].hitgroup.entryFunctionNameCH = "__closesthit__refract" ;
+			program_group_optics_desc[Optics::TYPE_DIFFUSE].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
+			program_group_optics_desc[Optics::TYPE_DIFFUSE].hitgroup.entryFunctionNameCH = "__closesthit__diffuse" ;
+			program_group_optics_desc[Optics::TYPE_DIFFUSE].hitgroup.moduleCH            = module_optics ;
+			program_group_optics_desc[Optics::TYPE_REFLECT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
+			program_group_optics_desc[Optics::TYPE_REFLECT].hitgroup.moduleCH            = module_optics ;
+			program_group_optics_desc[Optics::TYPE_REFLECT].hitgroup.entryFunctionNameCH = "__closesthit__reflect" ;
+			program_group_optics_desc[Optics::TYPE_REFRACT].kind                         = OPTIX_PROGRAM_GROUP_KIND_HITGROUP ;
+			program_group_optics_desc[Optics::TYPE_REFRACT].hitgroup.moduleCH            = module_optics ;
+			program_group_optics_desc[Optics::TYPE_REFRACT].hitgroup.entryFunctionNameCH = "__closesthit__refract" ;
 			OPTX_CHECK_LOG( optixProgramGroupCreate(
 						optx_context,
 						&program_group_optics_desc[0],
@@ -371,9 +371,9 @@ int main( int argc, char* argv[] ) {
 			OptixProgramGroup program_groups[]  = {
 				program_group_camera,
 				program_group_ambient,
-				program_group_optics[OPTICS_TYPE_DIFFUSE],
-				program_group_optics[OPTICS_TYPE_REFLECT],
-				program_group_optics[OPTICS_TYPE_REFRACT] } ;
+				program_group_optics[Optics::TYPE_DIFFUSE],
+				program_group_optics[Optics::TYPE_REFLECT],
+				program_group_optics[Optics::TYPE_REFRACT] } ;
 
 			OptixPipelineLinkOptions pipeline_ld_options = {} ;
 			pipeline_ld_options.maxTraceDepth            = max_trace_depth ;
@@ -644,9 +644,9 @@ int main( int argc, char* argv[] ) {
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
 
 			OPTX_CHECK( optixPipelineDestroy    ( pipeline              ) ) ;
-			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_DIFFUSE] ) ) ;
-			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFLECT] ) ) ;
-			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[OPTICS_TYPE_REFRACT] ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[Optics::TYPE_DIFFUSE] ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[Optics::TYPE_REFLECT] ) ) ;
+			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[Optics::TYPE_REFRACT] ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_ambient ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_camera  ) ) ;
 			OPTX_CHECK( optixModuleDestroy      ( module_camera         ) ) ;

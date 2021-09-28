@@ -14,7 +14,9 @@ using V::operator* ;
 void Scene::load() {
 	Optics o ;
 
-	o.type = OPTICS_TYPE_DIFFUSE ;
+	things_.clear() ;
+
+	o.type = Optics::TYPE_DIFFUSE ;
 	o.diffuse.albedo = { .5f, .5f, .5f } ;
 	things_.push_back( std::make_shared<Sphere>( make_float3( 0.f, -1000.f, 0.f ), 1000.f, o, false, 9 ) ) ;
 
@@ -25,16 +27,16 @@ void Scene::load() {
 			float3 center = { a+.9f*util::rnd(), .2f, b+.9f*util::rnd() } ;
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 				if ( select<.8f ) {
-					o.type = OPTICS_TYPE_DIFFUSE ;
+					o.type = Optics::TYPE_DIFFUSE ;
 					o.diffuse.albedo = V::rnd()*V::rnd() ;
 					things_.push_back( std::make_shared<Sphere>( center, .2f, o, bbox ) ) ;
 				} else if ( select<.95f ) {
-					o.type = OPTICS_TYPE_REFLECT ;
+					o.type = Optics::TYPE_REFLECT ;
 					o.reflect.albedo = V::rnd( .5f, 1.f ) ;
 					o.reflect.fuzz = util::rnd( 0.f, .5f ) ;
 					things_.push_back( std::make_shared<Sphere>( center, .2f, o, bbox ) ) ;
 				} else {
-					o.type = OPTICS_TYPE_REFRACT ;
+					o.type = Optics::TYPE_REFRACT ;
 					o.refract.index = 1.5f ;
 					things_.push_back( std::make_shared<Sphere>( center, .2f, o, bbox, 3 ) ) ;
 				}
@@ -42,13 +44,13 @@ void Scene::load() {
 		}
 	}
 
-	o.type = OPTICS_TYPE_REFRACT ;
+	o.type = Optics::TYPE_REFRACT ;
 	o.refract.index  = 1.5f ;
 	things_.push_back( std::make_shared<Sphere>( make_float3(  0.f, 1.f, 0.f ), 1.f, o, false, 8 ) ) ;
-	o.type = OPTICS_TYPE_DIFFUSE ;
+	o.type = Optics::TYPE_DIFFUSE ;
 	o.diffuse.albedo = { .4f, .2f, .1f } ;
 	things_.push_back( std::make_shared<Sphere>( make_float3( -4.f, 1.f, 0.f ), 1.f, o ) ) ;
-	o.type = OPTICS_TYPE_REFLECT ;
+	o.type = Optics::TYPE_REFLECT ;
 	o.reflect.albedo = { .7f, .6f, .5f } ;
 	o.reflect.fuzz   = 0.f ;
 	things_.push_back( std::make_shared<Sphere>( make_float3(  4.f, 1.f, 0.f ), 1.f, o, false, 3 ) ) ;

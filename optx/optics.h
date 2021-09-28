@@ -1,31 +1,35 @@
 #ifndef OPTICS_H
 #define OPTICS_H
 
-enum {
-	OPTICS_TYPE_DIFFUSE,
-	OPTICS_TYPE_REFLECT,
-	OPTICS_TYPE_REFRACT,
-	OPTICS_TYPE_NUM
+struct Diffuse {
+	float3 albedo ; // wavefront .mtl : Kd
+} ;
+
+struct Reflect {
+	float3 albedo ; // wavefront .mtl : Kd
+	float  fuzz ;   // wavefront .mtl : sharpness
+} ;
+
+struct Refract {
+	float  index ;  // wavefront .mtl : Ni
 } ;
 
 // Optics data passed for each thing via SBT record to closest hit program
-typedef struct {
+struct Optics {
+	enum {
+		TYPE_DIFFUSE,
+		TYPE_REFLECT,
+		TYPE_REFRACT,
+		TYPE_NUM
+	} ;
+
 	int type ;
 
 	union {
-		struct {
-			float3 albedo ;
-		} diffuse ;
-
-		struct {
-			float3 albedo ;
-			float  fuzz ;
-		} reflect ;
-
-		struct {
-			float  index ;
-		} refract ;
+		Diffuse diffuse ;
+		Reflect reflect ;
+		Refract refract ;
 	} ;
-} Optics ;
+} ;
 
 #endif // OPTICS_H
