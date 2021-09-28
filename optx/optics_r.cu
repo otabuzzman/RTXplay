@@ -291,9 +291,9 @@ extern "C" __global__ void __closesthit__refract() {
 		const float sin_theta = sqrtf( 1.f-cos_theta*cos_theta ) ;
 
 		const float3 center = {
-			thing->transform()[0*4+3] /* x */,
-			thing->transform()[1*4+3] /* y */,
-			thing->transform()[2*4+3] /* z */
+			thing->transform()[3*3+0] /* x */,
+			thing->transform()[3*3+1] /* y */,
+			thing->transform()[3*3+2] /* z */
 		} ;
 		const float3 O = hit-center ;
 		const float ratio = 0.f>V::dot( d, O )

@@ -42,12 +42,12 @@ class Thing {
 		}
 
 	protected:
-		// row-major 3x4 pre-multiplication
+		// row-major 3x4, pre-multiplication
 		float  matrix_[12] = {
-			1, 0, 0, 0,
-			0, 1, 0, 0,
-			0, 0, 1, 0
-		//  0, 0, 0, 1
+			1, 0, 0,
+			0, 1, 0,
+			0, 0, 1,
+			0, 0, 0
 		} ;
 		Optics optics_ ;
 		// CPU memory

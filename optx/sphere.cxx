@@ -47,9 +47,9 @@ Sphere::~Sphere() noexcept ( false ) {
 void Sphere::transform( float const matrix[12] ) {
 	for ( unsigned int i = 0 ; vces_.size()>i ; i++ ) {
 		const float3 v = vces_[i] ;
-		const float x = v.x*matrix[0*4+0]+v.y*matrix[0*4+1]+v.z*matrix[0*4+2]+/* (v.w=1)* */matrix[0*4+3] ;
-		const float y = v.x*matrix[1*4+0]+v.y*matrix[1*4+1]+v.z*matrix[1*4+2]+/* (v.w=1)* */matrix[1*4+3] ;
-		const float z = v.x*matrix[2*4+0]+v.y*matrix[2*4+1]+v.z*matrix[2*4+2]+/* (v.w=1)* */matrix[2*4+3] ;
+		const float x = v.x*matrix[0*3+0]+v.y*matrix[1*3+0]+v.z*matrix[2*3+0]+/* (v.w=1)* */matrix[3*3+0] ;
+		const float y = v.x*matrix[0*3+1]+v.y*matrix[1*3+1]+v.z*matrix[2*3+1]+/* (v.w=1)* */matrix[3*3+1] ;
+		const float z = v.x*matrix[0*3+2]+v.y*matrix[1*3+2]+v.z*matrix[2*3+2]+/* (v.w=1)* */matrix[3*3+2] ;
 		vces_[i] = { x, y, z } ;
 	}
 	// update on GPU
