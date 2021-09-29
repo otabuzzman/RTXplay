@@ -41,10 +41,9 @@ Sphere::Sphere( const float radius, const Optics& optics, const bool bbox, const
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &matrix_ ), sizeof( float )*12 ) ) ;
 	// initialize pre-transform to identity matrix
 	const float matrix[12] = {
-		1, 0, 0,
-		0, 1, 0,
-		0, 0, 1,
-		0, 0, 0
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0
 	} ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( matrix_ ),

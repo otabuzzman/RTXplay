@@ -34,7 +34,7 @@ class Thing {
 		void transform( float const matrix[12] ) {
 			CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( matrix_ ),
-				matrix,
+				&matrix[0],
 				sizeof( float )*12,
 				cudaMemcpyHostToDevice
 				) ) ;

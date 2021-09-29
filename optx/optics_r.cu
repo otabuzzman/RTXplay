@@ -37,9 +37,26 @@ extern "C" __global__ void __closesthit__diffuse() {
 
 	// use index to access triangle vertices
 	const float3* d_vces = thing->d_vces() ;
-	const float3 A = d_vces[trix.x] ;
-	const float3 B = d_vces[trix.y] ;
-	const float3 C = d_vces[trix.z] ;
+	const float3 a = d_vces[trix.x] ;
+	const float3 p = d_vces[trix.y] ;
+	const float3 c = d_vces[trix.z] ;
+	// apply AS preTransform matrix
+	const float* m = thing->transform() ;
+	const float3 A = {
+		a.x*m[0*4+0]+a.y*m[0*4+1]+a.z*m[0*4+2]+m[0*4+3],
+		a.x*m[1*4+0]+a.y*m[1*4+1]+a.z*m[1*4+2]+m[1*4+3],
+		a.x*m[2*4+0]+a.y*m[2*4+1]+a.z*m[2*4+2]+m[2*4+3]
+	} ;
+	const float3 B = {
+		p.x*m[0*4+0]+p.y*m[0*4+1]+p.z*m[0*4+2]+m[0*4+3],
+		p.x*m[1*4+0]+p.y*m[1*4+1]+p.z*m[1*4+2]+m[1*4+3],
+		p.x*m[2*4+0]+p.y*m[2*4+1]+p.z*m[2*4+2]+m[2*4+3]
+	} ;
+	const float3 C = {
+		c.x*m[0*4+0]+c.y*m[0*4+1]+c.z*m[0*4+2]+m[0*4+3],
+		c.x*m[1*4+0]+c.y*m[1*4+1]+c.z*m[1*4+2]+m[1*4+3],
+		c.x*m[2*4+0]+c.y*m[2*4+1]+c.z*m[2*4+2]+m[2*4+3]
+	} ;
 
 	// retrieve triangle barycentric coordinates of hit
 	const float2 bary = optixGetTriangleBarycentrics() ;
@@ -139,9 +156,26 @@ extern "C" __global__ void __closesthit__reflect() {
 
 	// use index to access triangle vertices
 	const float3* d_vces = thing->d_vces() ;
-	const float3 A = d_vces[trix.x] ;
-	const float3 B = d_vces[trix.y] ;
-	const float3 C = d_vces[trix.z] ;
+	const float3 a = d_vces[trix.x] ;
+	const float3 p = d_vces[trix.y] ;
+	const float3 c = d_vces[trix.z] ;
+	// apply AS preTransform matrix
+	const float* m = thing->transform() ;
+	const float3 A = {
+		a.x*m[0*4+0]+a.y*m[0*4+1]+a.z*m[0*4+2]+m[0*4+3],
+		a.x*m[1*4+0]+a.y*m[1*4+1]+a.z*m[1*4+2]+m[1*4+3],
+		a.x*m[2*4+0]+a.y*m[2*4+1]+a.z*m[2*4+2]+m[2*4+3]
+	} ;
+	const float3 B = {
+		p.x*m[0*4+0]+p.y*m[0*4+1]+p.z*m[0*4+2]+m[0*4+3],
+		p.x*m[1*4+0]+p.y*m[1*4+1]+p.z*m[1*4+2]+m[1*4+3],
+		p.x*m[2*4+0]+p.y*m[2*4+1]+p.z*m[2*4+2]+m[2*4+3]
+	} ;
+	const float3 C = {
+		c.x*m[0*4+0]+c.y*m[0*4+1]+c.z*m[0*4+2]+m[0*4+3],
+		c.x*m[1*4+0]+c.y*m[1*4+1]+c.z*m[1*4+2]+m[1*4+3],
+		c.x*m[2*4+0]+c.y*m[2*4+1]+c.z*m[2*4+2]+m[2*4+3]
+	} ;
 
 	// retrieve triangle barycentric coordinates of hit
 	const float2 bary = optixGetTriangleBarycentrics() ;
@@ -251,9 +285,26 @@ extern "C" __global__ void __closesthit__refract() {
 
 	// use index to access triangle vertices
 	const float3* d_vces = thing->d_vces() ;
-	const float3 A = d_vces[trix.x] ;
-	const float3 B = d_vces[trix.y] ;
-	const float3 C = d_vces[trix.z] ;
+	const float3 a = d_vces[trix.x] ;
+	const float3 p = d_vces[trix.y] ;
+	const float3 c = d_vces[trix.z] ;
+	// apply AS preTransform matrix
+	const float* m = thing->transform() ;
+	const float3 A = {
+		a.x*m[0*4+0]+a.y*m[0*4+1]+a.z*m[0*4+2]+m[0*4+3],
+		a.x*m[1*4+0]+a.y*m[1*4+1]+a.z*m[1*4+2]+m[1*4+3],
+		a.x*m[2*4+0]+a.y*m[2*4+1]+a.z*m[2*4+2]+m[2*4+3]
+	} ;
+	const float3 B = {
+		p.x*m[0*4+0]+p.y*m[0*4+1]+p.z*m[0*4+2]+m[0*4+3],
+		p.x*m[1*4+0]+p.y*m[1*4+1]+p.z*m[1*4+2]+m[1*4+3],
+		p.x*m[2*4+0]+p.y*m[2*4+1]+p.z*m[2*4+2]+m[2*4+3]
+	} ;
+	const float3 C = {
+		c.x*m[0*4+0]+c.y*m[0*4+1]+c.z*m[0*4+2]+m[0*4+3],
+		c.x*m[1*4+0]+c.y*m[1*4+1]+c.z*m[1*4+2]+m[1*4+3],
+		c.x*m[2*4+0]+c.y*m[2*4+1]+c.z*m[2*4+2]+m[2*4+3]
+	} ;
 
 	// retrieve triangle barycentric coordinates of hit
 	const float2 bary = optixGetTriangleBarycentrics() ;
@@ -291,9 +342,9 @@ extern "C" __global__ void __closesthit__refract() {
 		const float sin_theta = sqrtf( 1.f-cos_theta*cos_theta ) ;
 
 		const float3 center = {
-			thing->transform()[3*3+0] /* x */,
-			thing->transform()[3*3+1] /* y */,
-			thing->transform()[3*3+2] /* z */
+			m[0*4+3] /* x */,
+			m[1*4+3] /* y */,
+			m[2*4+3] /* z */
 		} ;
 		const float3 O = hit-center ;
 		const float ratio = 0.f>V::dot( d, O )
