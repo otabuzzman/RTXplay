@@ -162,7 +162,8 @@ int main( int argc, char* argv[] ) {
 				obi_thing.triangleArray.numIndexTriplets            = scene[i]->num_ices() ;
 				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
 
-				obi_thing.triangleArray.preTransform                = scene[i]->transform() ;
+				obi_thing.triangleArray.preTransform                = reinterpret_cast<CUdeviceptr>( scene[i]->transform() ) ;
+				obi_thing.triangleArray.transformFormat             = OPTIX_TRANSFORM_FORMAT_MATRIX_FLOAT12 ;
 
 				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
 				// obi_thing.triangleArray.flags                       = &obi_thing_flags[i][0] ;

@@ -37,11 +37,27 @@ Sphere::Sphere( const float radius, const Optics& optics, const bool bbox, const
 		ices_size,
 		cudaMemcpyHostToDevice
 		) ) ;
+	// allocate GPU memory holding pre-transform matrix
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &matrix_ ), sizeof( float )*12 ) ) ;
+	// initialize pre-transform to identity matrix
+	const float matrix[12] = {
+		1, 0, 0,
+		0, 1, 0,
+		0, 0, 1,
+		0, 0, 0
+	} ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( matrix_ ),
+		&matrix[0],
+		sizeof( float )*12,
+		cudaMemcpyHostToDevice
+		) ) ;
 }
 
 Sphere::~Sphere() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_vces_ ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_ices_ ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( matrix_ ) ) ) ;
 }
 
 void Sphere::tetrahedron( const bool bbox ) {

@@ -9,17 +9,10 @@
 #include <vector_types.h>
 
 #include "optics.h"
+#include "util.h"
 
 class Thing {
 	public:
-		Thing() {
-			const size_t matrix_size = sizeof( float )*12 ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &matrix_ ), matrix_size ) ) ;
-		}
-		~Thing() noexcept ( false ) {
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( matrix_ ) ) ) ;
-		}
-
 		__host__ __device__ const float3* d_vces() const {
 			return d_vces_ ;
 		}
@@ -36,17 +29,20 @@ class Thing {
 			return static_cast<unsigned int>( ices_.size() ) ;
 		}
 
+#ifndef __CUDACC__
+
 		void transform( float const matrix[12] ) {
-			const size_t matrix_size = sizeof( float )*12 ;
 			CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( matrix_ ),
 				matrix,
-				matrix_size,
+				sizeof( float )*12,
 				cudaMemcpyHostToDevice
 				) ) ;
 		}
 
-		__host__ __device__ const CUdeviceptr transform() const {
+#endif // __CUDACC__
+
+		__host__ __device__ const float* transform() const {
 			return matrix_ ;
 		}
 
@@ -54,11 +50,9 @@ class Thing {
 			return optics_ ;
 		}
 
-	private:
-		// row-major 3x4 matrix (pre-multiplication 1x3 vector)
-		CUdeviceptr matrix_ ;
-
 	protected:
+		// row-major 3x4 matrix
+		float* matrix_ ;
 		Optics optics_ ;
 		// CPU memory
 		std::vector<float3> vces_ ; // thing's unique vertices...
