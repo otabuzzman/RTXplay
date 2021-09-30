@@ -17,11 +17,11 @@
 
 #include "args.h"
 #include "camera.h"
-#include "optics.h"
 #include "denoiser.h"
 #include "simpleui.h"
 #include "sphere.h"
 #include "scene.h"
+#include "thing.h"
 #include "util.h"
 #include "v.h"
 
@@ -134,12 +134,16 @@ int main( int argc, char* argv[] ) {
 			obi_things.resize( scene.size() ) ;
 
 			// GPU pointers at vertices lists of things in scene
-			std::vector<CUdeviceptr> d_vces ;
-			d_vces.resize( scene.size() ) ;
+			std::vector<CUdeviceptr> vces ;
+			vces.resize( scene.size() ) ;
 
 			// GPU pointers at triangles lists of things in scene
-			std::vector<CUdeviceptr> d_ices ;
-			d_ices.resize( scene.size() ) ;
+			std::vector<CUdeviceptr> ices ;
+			ices.resize( scene.size() ) ;
+
+			// GPU pointers at pre-transform matrices of things in scene
+			std::vector<CUdeviceptr> tces ;
+			tces.resize( scene.size() ) ;
 
 			// thing specific (or one fits all) flags per SBT record
 			// std::vector<std::vector<unsigned int>> obi_thing_flags ;
@@ -148,21 +152,28 @@ int main( int argc, char* argv[] ) {
 
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
-				d_vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_vces() ) ;
-				d_ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->d_ices() ) ;
+				vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->vces.data ) ;
+				ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->ices.data ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = scene[i]->num_vces() ;
-				obi_thing.triangleArray.vertexBuffers               = &d_vces[i] ;
+				obi_thing.triangleArray.numVertices                 = scene[i]->vces.size ;
+				obi_thing.triangleArray.vertexBuffers               = &vces[i] ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = scene[i]->num_ices() ;
-				obi_thing.triangleArray.indexBuffer                 = d_ices[i] ;
+				obi_thing.triangleArray.numIndexTriplets            = scene[i]->ices.size ;
+				obi_thing.triangleArray.indexBuffer                 = ices[i] ;
 
-				obi_thing.triangleArray.preTransform                = reinterpret_cast<CUdeviceptr>( scene[i]->transform() ) ;
+				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &tces[i] ), sizeof( float )*12 ) ) ;
+				CUDA_CHECK( cudaMemcpy(
+							reinterpret_cast<void*>( tces[i] ),
+							scene[i]->transform,
+							sizeof( float )*12,
+							cudaMemcpyHostToDevice
+							) ) ;
+				obi_thing.triangleArray.preTransform                = tces[i] ;
 				obi_thing.triangleArray.transformFormat             = OPTIX_TRANSFORM_FORMAT_MATRIX_FLOAT12 ;
 
 				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
@@ -244,6 +255,7 @@ int main( int argc, char* argv[] ) {
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
 			// free GPU memory for acceleration structure compaction buffer
 //			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf_size ) ) ) ;
+			for ( auto t : tces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( t ) ) ) ;
 		}
 
 
@@ -494,7 +506,7 @@ int main( int argc, char* argv[] ) {
 				SbtRecordHG sbt_record_thing ;
 				sbt_record_thing.data = *scene[i] ;
 				// setup SBT record header
-				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i]->optics().type], &sbt_record_thing ) ) ;
+				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i]->optics.type], &sbt_record_thing ) ) ;
 				// save thing's SBT Record to buffer
 				sbt_record_buffer[i] = sbt_record_thing ;
 			}

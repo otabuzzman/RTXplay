@@ -1,8 +1,8 @@
 #include <vector_functions.h>
 #include <vector_types.h>
 
-#include "optics.h"
 #include "sphere.h"
+#include "thing.h"
 #include "util.h"
 #include "v.h"
 
@@ -12,26 +12,17 @@ using V::operator- ;
 using V::operator* ;
 
 void Scene::load() {
-	Optics optics ;
-	float  matrix[12] = { // identity default
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0
-	} ;
-	std::shared_ptr<Sphere> sphere ;
-
 	things_.clear() ;
 
-	optics.type = Optics::TYPE_DIFFUSE ;
-	optics.diffuse.albedo = { .5f, .5f, .5f } ;
-	matrix[0*4+0] =  1000.f ; // scale
-	matrix[1*4+1] =  1000.f ;
-	matrix[2*4+2] =  1000.f ;
-	matrix[0*4+3] =     0.f ; // translate
-	matrix[1*4+3] = -1000.f ;
-	matrix[2*4+3] =     0.f ;
-	sphere = std::make_shared<Sphere>( 1.f, optics, false, 9 ) ;
-	sphere->transform( matrix ) ;
+	auto sphere = std::make_shared<Sphere>( 1.f, false, 9 ) ;
+	sphere->optics.type = Optics::TYPE_DIFFUSE ;
+	sphere->optics.diffuse.albedo = { .5f, .5f, .5f } ;
+	sphere->transform[0*4+0] =  1000.f ; // scale
+	sphere->transform[1*4+1] =  1000.f ;
+	sphere->transform[2*4+2] =  1000.f ;
+	sphere->transform[0*4+3] =     0.f ; // translate
+	sphere->transform[1*4+3] = -1000.f ;
+	sphere->transform[2*4+3] =     0.f ;
 	things_.push_back( sphere ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
@@ -39,64 +30,70 @@ void Scene::load() {
 			auto bbox = false ; // .3f>util::rnd() ? true : false ;
 			auto select = util::rnd() ;
 			const float3 center = { a+.9f*util::rnd(), .2f, b+.9f*util::rnd() } ;
-			matrix[0*4+0] = .2f ;
-			matrix[1*4+1] = .2f ;
-			matrix[2*4+2] = .2f ;
-			matrix[0*4+3] = center.x ;
-			matrix[1*4+3] = center.y ;
-			matrix[2*4+3] = center.z ;
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 				if ( select<.8f ) {
-					optics.type = Optics::TYPE_DIFFUSE ;
-					optics.diffuse.albedo = V::rnd()*V::rnd() ;
-					sphere = std::make_shared<Sphere>( 1.f, optics, bbox ) ;
-					sphere->transform( matrix ) ;
+					sphere = std::make_shared<Sphere>( 1.f, bbox ) ;
+					sphere->optics.type = Optics::TYPE_DIFFUSE ;
+					sphere->optics.diffuse.albedo = V::rnd()*V::rnd() ;
+					sphere->transform[0*4+0] = .2f ;
+					sphere->transform[1*4+1] = .2f ;
+					sphere->transform[2*4+2] = .2f ;
+					sphere->transform[0*4+3] = center.x ;
+					sphere->transform[1*4+3] = center.y ;
+					sphere->transform[2*4+3] = center.z ;
 					things_.push_back( sphere ) ;
 				} else if ( select<.95f ) {
-					optics.type = Optics::TYPE_REFLECT ;
-					optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
-					optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
-					sphere = std::make_shared<Sphere>( 1.f, optics, bbox ) ;
-					sphere->transform( matrix ) ;
+					sphere = std::make_shared<Sphere>( 1.f, bbox ) ;
+					sphere->optics.type = Optics::TYPE_REFLECT ;
+					sphere->optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
+					sphere->optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
+					sphere->transform[0*4+0] = .2f ;
+					sphere->transform[1*4+1] = .2f ;
+					sphere->transform[2*4+2] = .2f ;
+					sphere->transform[0*4+3] = center.x ;
+					sphere->transform[1*4+3] = center.y ;
+					sphere->transform[2*4+3] = center.z ;
 					things_.push_back( sphere ) ;
 				} else {
-					optics.type = Optics::TYPE_REFRACT ;
-					optics.refract.index = 1.5f ;
-					sphere = std::make_shared<Sphere>( 1.f, optics, bbox, 3 ) ;
-					sphere->transform( matrix ) ;
+					sphere = std::make_shared<Sphere>( 1.f, bbox, 3 ) ;
+					sphere->optics.type = Optics::TYPE_REFRACT ;
+					sphere->optics.refract.index = 1.5f ;
+					sphere->transform[0*4+0] = .2f ;
+					sphere->transform[1*4+1] = .2f ;
+					sphere->transform[2*4+2] = .2f ;
+					sphere->transform[0*4+3] = center.x ;
+					sphere->transform[1*4+3] = center.y ;
+					sphere->transform[2*4+3] = center.z ;
 					things_.push_back( sphere ) ;
 				}
 			}
 		}
 	}
 
-	optics.type = Optics::TYPE_REFRACT ;
-	optics.refract.index  = 1.5f ;
-	matrix[0*4+0] = 1.f ;
-	matrix[1*4+1] = 1.f ;
-	matrix[2*4+2] = 1.f ;
-	matrix[0*4+3] = 0.f ;
-	matrix[1*4+3] = 1.f ;
-	matrix[2*4+3] = 0.f ;
-	sphere = std::make_shared<Sphere>( 1.f, optics, false, 8 ) ;
-	sphere->transform( matrix ) ;
+	sphere = std::make_shared<Sphere>( 1.f, false, 8 ) ;
+	sphere->optics.type = Optics::TYPE_REFRACT ;
+	sphere->optics.refract.index  = 1.5f ;
+	sphere->transform[0*4+0] = 1.f ;
+	sphere->transform[1*4+1] = 1.f ;
+	sphere->transform[2*4+2] = 1.f ;
+	sphere->transform[0*4+3] = 0.f ;
+	sphere->transform[1*4+3] = 1.f ;
+	sphere->transform[2*4+3] = 0.f ;
 	things_.push_back( sphere ) ;
-	optics.type = Optics::TYPE_DIFFUSE ;
-	optics.diffuse.albedo = { .4f, .2f, .1f } ;
-	matrix[0*4+3] = -4.f ;
-	matrix[1*4+3] =  1.f ;
-	matrix[2*4+3] =  0.f ;
-	sphere = std::make_shared<Sphere>( 1.f, optics ) ;
-	sphere->transform( matrix ) ;
+	sphere = std::make_shared<Sphere>( 1.f ) ;
+	sphere->optics.type = Optics::TYPE_DIFFUSE ;
+	sphere->optics.diffuse.albedo = { .4f, .2f, .1f } ;
+	sphere->transform[0*4+3] = -4.f ;
+	sphere->transform[1*4+3] =  1.f ;
+	sphere->transform[2*4+3] =  0.f ;
 	things_.push_back( sphere ) ;
-	optics.type = Optics::TYPE_REFLECT ;
-	optics.reflect.albedo = { .7f, .6f, .5f } ;
-	optics.reflect.fuzz   = 0.f ;
-	matrix[0*4+3] = 4.f ;
-	matrix[1*4+3] = 1.f ;
-	matrix[2*4+3] = 0.f ;
-	sphere = std::make_shared<Sphere>( 1.f, optics, false, 3 ) ;
-	sphere->transform( matrix ) ;
+	sphere = std::make_shared<Sphere>( 1.f, false, 3 ) ;
+	sphere->optics.type = Optics::TYPE_REFLECT ;
+	sphere->optics.reflect.albedo = { .7f, .6f, .5f } ;
+	sphere->optics.reflect.fuzz   = 0.f ;
+	sphere->transform[0*4+3] = 4.f ;
+	sphere->transform[1*4+3] = 1.f ;
+	sphere->transform[2*4+3] = 0.f ;
 	things_.push_back( sphere ) ;
 }
 

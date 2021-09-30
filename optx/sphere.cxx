@@ -13,50 +13,18 @@
 using V::operator+ ;
 using V::operator* ;
 
-Sphere::Sphere( const float radius, const Optics& optics, const bool bbox, const unsigned int ndiv )
+Sphere::Sphere( const float radius, const bool bbox, const unsigned int ndiv )
 	: radius_( radius ), ndiv_( ndiv ) {
-	optics_ = optics ;
 
 	tetrahedron( bbox ) ;
 
-	// copy this thing's vertices to GPU
-	const size_t vces_size = sizeof( float3 )*vces_.size() ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_vces_ ), vces_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( d_vces_ ),
-		vces_.data(),
-		vces_size,
-		cudaMemcpyHostToDevice
-		) ) ;
-	// copy this thing's indices to GPU
-	const size_t ices_size = sizeof( uint3 )*ices_.size() ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_ices_ ), ices_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( d_ices_ ),
-		ices_.data(),
-		ices_size,
-		cudaMemcpyHostToDevice
-		) ) ;
-	// allocate GPU memory holding pre-transform matrix
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &matrix_ ), sizeof( float )*12 ) ) ;
-	// initialize pre-transform to identity matrix
-	const float matrix[12] = {
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0
-	} ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( matrix_ ),
-		&matrix[0],
-		sizeof( float )*12,
-		cudaMemcpyHostToDevice
-		) ) ;
+	set( vces_ ) ;
+	set( ices_ ) ;
 }
 
 Sphere::~Sphere() noexcept ( false ) {
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_vces_ ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_ices_ ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( matrix_ ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( vces.data ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ices.data ) ) ) ;
 }
 
 void Sphere::tetrahedron( const bool bbox ) {
@@ -169,4 +137,28 @@ void Sphere::reduce() { // (SO #14396788)
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
 
 	vtmp_.clear() ;
+}
+
+void Sphere::set( const std::vector<float3>& data ) {
+	vces.size = static_cast<unsigned int>( data.size() ) ;
+	const size_t data_size = sizeof( float3 )*vces.size ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &vces.data ), data_size ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( vces.data ),
+		data.data(),
+		data_size,
+		cudaMemcpyHostToDevice
+		) ) ;
+}
+
+void Sphere::set( const std::vector<uint3>& data ) {
+	ices.size = static_cast<unsigned int>( data.size() ) ;
+	const size_t data_size = sizeof( uint3 )*ices.size ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &ices.data ), data_size ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( ices.data ),
+		data.data(),
+		data_size,
+		cudaMemcpyHostToDevice
+		) ) ;
 }

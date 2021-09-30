@@ -28,34 +28,34 @@ extern "C" __global__ void __closesthit__diffuse() {
 
 	// retrieve data (SBT record) of thing being hit
 	const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
-	const Optics optics = thing->optics() ;
+	const Optics optics = thing->optics ;
 
 	// retrieve index of triangle (primitive) being hit
 	// index is same as in OptixBuildInput array handed to optixAccelBuild()
 	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = thing->d_ices()[prix] ;
+	const uint3 trix = thing->ices.data[prix] ;
 
 	// use index to access triangle vertices
-	const float3* d_vces = thing->d_vces() ;
-	const float3 a = d_vces[trix.x] ;
-	const float3 p = d_vces[trix.y] ;
-	const float3 c = d_vces[trix.z] ;
+	const float3* vces = thing->vces.data ;
+	const float3 a = vces[trix.x] ;
+	const float3 p = vces[trix.y] ;
+	const float3 c = vces[trix.z] ;
 	// apply AS preTransform matrix
-	const float* m = thing->transform() ;
+	const float* t = thing->transform ;
 	const float3 A = {
-		a.x*m[0*4+0]+a.y*m[0*4+1]+a.z*m[0*4+2]+m[0*4+3],
-		a.x*m[1*4+0]+a.y*m[1*4+1]+a.z*m[1*4+2]+m[1*4+3],
-		a.x*m[2*4+0]+a.y*m[2*4+1]+a.z*m[2*4+2]+m[2*4+3]
+		a.x*t[0*4+0]+a.y*t[0*4+1]+a.z*t[0*4+2]+t[0*4+3],
+		a.x*t[1*4+0]+a.y*t[1*4+1]+a.z*t[1*4+2]+t[1*4+3],
+		a.x*t[2*4+0]+a.y*t[2*4+1]+a.z*t[2*4+2]+t[2*4+3]
 	} ;
 	const float3 B = {
-		p.x*m[0*4+0]+p.y*m[0*4+1]+p.z*m[0*4+2]+m[0*4+3],
-		p.x*m[1*4+0]+p.y*m[1*4+1]+p.z*m[1*4+2]+m[1*4+3],
-		p.x*m[2*4+0]+p.y*m[2*4+1]+p.z*m[2*4+2]+m[2*4+3]
+		p.x*t[0*4+0]+p.y*t[0*4+1]+p.z*t[0*4+2]+t[0*4+3],
+		p.x*t[1*4+0]+p.y*t[1*4+1]+p.z*t[1*4+2]+t[1*4+3],
+		p.x*t[2*4+0]+p.y*t[2*4+1]+p.z*t[2*4+2]+t[2*4+3]
 	} ;
 	const float3 C = {
-		c.x*m[0*4+0]+c.y*m[0*4+1]+c.z*m[0*4+2]+m[0*4+3],
-		c.x*m[1*4+0]+c.y*m[1*4+1]+c.z*m[1*4+2]+m[1*4+3],
-		c.x*m[2*4+0]+c.y*m[2*4+1]+c.z*m[2*4+2]+m[2*4+3]
+		c.x*t[0*4+0]+c.y*t[0*4+1]+c.z*t[0*4+2]+t[0*4+3],
+		c.x*t[1*4+0]+c.y*t[1*4+1]+c.z*t[1*4+2]+t[1*4+3],
+		c.x*t[2*4+0]+c.y*t[2*4+1]+c.z*t[2*4+2]+t[2*4+3]
 	} ;
 
 	// retrieve triangle barycentric coordinates of hit
@@ -88,7 +88,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 	DenoiserGuideValues* dgv = reinterpret_cast<DenoiserGuideValues*>( util::fit64( dh, dl ) ) ;
 
 	// finally the diffuse reflection according to RTOW
-	// see CPU version of RTOW, optics.h: Diffuse.spray()
+	// see CPU version of RTOW, ../optics.h: Diffuse.spray()
 		const float3 dir = N+V::rndVon1sphere( state ) ;
 	//
 
@@ -147,34 +147,34 @@ extern "C" __global__ void __closesthit__reflect() {
 
 	// retrieve data (SBT record) of thing being hit
 	const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
-	const Optics optics = thing->optics() ;
+	const Optics optics = thing->optics ;
 
 	// retrieve index of triangle (primitive) being hit
 	// index is same as in OptixBuildInput array handed to optixAccelBuild()
 	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = thing->d_ices()[prix] ;
+	const uint3 trix = thing->ices.data[prix] ;
 
 	// use index to access triangle vertices
-	const float3* d_vces = thing->d_vces() ;
-	const float3 a = d_vces[trix.x] ;
-	const float3 p = d_vces[trix.y] ;
-	const float3 c = d_vces[trix.z] ;
+	const float3* vces = thing->vces.data ;
+	const float3 a = vces[trix.x] ;
+	const float3 p = vces[trix.y] ;
+	const float3 c = vces[trix.z] ;
 	// apply AS preTransform matrix
-	const float* m = thing->transform() ;
+	const float* t = thing->transform ;
 	const float3 A = {
-		a.x*m[0*4+0]+a.y*m[0*4+1]+a.z*m[0*4+2]+m[0*4+3],
-		a.x*m[1*4+0]+a.y*m[1*4+1]+a.z*m[1*4+2]+m[1*4+3],
-		a.x*m[2*4+0]+a.y*m[2*4+1]+a.z*m[2*4+2]+m[2*4+3]
+		a.x*t[0*4+0]+a.y*t[0*4+1]+a.z*t[0*4+2]+t[0*4+3],
+		a.x*t[1*4+0]+a.y*t[1*4+1]+a.z*t[1*4+2]+t[1*4+3],
+		a.x*t[2*4+0]+a.y*t[2*4+1]+a.z*t[2*4+2]+t[2*4+3]
 	} ;
 	const float3 B = {
-		p.x*m[0*4+0]+p.y*m[0*4+1]+p.z*m[0*4+2]+m[0*4+3],
-		p.x*m[1*4+0]+p.y*m[1*4+1]+p.z*m[1*4+2]+m[1*4+3],
-		p.x*m[2*4+0]+p.y*m[2*4+1]+p.z*m[2*4+2]+m[2*4+3]
+		p.x*t[0*4+0]+p.y*t[0*4+1]+p.z*t[0*4+2]+t[0*4+3],
+		p.x*t[1*4+0]+p.y*t[1*4+1]+p.z*t[1*4+2]+t[1*4+3],
+		p.x*t[2*4+0]+p.y*t[2*4+1]+p.z*t[2*4+2]+t[2*4+3]
 	} ;
 	const float3 C = {
-		c.x*m[0*4+0]+c.y*m[0*4+1]+c.z*m[0*4+2]+m[0*4+3],
-		c.x*m[1*4+0]+c.y*m[1*4+1]+c.z*m[1*4+2]+m[1*4+3],
-		c.x*m[2*4+0]+c.y*m[2*4+1]+c.z*m[2*4+2]+m[2*4+3]
+		c.x*t[0*4+0]+c.y*t[0*4+1]+c.z*t[0*4+2]+t[0*4+3],
+		c.x*t[1*4+0]+c.y*t[1*4+1]+c.z*t[1*4+2]+t[1*4+3],
+		c.x*t[2*4+0]+c.y*t[2*4+1]+c.z*t[2*4+2]+t[2*4+3]
 	} ;
 
 	// retrieve triangle barycentric coordinates of hit
@@ -207,9 +207,9 @@ extern "C" __global__ void __closesthit__reflect() {
 	DenoiserGuideValues* dgv = reinterpret_cast<DenoiserGuideValues*>( util::fit64( dh, dl ) ) ;
 
 	// finally the reflection according to RTOW
-	// see CPU version of RTOW, optics.h:  Reflect.spray()
-		const float3 d1V     = V::unitV( d ) ;              // v.h: reflect()
-		const float3 reflect = d1V-2.f*V::dot( d1V, N )*N ; // v.h: reflect()
+	// see CPU version of RTOW, ../optics.h: Reflect.spray()
+		const float3 d1V     = V::unitV( d ) ;              // ../v.h: reflect()
+		const float3 reflect = d1V-2.f*V::dot( d1V, N )*N ; // ../v.h: reflect()
 		const float fuzz = optics.reflect.fuzz ;
 		const float3 dir = reflect+fuzz*V::rndVin1sphere( state ) ;
 	//
@@ -276,34 +276,34 @@ extern "C" __global__ void __closesthit__refract() {
 
 	// retrieve data (SBT record) of thing being hit
 	const Thing* thing  = reinterpret_cast<Thing*>( optixGetSbtDataPointer() ) ;
-	const Optics optics = thing->optics() ;
+	const Optics optics = thing->optics ;
 
 	// retrieve index of triangle (primitive) being hit
 	// index is same as in OptixBuildInput array handed to optixAccelBuild()
 	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = thing->d_ices()[prix] ;
+	const uint3 trix = thing->ices.data[prix] ;
 
 	// use index to access triangle vertices
-	const float3* d_vces = thing->d_vces() ;
-	const float3 a = d_vces[trix.x] ;
-	const float3 p = d_vces[trix.y] ;
-	const float3 c = d_vces[trix.z] ;
+	const float3* vces = thing->vces.data ;
+	const float3 a = vces[trix.x] ;
+	const float3 p = vces[trix.y] ;
+	const float3 c = vces[trix.z] ;
 	// apply AS preTransform matrix
-	const float* m = thing->transform() ;
+	const float* t = thing->transform ;
 	const float3 A = {
-		a.x*m[0*4+0]+a.y*m[0*4+1]+a.z*m[0*4+2]+m[0*4+3],
-		a.x*m[1*4+0]+a.y*m[1*4+1]+a.z*m[1*4+2]+m[1*4+3],
-		a.x*m[2*4+0]+a.y*m[2*4+1]+a.z*m[2*4+2]+m[2*4+3]
+		a.x*t[0*4+0]+a.y*t[0*4+1]+a.z*t[0*4+2]+t[0*4+3],
+		a.x*t[1*4+0]+a.y*t[1*4+1]+a.z*t[1*4+2]+t[1*4+3],
+		a.x*t[2*4+0]+a.y*t[2*4+1]+a.z*t[2*4+2]+t[2*4+3]
 	} ;
 	const float3 B = {
-		p.x*m[0*4+0]+p.y*m[0*4+1]+p.z*m[0*4+2]+m[0*4+3],
-		p.x*m[1*4+0]+p.y*m[1*4+1]+p.z*m[1*4+2]+m[1*4+3],
-		p.x*m[2*4+0]+p.y*m[2*4+1]+p.z*m[2*4+2]+m[2*4+3]
+		p.x*t[0*4+0]+p.y*t[0*4+1]+p.z*t[0*4+2]+t[0*4+3],
+		p.x*t[1*4+0]+p.y*t[1*4+1]+p.z*t[1*4+2]+t[1*4+3],
+		p.x*t[2*4+0]+p.y*t[2*4+1]+p.z*t[2*4+2]+t[2*4+3]
 	} ;
 	const float3 C = {
-		c.x*m[0*4+0]+c.y*m[0*4+1]+c.z*m[0*4+2]+m[0*4+3],
-		c.x*m[1*4+0]+c.y*m[1*4+1]+c.z*m[1*4+2]+m[1*4+3],
-		c.x*m[2*4+0]+c.y*m[2*4+1]+c.z*m[2*4+2]+m[2*4+3]
+		c.x*t[0*4+0]+c.y*t[0*4+1]+c.z*t[0*4+2]+t[0*4+3],
+		c.x*t[1*4+0]+c.y*t[1*4+1]+c.z*t[1*4+2]+t[1*4+3],
+		c.x*t[2*4+0]+c.y*t[2*4+1]+c.z*t[2*4+2]+t[2*4+3]
 	} ;
 
 	// retrieve triangle barycentric coordinates of hit
@@ -336,15 +336,15 @@ extern "C" __global__ void __closesthit__refract() {
 	DenoiserGuideValues* dgv = reinterpret_cast<DenoiserGuideValues*>( util::fit64( dh, dl ) ) ;
 
 	// finally the refraction according to RTOW
-	// see CPU version of RTOW, optics.h: Refract.spray()
+	// see CPU version of RTOW, ../optics.h: Refract.spray()
 		const float3 d1V = V::unitV( d ) ;
 		const float cos_theta = fminf( V::dot( -d1V, N ), 1.f ) ;
 		const float sin_theta = sqrtf( 1.f-cos_theta*cos_theta ) ;
 
 		const float3 center = {
-			m[0*4+3] /* x */,
-			m[1*4+3] /* y */,
-			m[2*4+3] /* z */
+			t[0*4+3] /* x */,
+			t[1*4+3] /* y */,
+			t[2*4+3] /* z */
 		} ;
 		const float3 O = hit-center ;
 		const float ratio = 0.f>V::dot( d, O )
@@ -352,17 +352,17 @@ extern "C" __global__ void __closesthit__refract() {
 				: optics.refract.index ;
 		const bool cannot = ratio*sin_theta>1.f ;
 
-		float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;                // optics.h: Refract.schlick()
-		const float schlick = r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // optics.h: Refract.schlick()
+		float r0 = ( 1.f-ratio )/( 1.f+ratio ) ; r0 = r0*r0 ;                // ../optics.h: Refract.schlick()
+		const float schlick = r0+( 1.f-r0 )*powf( ( 1.f-cos_theta ), 5.f ) ; // ../optics.h: Refract.schlick()
 
 		float3 dir ;
 		if ( cannot || schlick>util::rnd( state ) ) {
-			dir = d1V-2.f*V::dot( d1V, N )*N ;                                        // v.h: reflect()
+			dir = d1V-2.f*V::dot( d1V, N )*N ;                                        // ../v.h: reflect()
 		} else {
-			const float theta   = fminf( V::dot( -d1V, N ), 1.f ) ;                   // v.h: refract()
-			const float3 perpen = ratio*( d1V+theta*N ) ;                             // v.h: refract()
-			const float3 parall = -sqrtf( fabsf( 1.f-V::dot( perpen, perpen ) ) )*N ; // v.h: refract()
-			dir = perpen+parall ;                                                     // v.h: refract()
+			const float theta   = fminf( V::dot( -d1V, N ), 1.f ) ;                   // ../v.h: refract()
+			const float3 perpen = ratio*( d1V+theta*N ) ;                             // ../v.h: refract()
+			const float3 parall = -sqrtf( fabsf( 1.f-V::dot( perpen, perpen ) ) )*N ; // ../v.h: refract()
+			dir = perpen+parall ;                                                     // ../v.h: refract()
 		}
 	//
 

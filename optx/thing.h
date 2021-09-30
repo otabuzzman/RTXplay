@@ -1,65 +1,65 @@
 #ifndef THING_H
 #define THING_H
 
-#include <cuda.h>
-
+// system includes
 #include <vector>
 
-#include <vector_functions.h>
+// subsystem includes (CUDA, OptiX)
 #include <vector_types.h>
 
-#include "optics.h"
-#include "util.h"
+// local includes
+// none
 
-class Thing {
-	public:
-		__host__ __device__ const float3* d_vces() const {
-			return d_vces_ ;
-		}
+// file specific includes
+// none
 
-		unsigned int num_vces() {
-			return static_cast<unsigned int>( vces_.size() ) ;
-		}
+struct Diffuse {
+	float3 albedo ; // wavefront MTL : Kd
+} ;
 
-		__host__ __device__ const uint3*  d_ices() const {
-			return d_ices_ ;
-		}
+struct Reflect {
+	float3 albedo ; // wavefront MTL : Kd
+	float  fuzz ;   // wavefront MTL : sharpness
+} ;
 
-		unsigned int num_ices() {
-			return static_cast<unsigned int>( ices_.size() ) ;
-		}
+struct Refract {
+	float  index ;  // wavefront MTL : Ni
+} ;
 
-#ifndef __CUDACC__
+struct Optics {
+	enum {
+		TYPE_DIFFUSE,
+		TYPE_REFLECT,
+		TYPE_REFRACT,
+		TYPE_NUM
+	} ;
 
-		void transform( float const matrix[12] ) {
-			CUDA_CHECK( cudaMemcpy(
-				reinterpret_cast<void*>( matrix_ ),
-				&matrix[0],
-				sizeof( float )*12,
-				cudaMemcpyHostToDevice
-				) ) ;
-		}
+	int type ;
 
-#endif // __CUDACC__
+	union {
+		Diffuse diffuse ;
+		Reflect reflect ;
+		Refract refract ;
+	} ;
+} ;
 
-		__host__ __device__ const float* transform() const {
-			return matrix_ ;
-		}
+struct Thing {
+	struct { // std::vector<float3> device equivalent
+		float3*      data ;
+		unsigned int size ;
+	} vces ;
+	struct { // std::vector<uint3> device equivalent
+		uint3*       data ;
+		unsigned int size ;
+	} ices ;
 
-		__host__ __device__ const Optics optics() const {
-			return optics_ ;
-		}
+	Optics optics ;
 
-	protected:
-		// row-major 3x4 matrix
-		float* matrix_ ;
-		Optics optics_ ;
-		// CPU memory
-		std::vector<float3> vces_ ; // thing's unique vertices...
-		std::vector<uint3>  ices_ ; // ...as indexed triangles
-		// GPU memory
-		float3* d_vces_ ;
-		uint3*  d_ices_ ;
+	float  transform[12] = {
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0
+	} ;
 } ;
 
 #endif // THING_H
