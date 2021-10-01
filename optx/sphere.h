@@ -1,13 +1,22 @@
 #ifndef SPHERE_H
 #define SPHERE_H
 
+// system includes
+#include <vector>
+
+// subsystem includes
+// CUDA
 #include <vector_types.h>
 
+// local includes
 #include "thing.h"
+
+// file specific includes
+// none
 
 class Sphere : public Thing {
 	public:
-		Sphere( const float radius, const bool bbox = false, const unsigned int ndiv = 6 ) ;
+		Sphere( const float radius = 1.f, const unsigned int ndiv = 6 ) ;
 		~Sphere() noexcept ( false ) ;
 
 	private:
@@ -19,7 +28,7 @@ class Sphere : public Thing {
 
 		std::vector<float3> vtmp_ ;
 
-		void tetrahedron( const bool bbox ) ;
+		void tetrahedron() ;
 		void pumpup( const float3& a, const float3& b, const float3& c, const unsigned int ndiv ) ;
 		void reduce() ;
 

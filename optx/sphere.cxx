@@ -1,22 +1,27 @@
+// system includes
 #include <set>
 #include <vector>
 
+// subsystem includes
+// CUDA
 #include <vector_functions.h>
 #include <vector_types.h>
 
+// local includes
+#include "thing.h"
 #include "util.h"
 #include "v.h"
 
-#include "thing.h"
+// file specific includes
 #include "sphere.h"
 
 using V::operator+ ;
 using V::operator* ;
 
-Sphere::Sphere( const float radius, const bool bbox, const unsigned int ndiv )
+Sphere::Sphere( const float radius, const unsigned int ndiv )
 	: radius_( radius ), ndiv_( ndiv ) {
 
-	tetrahedron( bbox ) ;
+	tetrahedron() ;
 
 	set( vces_ ) ;
 	set( ices_ ) ;
@@ -27,59 +32,30 @@ Sphere::~Sphere() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ices.data ) ) ) ;
 }
 
-void Sphere::tetrahedron( const bool bbox ) {
+void Sphere::tetrahedron() {
 	vces_.clear() ;
 	ices_.clear() ;
 
-	if ( bbox ) {
-		// tetrahedron's bounding box vertices
-		float3 v00 = radius_*make_float3( -1.f,  1.f, -1.f ) ;
-		float3 v01 = radius_*make_float3(  1.f,  1.f, -1.f ) ;
-		float3 v02 = radius_*make_float3(  1.f, -1.f, -1.f ) ;
-		float3 v03 = radius_*make_float3( -1.f, -1.f, -1.f ) ;
-		float3 v04 = radius_*make_float3( -1.f,  1.f,  1.f ) ;
-		float3 v05 = radius_*make_float3(  1.f,  1.f,  1.f ) ;
-		float3 v06 = radius_*make_float3(  1.f, -1.f,  1.f ) ;
-		float3 v07 = radius_*make_float3( -1.f, -1.f,  1.f ) ;
+	// https://rechneronline.de/pi/tetrahedron.php
+	// r = a/4*sqrt(6) | circumsphere radius r = 1
+	// a = 4/sqrt(6)
+	// m = a/4*sqrt(2)
+	// precalculated value for unit tetrahedron
+	float m = .57735026919f ; // midsphere radius
 
-		// tetrahedron's bounding box triangles
-		vtmp_.push_back( v00 ) ; vtmp_.push_back( v01 ) ; vtmp_.push_back( v02 ) ;
-		vtmp_.push_back( v02 ) ; vtmp_.push_back( v03 ) ; vtmp_.push_back( v00 ) ;
-		vtmp_.push_back( v04 ) ; vtmp_.push_back( v05 ) ; vtmp_.push_back( v06 ) ;
-		vtmp_.push_back( v06 ) ; vtmp_.push_back( v07 ) ; vtmp_.push_back( v04 ) ;
-		vtmp_.push_back( v00 ) ; vtmp_.push_back( v01 ) ; vtmp_.push_back( v05 ) ;
-		vtmp_.push_back( v05 ) ; vtmp_.push_back( v04 ) ; vtmp_.push_back( v00 ) ;
-		vtmp_.push_back( v07 ) ; vtmp_.push_back( v06 ) ; vtmp_.push_back( v02 ) ;
-		vtmp_.push_back( v02 ) ; vtmp_.push_back( v03 ) ; vtmp_.push_back( v07 ) ;
-		vtmp_.push_back( v00 ) ; vtmp_.push_back( v04 ) ; vtmp_.push_back( v07 ) ;
-		vtmp_.push_back( v07 ) ; vtmp_.push_back( v03 ) ; vtmp_.push_back( v00 ) ;
-		vtmp_.push_back( v05 ) ; vtmp_.push_back( v01 ) ; vtmp_.push_back( v02 ) ;
-		vtmp_.push_back( v02 ) ; vtmp_.push_back( v06 ) ; vtmp_.push_back( v05 ) ;
+	// tetrahedron's vertices
+	float3 v00 = {  m,  m,  m } ;
+	float3 v01 = {  m, -m, -m } ;
+	float3 v02 = { -m, -m,  m } ;
+	float3 v03 = { -m,  m, -m } ;
 
-		// convert to indexed vertices
-		reduce() ;
-	} else {
-		// https://rechneronline.de/pi/tetrahedron.php
-		// r = a/4*sqrt(6) | circumsphere radius r = 1
-		// a = 4/sqrt(6)
-		// m = a/4*sqrt(2)
-		// precalculated value for unit tetrahedron
-		float m = .57735026919f ; // midsphere radius
+	// tetrahedron's triangles
+	pumpup( v00, v01, v02, ndiv_ ) ;
+	pumpup( v00, v02, v03, ndiv_ ) ;
+	pumpup( v00, v03, v01, ndiv_ ) ;
+	pumpup( v03, v02, v01, ndiv_ ) ;
 
-		// tetrahedron's vertices
-		float3 v00 = {  m,  m,  m } ;
-		float3 v01 = {  m, -m, -m } ;
-		float3 v02 = { -m, -m,  m } ;
-		float3 v03 = { -m,  m, -m } ;
-
-		// tetrahedron's triangles
-		pumpup( v00, v01, v02, ndiv_ ) ;
-		pumpup( v00, v02, v03, ndiv_ ) ;
-		pumpup( v00, v03, v01, ndiv_ ) ;
-		pumpup( v03, v02, v01, ndiv_ ) ;
-
-		reduce() ;
-	}
+	reduce() ;
 }
 
 void Sphere::pumpup( const float3& a, const float3& b, const float3& c, const unsigned int cdiv ) {
