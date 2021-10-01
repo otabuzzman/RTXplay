@@ -217,9 +217,9 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		// launch pipeline
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam.glx, cuda_stream ) ) ;
 		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general.image ), &lp_general_image_size, smparam.glx ) ) ;
+
 		CUDA_CHECK( cudaMemcpy(
 			reinterpret_cast<void*>( d_lp_general ),
 			&lp_general,
@@ -241,20 +241,8 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 		CUDA_CHECK( cudaDeviceSynchronize() ) ;
 		auto t3 = std::chrono::high_resolution_clock::now() ;
 
-		if ( args->flag_S() ) { // output statistics
-			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t2 ).count() ;
-			std::vector<unsigned int> rpp ;
-			rpp.resize( w*h ) ;
-			CUDA_CHECK( cudaMemcpy(
-				rpp.data(),
-				lp_general.rpp,
-				w*h*sizeof( unsigned int ),
-				cudaMemcpyDeviceToHost
-				) ) ;
-			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-			long long tl = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
-			fprintf( stderr, "%6llu %9u %12llu %4llu (lapse, pixels, rays, msec)", tl, w*h, sr, dt ) ;
-		}
+		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
+		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 
 		// apply denoiser
 		if ( smparam.denoiser )
@@ -262,10 +250,6 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 
 		// post processing
 		pp_sRGB( lp_general.rawRGB, lp_general.image, w, h ) ;
-
-		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
-
-		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 
 		// display result
 		GL_CHECK( glBindFramebuffer( GL_FRAMEBUFFER, 0 ) ) ;
@@ -316,8 +300,25 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
 
+		// output statistics
+		if ( args->flag_S() ) {
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t2 ).count() ;
+			std::vector<unsigned int> rpp ;
+			rpp.resize( w*h ) ;
+			CUDA_CHECK( cudaMemcpy(
+				rpp.data(),
+				lp_general.rpp,
+				w*h*sizeof( unsigned int ),
+				cudaMemcpyDeviceToHost
+				) ) ;
+			long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
+			long long tl = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+			fprintf( stderr, "%6llu %9u %12llu %4llu (lapse, pixels, rays, msec)", tl, w*h, sr, dt ) ;
+		}
+
+		// output statistics
 		auto t4 = std::chrono::high_resolution_clock::now() ;
-		if ( args->flag_S() ) { // output statistics
+		if ( args->flag_S() ) {
 			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t4-t1 ).count() ;
 			fprintf( stderr, " %6.2f fps\n", 1000.f/dt ) ;
 		}
