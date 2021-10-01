@@ -1,9 +1,17 @@
+// system includes
+// none
+
+// subsystem includes
+// OptiX
 #include <optix.h>
 
+// local includes
 #include "camera.h"
+#include "rtwo.h"
 #include "thing.h"
 
-#include "rtwo.h"
+// file specific includes
+// none
 
 using V::operator+ ;
 using V::operator- ;
