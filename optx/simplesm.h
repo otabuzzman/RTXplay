@@ -1,14 +1,23 @@
 #ifndef SIMPLESM_H
 #define SIMPLESM_H
 
+// system includes
 #include <stack>
+#include <string>
 
+// subsystem includes
+// CUDA
+#include <cuda_gl_interop.h>
+// GLFW
+#include <GLFW/glfw3.h>
+
+// local includes
 #include "args.h"
-#include "camera.h"
 #include "denoiser.h"
-#include "thing.h"
-#include "rtwo.h"
 #include "paddle.h"
+
+// file specific includes
+// none
 
 // missing in GLFW
 extern "C" void glfwGetScroll( GLFWwindow* /*window*/, double* xscroll, double* yscroll ) ;

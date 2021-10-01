@@ -1,6 +1,18 @@
 #ifndef FRAND48_H
 #define FRAND48_H
 
+// system includes
+// none
+
+// subsystem includes
+// none
+
+// local includes
+// none
+
+// file specific includes
+// none
+
 class Frand48 {
 	public:
 		__forceinline__ __device__ void init( const unsigned int seed = 4711 ) {

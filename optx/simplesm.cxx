@@ -1,13 +1,22 @@
+// system includes
+// none
+
+// subsystem includes
+// OptiX
 #include <optix.h>
 #include <optix_stubs.h>
-
+// GLAD
 #include <glad/glad.h>
+// GLFW
 #include <GLFW/glfw3.h>
-
+// CUDA
 #include <cuda_gl_interop.h> // must follow glad.h
 
+// local includes
+#include "rtwo.h"
 #include "v.h"
 
+// file specific includes
 #include "simplesm.h"
 
 // common globals

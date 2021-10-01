@@ -1,7 +1,18 @@
 #ifndef PADDLE_H
 #define PADDLE_H
 
+// system includes
+// none
+
+// subsystem includes
+// CUDA
 #include <vector_types.h>
+
+// local includes
+// none
+
+// file specific includes
+// none
 
 class Paddle {
 	public:

@@ -1,30 +1,35 @@
+// system includes
 #include <array>
 #include <chrono>
 #include <cstring>
 #include <vector>
 
+// subsystem includes
+// OptiX
 #include <optix.h>
 #include <optix_stubs.h>
 /*** calculate stack sizes
 ***/
 #include <optix_stack_size.h>
 #include <optix_function_table_definition.h>
-
+// CUDA
 #include <vector_functions.h>
 #include <vector_types.h>
-
+// GLFW
 #include <GLFW/glfw3.h>
 
+// local includes
 #include "args.h"
 #include "camera.h"
 #include "denoiser.h"
+#include "scene.h"
 #include "simpleui.h"
 #include "sphere.h"
-#include "scene.h"
 #include "thing.h"
 #include "util.h"
 #include "v.h"
 
+// file specific includes
 #include "rtwo.h"
 
 // common globals

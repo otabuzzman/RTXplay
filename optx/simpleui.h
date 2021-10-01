@@ -1,8 +1,20 @@
 #ifndef SIMPLEUI_H
 #define SIMPLEUI_H
 
-#include "args.h"
-#include "simplesm.h"
+// system includes
+#include <string>
+
+// subsystem includes
+// OptiX
+#include <optix.h>
+// GLFW
+#include <GLFW/glfw3.h>
+
+// local includes
+// none
+
+// file specific includes
+// none
 
 class SimpleUI {
 	public:

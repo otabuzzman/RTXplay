@@ -1,9 +1,15 @@
+// system includes
 #include <algorithm>
 #include <cmath>
 
+// subsystem includes
+// none
+
+// local includes
 #include "util.h"
 #include "v.h"
 
+// file specific includes
 #include "paddle.h"
 
 using V::operator+ ;

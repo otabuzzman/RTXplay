@@ -2,9 +2,10 @@
 #define THING_H
 
 // system includes
-#include <vector>
+// none
 
-// subsystem includes (CUDA, OptiX)
+// subsystem includes
+// CUDA
 #include <vector_types.h>
 
 // local includes

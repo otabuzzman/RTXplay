@@ -1,18 +1,25 @@
+// system includes
 #include <iostream>
 #include <sstream>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
+// subsystem includes
+// GLAD
 #include <glad/glad.h>
+// GLFW
 #include <GLFW/glfw3.h>
-
+// CUDA
 #ifdef __NVCC__
 #include <cuda.h>
 #include <cuda_gl_interop.h> // must follow glad.h
 #endif // __NVCC__
 
+// local includes
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include "util.h"
+
+// file specific includes
+// none
 
 // GLSL sources of shaders
 extern "C" const char vert_glsl[] ;

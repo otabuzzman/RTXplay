@@ -1,19 +1,25 @@
 #ifndef V_H
 #define V_H
 
+// system includes
 #include <cmath>
 
+// subsystem includes
+// CUDA
 #ifdef CURAND
 #include <curand_kernel.h>
 #endif // CURAND
-
 #include <vector_functions.h>
 #include <vector_types.h>
 
+// local includes
 #ifndef CURAND
 #include "frand48.h"
 #endif // CURAND
 #include "util.h"
+
+// file specific includes
+// none
 
 namespace V {
 

@@ -1,11 +1,20 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+// system includes
+// none
+
+// subsystem includes
+// CUDA
 #include <vector_functions.h>
 #include <vector_types.h>
 
+// local includes
 #include "util.h"
 #include "v.h"
+
+// file specific includes
+// none
 
 using V::operator+ ;
 using V::operator- ;

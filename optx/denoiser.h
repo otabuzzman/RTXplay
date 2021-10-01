@@ -1,12 +1,19 @@
 #ifndef DENOISER_H
 #define DENOISER_H
 
-#include <vector>
+// system includes
+// none
 
-#include <vector_functions.h>
+// subsystem includes
+// CUDA
 #include <vector_types.h>
+#include <optix.h>
 
+// local includes
 #include "args.h"
+
+// file specific includes
+// none
 
 // common globals
 extern OptixDeviceContext optx_context ;

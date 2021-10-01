@@ -1,10 +1,20 @@
 #ifndef UTIL_CPU_H
 #define UTIL_CPU_H
 
+// system includes
 #include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+
+// subsystem includes
+// none
+
+// local includes
+// none
+
+// file specific includes
+// none
 
 #define CUDA_CHECK( api )                                   \
 	do {                                                    \

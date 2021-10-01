@@ -1,11 +1,20 @@
 #ifndef UTIL_GPU_H
 #define UTIL_GPU_H
 
+// system includes
+// none
+
+// subsystem includes
+// CUDA
 #ifdef CURAND
 #include <curand_kernel.h>
 #else
+// local includes
 #include "frand48.h"
 #endif // CURAND
+
+// file specific includes
+// none
 
 namespace util {
 

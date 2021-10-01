@@ -1,6 +1,23 @@
 #ifndef RTWO_H
 #define RTWO_H
 
+// system includes
+// none
+
+// subsystem includes
+// CUDA
+#include <vector_types.h>
+// OptiX
+#include <optix.h>
+
+// local includes
+#include "camera.h"
+#include "frand48.h"
+#include "thing.h"
+
+// file specific includes
+// none
+
 struct LpGeneral { // launch parameter
 	uchar4*                image ;
 	unsigned int           image_w ;

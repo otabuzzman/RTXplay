@@ -1,12 +1,19 @@
+// system includes
+// none
+
+// subsystem includes
+// OptiX
 #include <optix.h>
 #include <optix_stubs.h>
 
+// local includes
 #include "args.h"
 #include "camera.h"
 #include "thing.h"
 #include "rtwo.h"
 #include "util.h"
 
+// file specific includes
 #include "denoiser.h"
 
 // common globals

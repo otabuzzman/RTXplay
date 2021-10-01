@@ -1,7 +1,16 @@
+// system includes
+#include <iostream>
 #include <set>
 #include <vector>
 
-#include <iostream>
+// subsystem includes
+// none
+
+// local includes
+// none
+
+// file specific includes
+// none
 
 struct uint3 {
 	unsigned int x, y, z ;
