@@ -16,6 +16,7 @@ vid/
 *.png
 !/optx/img/*.png
 *.pptx
+*.scn
 *.tmp
 *.xlsx
 *.zip

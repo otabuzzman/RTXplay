@@ -22,10 +22,10 @@
 #include "args.h"
 #include "camera.h"
 #include "denoiser.h"
+#include "hoist.h"
 #include "scene.h"
 #include "simpleui.h"
 #include "sphere.h"
-#include "thing.h"
 #include "util.h"
 #include "v.h"
 
@@ -157,18 +157,18 @@ int main( int argc, char* argv[] ) {
 
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
-				vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->vces.data ) ;
-				ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->ices.data ) ;
+				vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->vces ) ;
+				ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->ices ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = scene[i]->vces.size ;
+				obi_thing.triangleArray.numVertices                 = scene[i]->num_vces ;
 				obi_thing.triangleArray.vertexBuffers               = &vces[i] ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = scene[i]->ices.size ;
+				obi_thing.triangleArray.numIndexTriplets            = scene[i]->num_ices ;
 				obi_thing.triangleArray.indexBuffer                 = ices[i] ;
 
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &tces[i] ), sizeof( float )*12 ) ) ;

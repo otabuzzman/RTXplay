@@ -41,10 +41,10 @@ extern "C" __global__ void __closesthit__diffuse() {
 	// retrieve index of triangle (primitive) being hit
 	// index is same as in OptixBuildInput array handed to optixAccelBuild()
 	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = thing->ices.data[prix] ;
+	const uint3 trix = thing->ices[prix] ;
 
 	// use index to access triangle vertices
-	const float3* vces = thing->vces.data ;
+	const float3* vces = thing->vces ;
 	const float3 a = vces[trix.x] ;
 	const float3 p = vces[trix.y] ;
 	const float3 c = vces[trix.z] ;
@@ -160,10 +160,10 @@ extern "C" __global__ void __closesthit__reflect() {
 	// retrieve index of triangle (primitive) being hit
 	// index is same as in OptixBuildInput array handed to optixAccelBuild()
 	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = thing->ices.data[prix] ;
+	const uint3 trix = thing->ices[prix] ;
 
 	// use index to access triangle vertices
-	const float3* vces = thing->vces.data ;
+	const float3* vces = thing->vces ;
 	const float3 a = vces[trix.x] ;
 	const float3 p = vces[trix.y] ;
 	const float3 c = vces[trix.z] ;
@@ -289,10 +289,10 @@ extern "C" __global__ void __closesthit__refract() {
 	// retrieve index of triangle (primitive) being hit
 	// index is same as in OptixBuildInput array handed to optixAccelBuild()
 	const int   prix = optixGetPrimitiveIndex() ;
-	const uint3 trix = thing->ices.data[prix] ;
+	const uint3 trix = thing->ices[prix] ;
 
 	// use index to access triangle vertices
-	const float3* vces = thing->vces.data ;
+	const float3* vces = thing->vces ;
 	const float3 a = vces[trix.x] ;
 	const float3 p = vces[trix.y] ;
 	const float3 c = vces[trix.z] ;

@@ -24,6 +24,7 @@ OBJ = \
 	rtwo$o \
 	args$o \
 	scene$o \
+	hoist$o \
 	sphere$o \
 	camera_i$o \
 	optics_i$o \
@@ -42,7 +43,16 @@ IMG = rtwo.png
 
 OPTIX_CACHE_PATH = ./OptixCache_$$USER
 
-all: $(EXE) $(IMG)
+# scene objects (wavefront OBJ format)
+SCN = \
+	sphere-3.scn \
+	sphere-6.scn \
+	sphere-8.scn \
+	sphere-9.scn \
+
+# default target
+$(IMG): $(EXE) $(SCN)
+	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< | magick ppm:- $@
 
 # preprocessor macros:
 # -DRECURSIVE - use recursive shaders instead of iterative
@@ -152,7 +162,7 @@ endif
 vpath glad.c glad
 
 .PHONY: all clean tidy
-.SUFFIXES: .cxx .cu .glsl .png .ptx
+.SUFFIXES: .cxx .cu .glsl .png .ptx .scn
 
 %$o: %.c
 	gcc -c $< -o $@ \
@@ -189,7 +199,17 @@ $(EXE): $(OBJ)
 		$(NVCCFLAGS) \
 		$(LIB) \
 
-sphere$x: sphere.cxx
+$(SCN): sphere$x
+sphere-3.scn:
+	./sphere$x 1. 3 >$@ || true
+sphere-6.scn:
+	./sphere$x 1. 6 >$@ || true
+sphere-8.scn:
+	./sphere$x 1. 8 >$@ || true
+sphere-9.scn:
+	./sphere$x 1. 9 >$@ || true
+
+sphere$x: sphere.cxx hoist$o
 	nvcc -DMAIN -o $@ $^ \
 		$(NVCCFLAGS) \
 		$(INC) \
@@ -200,13 +220,15 @@ clean:
 	rm -f $(OBJ)
 ifdef winos
 	rm -f rtwo.lib rtwo.exp
+	rm -f sphere.lib sphere.exp
 endif
 
 eclean: clean
 	rm -f $(EXE) $(IMG)
 	rm -rf $(OPTIX_CACHE_PATH)
+	rm -f glxview$x sphere$x $(SCN)
 ifdef winos
-	rm -f glxview.exe args.exe
+	rm -f args.exe
 endif
 
 lclean: eclean
@@ -236,8 +258,3 @@ glad.zip:
 # setup STBI
 stb_image.h:
 	wget -q https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
-
-
-
-$(IMG): $(EXE)
-	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< | magick ppm:- $@

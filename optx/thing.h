@@ -2,14 +2,14 @@
 #define THING_H
 
 // system includes
-// none
+#include <vector>
 
 // subsystem includes
 // CUDA
 #include <vector_types.h>
 
 // local includes
-// none
+#include "util.h"
 
 // file specific includes
 // none
@@ -45,16 +45,10 @@ struct Optics {
 } ;
 
 struct Thing {
-	struct { // std::vector<float3> device equivalent
-		float3*      data ;
-		unsigned int size ;
-	} vces ;
-	struct { // std::vector<uint3> device equivalent
-		uint3*       data ;
-		unsigned int size ;
-	} ices ;
+	float3* vces ;
+	uint3*  ices ;
 
-	Optics optics ;
+	Optics  optics ;
 
 	float  transform[12] = {
 		1, 0, 0, 0,

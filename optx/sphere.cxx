@@ -8,7 +8,7 @@
 #include <vector_types.h>
 
 // local includes
-#include "thing.h"
+#include "hoist.h"
 #include "util.h"
 #include "v.h"
 
@@ -23,19 +23,15 @@ Sphere::Sphere( const float radius, const unsigned int ndiv )
 
 	tetrahedron() ;
 
-	set( vces_ ) ;
-	set( ices_ ) ;
-}
+#ifndef MAIN
 
-Sphere::~Sphere() noexcept ( false ) {
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( vces.data ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ices.data ) ) ) ;
+	copyVcesToDevice( vces_ ) ;
+	copyIcesToDevice( ices_ ) ;
+
+#endif // MAIN
 }
 
 void Sphere::tetrahedron() {
-	vces_.clear() ;
-	ices_.clear() ;
-
 	// https://rechneronline.de/pi/tetrahedron.php
 	// r = a/4*sqrt(6) | circumsphere radius r = 1
 	// a = 4/sqrt(6)
@@ -115,26 +111,38 @@ void Sphere::reduce() { // (SO #14396788)
 	vtmp_.clear() ;
 }
 
-void Sphere::set( const std::vector<float3>& data ) {
-	vces.size = static_cast<unsigned int>( data.size() ) ;
-	const size_t data_size = sizeof( float3 )*vces.size ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &vces.data ), data_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( vces.data ),
-		data.data(),
-		data_size,
-		cudaMemcpyHostToDevice
-		) ) ;
+#ifdef MAIN
+
+void Sphere::vces2obj() const {
+	for ( auto v : vces_ )
+		printf( "v %f %f %f\n", v.x, v.y, v.z ) ;
 }
 
-void Sphere::set( const std::vector<uint3>& data ) {
-	ices.size = static_cast<unsigned int>( data.size() ) ;
-	const size_t data_size = sizeof( uint3 )*ices.size ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &ices.data ), data_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( ices.data ),
-		data.data(),
-		data_size,
-		cudaMemcpyHostToDevice
-		) ) ;
+void Sphere::ices2obj() const {
+	for ( auto i : ices_ )
+		printf( "f %d %d %d\n", i.x+1, i.y+1, i.z+1 ) ;
 }
+
+int main( const int argc, const char** argv ) {
+	float radius = 1.f ;
+	unsigned int ndiv = 6 ;
+
+	if ( argc>1 ) sscanf( argv[1], "%f", &radius ) ;
+	if ( argc>2 ) sscanf( argv[2], "%u", &ndiv ) ;
+	Sphere sphere( radius, ndiv ) ;
+
+	std::cout << "# sphere approximation by pumped-up tetrahedron:"              << std::endl ;
+	std::cout << "# " << ndiv << " times recursive triangle surface subdivision" << std::endl ;
+
+	sphere.vces2obj() ;
+	std::cout << "# " << sphere.num_vces << " vertices"  << std::endl ;
+
+	sphere.ices2obj() ;
+	std::cout << "# " << sphere.num_ices << " triangles" << std::endl ;
+
+	std::cout << std::endl ;
+
+	return 0 ;
+}
+
+#endif // MAIN

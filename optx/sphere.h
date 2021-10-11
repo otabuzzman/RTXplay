@@ -9,15 +9,21 @@
 #include <vector_types.h>
 
 // local includes
-#include "thing.h"
+#include "hoist.h"
 
 // file specific includes
 // none
 
-class Sphere : public Thing {
+class Sphere : public Hoist {
 	public:
 		Sphere( const float radius = 1.f, const unsigned int ndiv = 6 ) ;
-		~Sphere() noexcept ( false ) ;
+
+#ifdef MAIN
+
+		void vces2obj() const ;
+		void ices2obj() const ;
+
+#endif // MAIN
 
 	private:
 		float radius_ ;
@@ -31,9 +37,6 @@ class Sphere : public Thing {
 		void tetrahedron() ;
 		void pumpup( const float3& a, const float3& b, const float3& c, const unsigned int ndiv ) ;
 		void reduce() ;
-
-		void set( const std::vector<float3>& vces ) ;
-		void set( const std::vector<uint3>&  ices ) ;
 } ;
 
 #endif // SPHERE_H
