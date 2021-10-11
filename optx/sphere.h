@@ -28,7 +28,7 @@ class Sphere : public Hoist {
 
 	private:
 		float radius_ ;
-		int   ndiv_ ;
+		int   ndiv_   ;
 
 		std::vector<float3> vces_ ; // sphere's unique vertices...
 		std::vector<uint3>  ices_ ; // ...as indexed triangles

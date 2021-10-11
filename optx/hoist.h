@@ -20,8 +20,8 @@ struct Hoist : public Thing {
 	void copyVcesToDevice( const std::vector<float3>& vces ) ;
 	void copyIcesToDevice( const std::vector<uint3>&  ices ) ;
 
-	unsigned int num_vces ;
-	unsigned int num_ices ;
+	unsigned int num_vces = 0 ;
+	unsigned int num_ices = 0 ;
 } ;
 
 #endif // HOIST_H

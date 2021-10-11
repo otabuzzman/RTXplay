@@ -201,13 +201,13 @@ $(EXE): $(OBJ)
 
 $(SCN): sphere$x
 sphere-3.scn:
-	./sphere$x 1. 3 >$@ || true
+	./sphere$x 1. 3 >$@
 sphere-6.scn:
-	./sphere$x 1. 6 >$@ || true
+	./sphere$x 1. 6 >$@
 sphere-8.scn:
-	./sphere$x 1. 8 >$@ || true
+	./sphere$x 1. 8 >$@
 sphere-9.scn:
-	./sphere$x 1. 9 >$@ || true
+	./sphere$x 1. 9 >$@
 
 sphere$x: sphere.cxx hoist$o
 	nvcc -DMAIN -o $@ $^ \

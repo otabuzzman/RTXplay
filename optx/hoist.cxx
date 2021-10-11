@@ -14,8 +14,8 @@
 #include "hoist.h"
 
 Hoist::~Hoist() noexcept ( false ) {
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( vces ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ices ) ) ) ;
+	if ( vces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( vces ) ) ) ;
+	if ( ices ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ices ) ) ) ;
 }
 
 void Hoist::copyVcesToDevice( const std::vector<float3>& data ) {

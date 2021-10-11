@@ -45,8 +45,8 @@ struct Optics {
 } ;
 
 struct Thing {
-	float3* vces ;
-	uint3*  ices ;
+	float3* vces = nullptr ;
+	uint3*  ices = nullptr ;
 
 	Optics  optics ;
 
