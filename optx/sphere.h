@@ -20,6 +20,7 @@ class Sphere : public Hoist {
 
 #ifdef MAIN
 
+		// output wavefront OBJ format
 		void vces2obj() const ;
 		void ices2obj() const ;
 

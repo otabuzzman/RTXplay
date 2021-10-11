@@ -19,7 +19,8 @@ Hoist::~Hoist() noexcept ( false ) {
 }
 
 void Hoist::copyVcesToDevice( const std::vector<float3>& data ) {
-	const size_t data_size = sizeof( float3 )*static_cast<unsigned int>( data.size() ) ;
+	num_vces = static_cast<unsigned int>( data.size() ) ;
+	const size_t data_size = sizeof( float3 )*num_vces ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &vces ), data_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( vces ),
@@ -30,7 +31,8 @@ void Hoist::copyVcesToDevice( const std::vector<float3>& data ) {
 }
 
 void Hoist::copyIcesToDevice( const std::vector<uint3>& data ) {
-	const size_t data_size = sizeof( uint3 )*static_cast<unsigned int>( data.size() ) ;
+	num_ices = static_cast<unsigned int>( data.size() ) ;
+	const size_t data_size = sizeof( uint3 )*num_ices ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &ices ), data_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( ices ),

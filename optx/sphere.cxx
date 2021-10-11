@@ -23,12 +23,8 @@ Sphere::Sphere( const float radius, const unsigned int ndiv )
 
 	tetrahedron() ;
 
-#ifndef MAIN
-
 	copyVcesToDevice( vces_ ) ;
 	copyIcesToDevice( ices_ ) ;
-
-#endif // MAIN
 }
 
 void Sphere::tetrahedron() {
