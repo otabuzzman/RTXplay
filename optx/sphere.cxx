@@ -22,13 +22,6 @@ Sphere::Sphere( const float radius, const unsigned int ndiv )
 	: radius_( radius ), ndiv_( ndiv ) {
 
 	tetrahedron() ;
-
-#ifndef MAIN
-
-	copyVcesToDevice( vces_ ) ;
-	copyIcesToDevice( ices_ ) ;
-
-#endif // MAIN
 }
 
 void Sphere::tetrahedron() {
@@ -113,16 +106,6 @@ void Sphere::reduce() { // (SO #14396788)
 
 #ifdef MAIN
 
-void Sphere::vces2obj() const {
-	for ( auto v : vces_ )
-		printf( "v %f %f %f\n", v.x, v.y, v.z ) ;
-}
-
-void Sphere::ices2obj() const {
-	for ( auto i : ices_ )
-		printf( "f %d %d %d\n", i.x+1, i.y+1, i.z+1 ) ;
-}
-
 int main( const int argc, const char** argv ) {
 	float radius = 1.f ;
 	unsigned int ndiv = 6 ;
@@ -134,11 +117,13 @@ int main( const int argc, const char** argv ) {
 	std::cout << "# sphere approximation by pumped-up tetrahedron:"              << std::endl ;
 	std::cout << "# " << ndiv << " times recursive triangle surface subdivision" << std::endl ;
 
-	sphere.vces2obj() ;
-	std::cout << "# " << sphere.num_vces << " vertices"  << std::endl ;
+	for ( auto v : sphere.vces() )
+		printf( "v %f %f %f\n", v.x, v.y, v.z ) ;
+	std::cout << "# " << sphere.vces().size() << " vertices"  << std::endl ;
 
-	sphere.ices2obj() ;
-	std::cout << "# " << sphere.num_ices << " triangles" << std::endl ;
+	for ( auto i : sphere.ices() )
+		printf( "f %d %d %d\n", i.x+1, i.y+1, i.z+1 ) ;
+	std::cout << "# " << sphere.ices().size() << " triangles" << std::endl ;
 
 	std::cout << std::endl ;
 

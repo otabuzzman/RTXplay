@@ -9,22 +9,17 @@
 #include <vector_types.h>
 
 // local includes
-#include "hoist.h"
+// none
 
 // file specific includes
 // none
 
-class Sphere : public Hoist {
+class Sphere {
 	public:
 		Sphere( const float radius = 1.f, const unsigned int ndiv = 6 ) ;
 
-#ifdef MAIN
-
-		// output wavefront OBJ format
-		void vces2obj() const ;
-		void ices2obj() const ;
-
-#endif // MAIN
+		const std::vector<float3>& vces() const { return vces_ ; } ;
+		const std::vector<uint3>&  ices() const { return ices_ ; } ;
 
 	private:
 		float radius_ ;

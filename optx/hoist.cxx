@@ -13,31 +13,36 @@
 // file specific includes
 #include "hoist.h"
 
-Hoist::~Hoist() noexcept ( false ) {
-	if ( vces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( vces ) ) ) ;
-	if ( ices ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ices ) ) ) ;
+Hoist::Hoist( const std::vector<float3>& vertices, const std::vector<uint3>& indices ) {
+	copyVcesToDevice( vertices ) ;
+	num_vces = static_cast<unsigned int>( vertices.size() ) ;
+	copyIcesToDevice( indices )  ;
+	num_ices = static_cast<unsigned int>( indices.size()  ) ;
 }
 
-void Hoist::copyVcesToDevice( const std::vector<float3>& data ) {
-	num_vces = static_cast<unsigned int>( data.size() ) ;
-	const size_t data_size = sizeof( float3 )*num_vces ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &vces ), data_size ) ) ;
+Hoist::~Hoist() noexcept ( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( vces ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ices ) ) ) ;
+}
+
+void Hoist::copyVcesToDevice( const std::vector<float3>& vertices ) {
+	const size_t vertices_size = sizeof( float3 )*static_cast<unsigned int>( vertices.size() ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &vces ), vertices_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( vces ),
-		data.data(),
-		data_size,
+		vertices.data(),
+		vertices_size,
 		cudaMemcpyHostToDevice
 		) ) ;
 }
 
-void Hoist::copyIcesToDevice( const std::vector<uint3>& data ) {
-	num_ices = static_cast<unsigned int>( data.size() ) ;
-	const size_t data_size = sizeof( uint3 )*num_ices ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &ices ), data_size ) ) ;
+void Hoist::copyIcesToDevice( const std::vector<uint3>& indices ) {
+	const size_t indices_size = sizeof( uint3 )*static_cast<unsigned int>( indices.size() ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &ices ), indices_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( ices ),
-		data.data(),
-		data_size,
+		indices.data(),
+		indices_size,
 		cudaMemcpyHostToDevice
 		) ) ;
 }

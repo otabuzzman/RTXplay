@@ -8,7 +8,7 @@
 
 // local includes
 #include "sphere.h"
-#include "thing.h"
+#include "hoist.h"
 #include "util.h"
 #include "v.h"
 
@@ -21,16 +21,17 @@ using V::operator* ;
 void Scene::load() {
 	things_.clear() ;
 
-	auto sphere = std::make_shared<Sphere>( 1.f, 9 ) ;
-	sphere->optics.type = Optics::TYPE_DIFFUSE ;
-	sphere->optics.diffuse.albedo = { .5f, .5f, .5f } ;
-	sphere->transform[0*4+0] =  1000.f ; // scale
-	sphere->transform[1*4+1] =  1000.f ;
-	sphere->transform[2*4+2] =  1000.f ;
-	sphere->transform[0*4+3] =     0.f ; // translate
-	sphere->transform[1*4+3] = -1000.f ;
-	sphere->transform[2*4+3] =     0.f ;
-	things_.push_back( sphere ) ;
+	Sphere* sphere = new Sphere( 1.f, 9 ) ;
+	auto hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
+	hoist->optics.type = Optics::TYPE_DIFFUSE ;
+	hoist->optics.diffuse.albedo = { .5f, .5f, .5f } ;
+	hoist->transform[0*4+0] =  1000.f ; // scale
+	hoist->transform[1*4+1] =  1000.f ;
+	hoist->transform[2*4+2] =  1000.f ;
+	hoist->transform[0*4+3] =     0.f ; // translate
+	hoist->transform[1*4+3] = -1000.f ;
+	hoist->transform[2*4+3] =     0.f ;
+	things_.push_back( hoist ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11 ; b++ ) {
@@ -38,69 +39,78 @@ void Scene::load() {
 			const float3 center = { a+.9f*util::rnd(), .2f, b+.9f*util::rnd() } ;
 			if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 				if ( select<.8f ) {
-					sphere = std::make_shared<Sphere>() ;
-					sphere->optics.type = Optics::TYPE_DIFFUSE ;
-					sphere->optics.diffuse.albedo = V::rnd()*V::rnd() ;
-					sphere->transform[0*4+0] = .2f ;
-					sphere->transform[1*4+1] = .2f ;
-					sphere->transform[2*4+2] = .2f ;
-					sphere->transform[0*4+3] = center.x ;
-					sphere->transform[1*4+3] = center.y ;
-					sphere->transform[2*4+3] = center.z ;
-					things_.push_back( sphere ) ;
+					sphere = new Sphere() ;
+					hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
+					hoist->optics.type = Optics::TYPE_DIFFUSE ;
+					hoist->optics.diffuse.albedo = V::rnd()*V::rnd() ;
+					hoist->transform[0*4+0] = .2f ;
+					hoist->transform[1*4+1] = .2f ;
+					hoist->transform[2*4+2] = .2f ;
+					hoist->transform[0*4+3] = center.x ;
+					hoist->transform[1*4+3] = center.y ;
+					hoist->transform[2*4+3] = center.z ;
+					things_.push_back( hoist ) ;
 				} else if ( select<.95f ) {
-					sphere = std::make_shared<Sphere>() ;
-					sphere->optics.type = Optics::TYPE_REFLECT ;
-					sphere->optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
-					sphere->optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
-					sphere->transform[0*4+0] = .2f ;
-					sphere->transform[1*4+1] = .2f ;
-					sphere->transform[2*4+2] = .2f ;
-					sphere->transform[0*4+3] = center.x ;
-					sphere->transform[1*4+3] = center.y ;
-					sphere->transform[2*4+3] = center.z ;
-					things_.push_back( sphere ) ;
+					sphere = new Sphere() ;
+					hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
+					hoist->optics.type = Optics::TYPE_REFLECT ;
+					hoist->optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
+					hoist->optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
+					hoist->transform[0*4+0] = .2f ;
+					hoist->transform[1*4+1] = .2f ;
+					hoist->transform[2*4+2] = .2f ;
+					hoist->transform[0*4+3] = center.x ;
+					hoist->transform[1*4+3] = center.y ;
+					hoist->transform[2*4+3] = center.z ;
+					things_.push_back( hoist ) ;
 				} else {
-					sphere = std::make_shared<Sphere>( 1.f, 3 ) ;
-					sphere->optics.type = Optics::TYPE_REFRACT ;
-					sphere->optics.refract.index = 1.5f ;
-					sphere->transform[0*4+0] = .2f ;
-					sphere->transform[1*4+1] = .2f ;
-					sphere->transform[2*4+2] = .2f ;
-					sphere->transform[0*4+3] = center.x ;
-					sphere->transform[1*4+3] = center.y ;
-					sphere->transform[2*4+3] = center.z ;
-					things_.push_back( sphere ) ;
+					sphere = new Sphere( 1.f, 3 ) ;
+					hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
+					hoist->optics.type = Optics::TYPE_REFRACT ;
+					hoist->optics.refract.index = 1.5f ;
+					hoist->transform[0*4+0] = .2f ;
+					hoist->transform[1*4+1] = .2f ;
+					hoist->transform[2*4+2] = .2f ;
+					hoist->transform[0*4+3] = center.x ;
+					hoist->transform[1*4+3] = center.y ;
+					hoist->transform[2*4+3] = center.z ;
+					things_.push_back( hoist ) ;
 				}
 			}
 		}
 	}
 
-	sphere = std::make_shared<Sphere>( 1.f, 8 ) ;
-	sphere->optics.type = Optics::TYPE_REFRACT ;
-	sphere->optics.refract.index  = 1.5f ;
-	sphere->transform[0*4+0] = 1.f ;
-	sphere->transform[1*4+1] = 1.f ;
-	sphere->transform[2*4+2] = 1.f ;
-	sphere->transform[0*4+3] = 0.f ;
-	sphere->transform[1*4+3] = 1.f ;
-	sphere->transform[2*4+3] = 0.f ;
-	things_.push_back( sphere ) ;
-	sphere = std::make_shared<Sphere>() ;
-	sphere->optics.type = Optics::TYPE_DIFFUSE ;
-	sphere->optics.diffuse.albedo = { .4f, .2f, .1f } ;
-	sphere->transform[0*4+3] = -4.f ;
-	sphere->transform[1*4+3] =  1.f ;
-	sphere->transform[2*4+3] =  0.f ;
-	things_.push_back( sphere ) ;
-	sphere = std::make_shared<Sphere>( 1.f, 3 ) ;
-	sphere->optics.type = Optics::TYPE_REFLECT ;
-	sphere->optics.reflect.albedo = { .7f, .6f, .5f } ;
-	sphere->optics.reflect.fuzz   = 0.f ;
-	sphere->transform[0*4+3] = 4.f ;
-	sphere->transform[1*4+3] = 1.f ;
-	sphere->transform[2*4+3] = 0.f ;
-	things_.push_back( sphere ) ;
+
+	sphere = new Sphere( 1.f, 8 ) ;
+	hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
+	hoist->optics.type = Optics::TYPE_REFRACT ;
+	hoist->optics.refract.index  = 1.5f ;
+	hoist->transform[0*4+0] = 1.f ;
+	hoist->transform[1*4+1] = 1.f ;
+	hoist->transform[2*4+2] = 1.f ;
+	hoist->transform[0*4+3] = 0.f ;
+	hoist->transform[1*4+3] = 1.f ;
+	hoist->transform[2*4+3] = 0.f ;
+	things_.push_back( hoist ) ;
+	sphere = new Sphere() ;
+	hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
+	hoist->optics.type = Optics::TYPE_DIFFUSE ;
+	hoist->optics.diffuse.albedo = { .4f, .2f, .1f } ;
+	hoist->transform[0*4+3] = -4.f ;
+	hoist->transform[1*4+3] =  1.f ;
+	hoist->transform[2*4+3] =  0.f ;
+	things_.push_back( hoist ) ;
+	sphere = new Sphere( 1.f, 3 ) ;
+	hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
+	hoist->optics.type = Optics::TYPE_REFLECT ;
+	hoist->optics.reflect.albedo = { .7f, .6f, .5f } ;
+	hoist->optics.reflect.fuzz   = 0.f ;
+	hoist->transform[0*4+3] = 4.f ;
+	hoist->transform[1*4+3] = 1.f ;
+	hoist->transform[2*4+3] = 0.f ;
+	things_.push_back( hoist ) ;
+
+	delete sphere ;
 }
 
 size_t Scene::size() const {
