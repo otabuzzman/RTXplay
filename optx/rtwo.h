@@ -5,10 +5,10 @@
 // none
 
 // subsystem includes
-// CUDA
-#include <vector_types.h>
 // OptiX
 #include <optix.h>
+// CUDA
+#include <vector_types.h>
 
 // local includes
 #include "camera.h"

@@ -209,7 +209,7 @@ sphere-8.scn:
 sphere-9.scn:
 	./sphere$x 1. 9 >$@
 
-sphere$x: sphere.cxx hoist$o
+sphere$x: sphere.cxx
 	nvcc -DMAIN -o $@ $^ \
 		$(NVCCFLAGS) \
 		$(INC) \

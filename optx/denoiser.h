@@ -5,9 +5,10 @@
 // none
 
 // subsystem includes
+// OptiX
+#include <optix.h>
 // CUDA
 #include <vector_types.h>
-#include <optix.h>
 
 // local includes
 #include "args.h"
