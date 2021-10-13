@@ -3,7 +3,6 @@
 
 // subsystem includes
 // CUDA
-#include <vector_functions.h>
 #include <vector_types.h>
 
 // local includes
