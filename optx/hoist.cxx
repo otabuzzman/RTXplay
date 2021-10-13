@@ -4,6 +4,7 @@
 // subsystem includes
 // OptiX
 #include <optix.h>
+#include <optix_stubs.h>
 // CUDA
 #include <vector_functions.h>
 #include <vector_types.h>
@@ -18,10 +19,10 @@
 extern OptixDeviceContext optx_context ;
 
 Hoist::Hoist( const std::vector<float3>& vertices, const std::vector<uint3>& indices ) {
-	makeGas( vertices, indices ) ;
-
 	num_vces = static_cast<unsigned int>( vertices.size() ) ;
 	num_ices = static_cast<unsigned int>( indices.size()  ) ;
+
+	makeGas( vertices, indices ) ;
 }
 
 Hoist::~Hoist() noexcept ( false ) {
