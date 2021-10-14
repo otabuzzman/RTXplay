@@ -45,10 +45,10 @@ OPTIX_CACHE_PATH = ./OptixCache_$$USER
 
 # scene objects (wavefront OBJ format)
 SCN = \
-	sphere-3.scn \
-	sphere-6.scn \
-	sphere-8.scn \
-	sphere-9.scn \
+	sphere_3.scn \
+	sphere_6.scn \
+	sphere_8.scn \
+	sphere_9.scn \
 
 # default target
 $(IMG): $(EXE) $(SCN)
@@ -200,13 +200,13 @@ $(EXE): $(OBJ)
 		$(LIB) \
 
 $(SCN): sphere$x
-sphere-3.scn:
+sphere_3.scn:
 	./sphere$x 1. 3 >$@
-sphere-6.scn:
+sphere_6.scn:
 	./sphere$x 1. 6 >$@
-sphere-8.scn:
+sphere_8.scn:
 	./sphere$x 1. 8 >$@
-sphere-9.scn:
+sphere_9.scn:
 	./sphere$x 1. 9 >$@
 
 sphere$x: sphere.cxx
