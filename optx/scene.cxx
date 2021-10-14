@@ -31,6 +31,7 @@ void Scene::load() {
 	hoist->transform[1*4+3] = -1000.f ;
 	hoist->transform[2*4+3] =     0.f ;
 	things_.push_back( hoist ) ;
+	delete sphere ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11 ; b++ ) {
@@ -49,6 +50,7 @@ void Scene::load() {
 					hoist->transform[1*4+3] = center.y ;
 					hoist->transform[2*4+3] = center.z ;
 					things_.push_back( hoist ) ;
+					delete sphere ;
 				} else if ( select<.95f ) {
 					sphere = new Sphere() ;
 					hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
@@ -62,6 +64,7 @@ void Scene::load() {
 					hoist->transform[1*4+3] = center.y ;
 					hoist->transform[2*4+3] = center.z ;
 					things_.push_back( hoist ) ;
+					delete sphere ;
 				} else {
 					sphere = new Sphere( 1.f, 3 ) ;
 					hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
@@ -74,6 +77,7 @@ void Scene::load() {
 					hoist->transform[1*4+3] = center.y ;
 					hoist->transform[2*4+3] = center.z ;
 					things_.push_back( hoist ) ;
+					delete sphere ;
 				}
 			}
 		}
@@ -91,6 +95,8 @@ void Scene::load() {
 	hoist->transform[1*4+3] = 1.f ;
 	hoist->transform[2*4+3] = 0.f ;
 	things_.push_back( hoist ) ;
+	delete sphere ;
+
 	sphere = new Sphere() ;
 	hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
 	hoist->optics.type = Optics::TYPE_DIFFUSE ;
@@ -99,6 +105,8 @@ void Scene::load() {
 	hoist->transform[1*4+3] =  1.f ;
 	hoist->transform[2*4+3] =  0.f ;
 	things_.push_back( hoist ) ;
+	delete sphere ;
+
 	sphere = new Sphere( 1.f, 3 ) ;
 	hoist = std::make_shared<Hoist>( sphere->vces(), sphere->ices() ) ;
 	hoist->optics.type = Optics::TYPE_REFLECT ;
@@ -108,7 +116,6 @@ void Scene::load() {
 	hoist->transform[1*4+3] = 1.f ;
 	hoist->transform[2*4+3] = 0.f ;
 	things_.push_back( hoist ) ;
-
 	delete sphere ;
 }
 
