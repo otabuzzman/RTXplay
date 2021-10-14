@@ -26,7 +26,7 @@ struct Hoist : public Thing {
 	OptixTraversableHandle as_handle = 0 ;
 
 	private:
-		void makeGas( const std::vector<float3>& vertices, const std::vector<uint3>& indices ) ;
+		void makeGas() ;
 
 		void copyVcesToDevice( const std::vector<float3>& vertices ) ;
 		void copyIcesToDevice( const std::vector<uint3>&  indices  ) ;

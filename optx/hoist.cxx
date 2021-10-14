@@ -19,10 +19,12 @@
 extern OptixDeviceContext optx_context ;
 
 Hoist::Hoist( const std::vector<float3>& vertices, const std::vector<uint3>& indices ) {
+	copyVcesToDevice( vertices ) ;
 	num_vces = static_cast<unsigned int>( vertices.size() ) ;
+	copyIcesToDevice( indices )  ;
 	num_ices = static_cast<unsigned int>( indices.size()  ) ;
 
-	makeGas( vertices, indices ) ;
+	makeGas() ;
 }
 
 Hoist::~Hoist() noexcept ( false ) {
@@ -32,10 +34,7 @@ Hoist::~Hoist() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( as_outbuf_ ) ) ) ;
 }
 
-void Hoist::makeGas( const std::vector<float3>& vertices, const std::vector<uint3>& indices ) {
-	copyVcesToDevice( vertices ) ;
-	copyIcesToDevice( indices  ) ;
-
+void Hoist::makeGas() {
 	OptixBuildInput obi_thing = {} ;
 	obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
