@@ -6,8 +6,8 @@
 #include <vector_types.h>
 
 // local includes
-#include "sphere.h"
 #include "hoist.h"
+#include "sphere.h"
 #include "util.h"
 #include "v.h"
 

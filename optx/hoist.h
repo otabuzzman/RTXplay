@@ -5,8 +5,6 @@
 #include <vector>
 
 // subsystem includes
-// OptiX
-#include <optix.h>
 // CUDA
 #include <vector_types.h>
 
@@ -23,15 +21,9 @@ struct Hoist : public Thing {
 	unsigned int num_vces = 0 ;
 	unsigned int num_ices = 0 ;
 
-	OptixTraversableHandle as_handle = 0 ;
-
 	private:
-		void makeGas() ;
-
 		void copyVcesToDevice( const std::vector<float3>& vertices ) ;
 		void copyIcesToDevice( const std::vector<uint3>&  indices  ) ;
-
-		CUdeviceptr as_outbuf_ = 0 ;
 } ;
 
 #endif // HOIST_H

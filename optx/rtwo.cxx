@@ -142,11 +142,11 @@ int main( int argc, char* argv[] ) {
 			std::vector<CUdeviceptr> vces ;
 			vces.resize( scene.size() ) ;
 
-			// GPU pointers at triangles lists of things in scene
+			// GPU pointers at indexed triangles lists of things
 			std::vector<CUdeviceptr> ices ;
 			ices.resize( scene.size() ) ;
 
-			// GPU pointers at pre-transform matrices of things in scene
+			// GPU pointers at pre-transform matrices of things
 			std::vector<CUdeviceptr> tces ;
 			tces.resize( scene.size() ) ;
 
