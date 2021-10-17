@@ -136,9 +136,9 @@ args.exe: args.cxx
 	g++ -DMAIN -o $@ $< \
 
 else
-CXXFLAGS  = -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS
+CXXFLAGS  = -std=c++11 -Wall -Wsign-compare -Wno-multichar -funroll-loops -fPIC -msse -msse2 -msse3 -mfpmath=sse -O3 -g3 -DNDEBUG $$CXXDEFS
 LDFLAGS   = --fatal-warnings
-NVCCFLAGS = -std c++11 -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
+NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
 
 INC = \
 	-I/usr/local/cuda/include \
