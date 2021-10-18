@@ -28,15 +28,15 @@ void Scene::load() {
 	meshes_.push_back( sphere_8 ) ;
 	meshes_.push_back( sphere_9 ) ;
 
-	sphere_3->optics.type = Optics::TYPE_DIFFUSE ;
-	sphere_3->optics.diffuse.albedo = { .5f, .5f, .5f } ;
-	sphere_3->transform[0*4+0] =  1000.f ; // scale
-	sphere_3->transform[1*4+1] =  1000.f ;
-	sphere_3->transform[2*4+2] =  1000.f ;
-	sphere_3->transform[0*4+3] =     0.f ; // translate
-	sphere_3->transform[1*4+3] = -1000.f ;
-	sphere_3->transform[2*4+3] =     0.f ;
-	things_.push_back( *sphere_3 ) ;
+	sphere_9->optics.type = Optics::TYPE_DIFFUSE ;
+	sphere_9->optics.diffuse.albedo = { .5f, .5f, .5f } ;
+	sphere_9->transform[0*4+0] =  1000.f ; // scale
+	sphere_9->transform[1*4+1] =  1000.f ;
+	sphere_9->transform[2*4+2] =  1000.f ;
+	sphere_9->transform[0*4+3] =     0.f ; // translate
+	sphere_9->transform[1*4+3] = -1000.f ;
+	sphere_9->transform[2*4+3] =     0.f ;
+	things_.push_back( *sphere_9 ) ;
 
 	for ( int a = -11 ; a<11 ; a++ ) {
 		for ( int b = -11 ; b<11 ; b++ ) {
@@ -91,6 +91,9 @@ void Scene::load() {
 
 	sphere_6->optics.type = Optics::TYPE_DIFFUSE ;
 	sphere_6->optics.diffuse.albedo = { .4f, .2f, .1f } ;
+	sphere_6->transform[0*4+0] = 1.f ;
+	sphere_6->transform[1*4+1] = 1.f ;
+	sphere_6->transform[2*4+2] = 1.f ;
 	sphere_6->transform[0*4+3] = -4.f ;
 	sphere_6->transform[1*4+3] =  1.f ;
 	sphere_6->transform[2*4+3] =  0.f ;
@@ -99,6 +102,9 @@ void Scene::load() {
 	sphere_3->optics.type = Optics::TYPE_REFLECT ;
 	sphere_3->optics.reflect.albedo = { .7f, .6f, .5f } ;
 	sphere_3->optics.reflect.fuzz   = 0.f ;
+	sphere_3->transform[0*4+0] = 1.f ;
+	sphere_3->transform[1*4+1] = 1.f ;
+	sphere_3->transform[2*4+2] = 1.f ;
 	sphere_3->transform[0*4+3] = 4.f ;
 	sphere_3->transform[1*4+3] = 1.f ;
 	sphere_3->transform[2*4+3] = 0.f ;
