@@ -157,24 +157,24 @@ int main( int argc, char* argv[] ) {
 
 			// create build input strucure for each thing in scene
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
-				vces[i] = reinterpret_cast<CUdeviceptr>( scene[i]->vces ) ;
-				ices[i] = reinterpret_cast<CUdeviceptr>( scene[i]->ices ) ;
+				vces[i] = reinterpret_cast<CUdeviceptr>( scene[i].vces ) ;
+				ices[i] = reinterpret_cast<CUdeviceptr>( scene[i].ices ) ;
 				// setup this thing's build input structure
 				OptixBuildInput obi_thing = {} ;
 				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = scene[i]->num_vces ;
+				obi_thing.triangleArray.numVertices                 = scene[i].num_vces ;
 				obi_thing.triangleArray.vertexBuffers               = &vces[i] ;
 
 				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = scene[i]->num_ices ;
+				obi_thing.triangleArray.numIndexTriplets            = scene[i].num_ices ;
 				obi_thing.triangleArray.indexBuffer                 = ices[i] ;
 
 				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &tces[i] ), sizeof( float )*12 ) ) ;
 				CUDA_CHECK( cudaMemcpy(
 							reinterpret_cast<void*>( tces[i] ),
-							scene[i]->transform,
+							scene[i].transform,
 							sizeof( float )*12,
 							cudaMemcpyHostToDevice
 							) ) ;
@@ -509,9 +509,9 @@ int main( int argc, char* argv[] ) {
 			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
 				// this thing's SBT record
 				SbtRecordHG sbt_record_thing ;
-				sbt_record_thing.data = *scene[i] ;
+				sbt_record_thing.data = scene[i] ;
 				// setup SBT record header
-				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i]->optics.type], &sbt_record_thing ) ) ;
+				OPTX_CHECK( optixSbtRecordPackHeader( program_group_optics[scene[i].optics.type], &sbt_record_thing ) ) ;
 				// save thing's SBT Record to buffer
 				sbt_record_buffer[i] = sbt_record_thing ;
 			}

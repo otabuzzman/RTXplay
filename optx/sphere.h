@@ -9,14 +9,15 @@
 #include <vector_types.h>
 
 // local includes
-// none
+#include "hoist.h"
 
 // file specific includes
 // none
 
-class Sphere {
+class Sphere : public Hoist {
 	public:
 		Sphere( const float radius = 1.f, const unsigned int ndiv = 6 ) ;
+		~Sphere() noexcept ( false ) ;
 
 		const std::vector<float3>& vces() const { return vces_ ; } ;
 		const std::vector<uint3>&  ices() const { return ices_ ; } ;
@@ -33,6 +34,10 @@ class Sphere {
 		void tetrahedron() ;
 		void pumpup( const float3& a, const float3& b, const float3& c, const unsigned int ndiv ) ;
 		void reduce() ;
+
+		void copyVcesToDevice() ;
+		void copyIcesToDevice() ;
+
 } ;
 
 #endif // SPHERE_H

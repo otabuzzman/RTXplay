@@ -2,11 +2,10 @@
 #define HOIST_H
 
 // system includes
-#include <vector>
+// none
 
 // subsystem includes
-// CUDA
-#include <vector_types.h>
+// none
 
 // local includes
 #include "thing.h"
@@ -15,15 +14,8 @@
 // none
 
 struct Hoist : public Thing {
-	Hoist( const std::vector<float3>& vertices, const std::vector<uint3>& indices ) ;
-	~Hoist() noexcept ( false ) ;
-
 	unsigned int num_vces = 0 ;
 	unsigned int num_ices = 0 ;
-
-	private:
-		void copyVcesToDevice( const std::vector<float3>& vertices ) ;
-		void copyIcesToDevice( const std::vector<uint3>&  indices  ) ;
 } ;
 
 #endif // HOIST_H

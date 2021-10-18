@@ -24,7 +24,6 @@ OBJ = \
 	rtwo$o \
 	args$o \
 	scene$o \
-	hoist$o \
 	sphere$o \
 	camera_i$o \
 	optics_i$o \

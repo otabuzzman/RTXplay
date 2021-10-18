@@ -21,6 +21,24 @@ Sphere::Sphere( const float radius, const unsigned int ndiv )
 	: radius_( radius ), ndiv_( ndiv ) {
 
 	tetrahedron() ;
+
+#ifndef MAIN
+
+	copyVcesToDevice() ;
+	num_vces = static_cast<unsigned int>( vces_.size() ) ;
+	copyIcesToDevice()  ;
+	num_ices = static_cast<unsigned int>( ices_.size()  ) ;
+
+#endif // MAIN
+}
+
+Sphere::~Sphere() noexcept (false ) {
+#ifndef MAIN
+
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( Thing::vces ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( Thing::ices ) ) ) ;
+
+#endif // MAIN
 }
 
 void Sphere::tetrahedron() {
@@ -101,6 +119,28 @@ void Sphere::reduce() { // (SO #14396788)
 		ices_.push_back( { itmp[i], itmp[i+1], itmp[i+2] } ) ;
 
 	vtmp_.clear() ;
+}
+
+void Sphere::copyVcesToDevice() {
+	const size_t vces_size = sizeof( float3 )*static_cast<unsigned int>( vces_.size() ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &( Thing::vces ) ), vces_size ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( Thing::vces ),
+		vces_.data(),
+		vces_size,
+		cudaMemcpyHostToDevice
+		) ) ;
+}
+
+void Sphere::copyIcesToDevice() {
+	const size_t ices_size = sizeof( uint3 )*static_cast<unsigned int>( ices_.size() ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &( Thing::ices ) ), ices_size ) ) ;
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( Thing::ices ),
+		ices_.data(),
+		ices_size,
+		cudaMemcpyHostToDevice
+		) ) ;
 }
 
 #ifdef MAIN

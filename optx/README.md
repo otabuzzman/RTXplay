@@ -174,8 +174,8 @@ Try a cloud service. RTWO developement actually happened on Windows and got its 
 |`args.cxx`|Command line argument processing.|
 |`scene.cxx`|A collection of things.|
 |`thing.h`|A generalization of a *Thing* in a scene as seen by *Hit Group* programs. Actually a `struct` carried onto device via SBT record.|
-|`hoist.cxx`|A specialization of *Thing* to support host-side handling.|
-|`sphere.cxx`|A triangle-meshed sphere approximation. Actually a tetrahedron *pumped up* by recursively subdividing triangular surfaces.|
+|`hoist.h`|A specialization of *Thing* to support host-side handling.|
+|`sphere.cxx`|A specialization of *Hoist* as triangle-meshed sphere approximation. Actually a tetrahedron *pumped up* by recursively subdividing triangular surfaces.|
 |`simpleui.cxx`|The CUDA OpenGL interop code to continuously render on X, as well as input event handling.|
 |`frag.gsgl`<br>`vert.gsgl`|Generic OpenGL fragment and vertex shaders.|
 |`paddle.cxx`|An abstraction of a control device inspired by the `Trackball` class in sutils of the OptiX SDK (name taken from Atari's [Pong](https://en.wikipedia.org/wiki/Pong) game).|

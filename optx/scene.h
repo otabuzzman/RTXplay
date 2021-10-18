@@ -10,19 +10,21 @@
 
 // local includes
 #include "hoist.h"
+#include "sphere.h"
 
 // file specific includes
 // none
 
 class Scene {
 	public:
-		std::shared_ptr<Hoist> operator[] ( unsigned int i ) { return things_[i] ; } ;
+		const Hoist& operator[] ( unsigned int i ) { return things_[i] ; } ;
 
 		void   load() ;
 		size_t size() const ;
 
 	private:
-		std::vector<std::shared_ptr<Hoist>> things_ ;
+		std::vector<std::shared_ptr<Sphere>> meshes_ ; // unique triangle meshes (UTM)
+		std::vector<Hoist>                   things_ ;
 } ;
 
 #endif // SCENE_H
