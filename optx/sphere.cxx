@@ -67,7 +67,7 @@ void Sphere::reduce() { // (SO #14396788)
 	typedef std::pair<float3, unsigned int> VRec ;
 
 	struct VCmp {
-		bool operator () ( const VRec& l, const VRec& r ) const {
+		bool operator() ( const VRec& l, const VRec& r ) const {
 			if ( l.first.x != r.first.x )
 				return l.first.x<r.first.x ;
 			if ( l.first.y != r.first.y )
