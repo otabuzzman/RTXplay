@@ -23,8 +23,8 @@ class Sphere : public Hoist {
 		const std::vector<uint3>&  ices() const { return ices_ ; } ;
 
 	private:
-		float radius_ ;
-		int   ndiv_   ;
+		float          radius_ ;
+		unsigned int   ndiv_   ;
 
 		std::vector<float3> vces_ ; // sphere's unique vertices...
 		std::vector<uint3>  ices_ ; // ...as indexed triangles
@@ -38,6 +38,7 @@ class Sphere : public Hoist {
 		void copyVcesToDevice() ;
 		void copyIcesToDevice() ;
 
+		static int utm_count_ ;
 } ;
 
 #endif // SPHERE_H

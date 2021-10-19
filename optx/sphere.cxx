@@ -17,6 +17,9 @@
 using V::operator+ ;
 using V::operator* ;
 
+// initilaize UTM counter
+int Sphere::utm_count_ = 0 ;
+
 Sphere::Sphere( const float radius, const unsigned int ndiv )
 	: radius_( radius ), ndiv_( ndiv ) {
 
@@ -30,6 +33,9 @@ Sphere::Sphere( const float radius, const unsigned int ndiv )
 	num_ices = static_cast<unsigned int>( ices_.size()  ) ;
 
 #endif // MAIN
+
+	// count UTM and record current
+	utm_index = utm_count_++ ;
 }
 
 Sphere::~Sphere() noexcept (false ) {

@@ -14,8 +14,10 @@
 // none
 
 struct Hoist : public Thing {
-	unsigned int num_vces = 0 ;
-	unsigned int num_ices = 0 ;
+	unsigned int num_vces  =  0 ;
+	unsigned int num_ices  =  0 ;
+
+	int          utm_index = -1 ;
 } ;
 
 #endif // HOIST_H
