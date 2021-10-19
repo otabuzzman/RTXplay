@@ -110,7 +110,3 @@ void Scene::load() {
 	sphere_3->transform[2*4+3] = 0.f ;
 	things_.push_back( *sphere_3 ) ;
 }
-
-size_t Scene::size() const {
-	return things_.size() ;
-}

@@ -73,6 +73,8 @@ static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
 	imgtopnm( image, w, h ) ;
 }
 
+static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* as_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) ;
+
 
 
 int main( int argc, char* argv[] ) {
@@ -130,137 +132,12 @@ int main( int argc, char* argv[] ) {
 		// build acceleration structure
 		CUdeviceptr d_as_outbuf ;
 		// acceleration structure compaction buffer
-//		CUdeviceptr d_as_zipbuf ;
+		CUdeviceptr d_as_zipbuf ;
 		Scene scene ;
 		{
 			scene.load() ;
-			// build input structures of things in scene
-			std::vector<OptixBuildInput> obi_things ;
-			obi_things.resize( scene.size() ) ;
 
-			// GPU pointers at vertices lists of things in scene
-			std::vector<CUdeviceptr> vces ;
-			vces.resize( scene.size() ) ;
-
-			// GPU pointers at indexed triangles lists of things
-			std::vector<CUdeviceptr> ices ;
-			ices.resize( scene.size() ) ;
-
-			// GPU pointers at pre-transform matrices of things
-			std::vector<CUdeviceptr> tces ;
-			tces.resize( scene.size() ) ;
-
-			// thing specific (or one fits all) flags per SBT record
-			// std::vector<std::vector<unsigned int>> obi_thing_flags ;
-			// obi_thing_flags.resize( scene.size() ) ;
-			const unsigned int obi_thing_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
-
-			// create build input strucure for each thing in scene
-			for ( unsigned int i = 0 ; scene.size()>i ; i++ ) {
-				vces[i] = reinterpret_cast<CUdeviceptr>( scene[i].vces ) ;
-				ices[i] = reinterpret_cast<CUdeviceptr>( scene[i].ices ) ;
-				// setup this thing's build input structure
-				OptixBuildInput obi_thing = {} ;
-				obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
-
-				obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-				obi_thing.triangleArray.numVertices                 = scene[i].num_vces ;
-				obi_thing.triangleArray.vertexBuffers               = &vces[i] ;
-
-				obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-				obi_thing.triangleArray.numIndexTriplets            = scene[i].num_ices ;
-				obi_thing.triangleArray.indexBuffer                 = ices[i] ;
-
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &tces[i] ), sizeof( float )*12 ) ) ;
-				CUDA_CHECK( cudaMemcpy(
-							reinterpret_cast<void*>( tces[i] ),
-							scene[i].transform,
-							sizeof( float )*12,
-							cudaMemcpyHostToDevice
-							) ) ;
-				obi_thing.triangleArray.preTransform                = tces[i] ;
-				obi_thing.triangleArray.transformFormat             = OPTIX_TRANSFORM_FORMAT_MATRIX_FLOAT12 ;
-
-				// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
-				// obi_thing.triangleArray.flags                       = &obi_thing_flags[i][0] ;
-				obi_thing.triangleArray.flags                       = &obi_thing_flags[0] ;
-				obi_thing.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
-				obi_thing.triangleArray.sbtIndexOffsetBuffer        = 0 ;
-				obi_thing.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
-				obi_thing.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
-
-				obi_things[i] = obi_thing ;
-			}
-
-			OptixAccelBuildOptions oas_options = {} ;
-			oas_options.buildFlags             = OPTIX_BUILD_FLAG_NONE ;
-			oas_options.operation              = OPTIX_BUILD_OPERATION_BUILD ;
-
-			// request acceleration structure buffer sizes from OptiX
-			OptixAccelBufferSizes as_buffer_sizes ;
-			OPTX_CHECK( optixAccelComputeMemoryUsage(
-						optx_context,
-						&oas_options,
-						obi_things.data(),
-						static_cast<unsigned int>( obi_things.size() ),
-						&as_buffer_sizes
-						) ) ;
-
-			// allocate GPU memory for acceleration structure compaction buffer size
-//			CUDABuffer d_as_zipbuf_size ;
-//			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf_size ), sizeof( unsigned long long ) ) ) ;
-
-			// provide request description for acceleration structure compaction buffer size
-//			OptixAccelEmitDesc oas_request ;
-//			oas_request.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE ;
-//			oas_request.result = d_as_zipbuf_size ;
-
-			// allocate GPU memory for acceleration structure buffers
-			CUdeviceptr d_as_tmpbuf ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_tmpbuf ), as_buffer_sizes.tempSizeInBytes ) ) ;
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_outbuf ), as_buffer_sizes.outputSizeInBytes ) ) ;
-
-			// build acceleration structure
-			OPTX_CHECK( optixAccelBuild(
-						optx_context,
-						0,
-						&oas_options,
-						obi_things.data(),
-						static_cast<unsigned int>( obi_things.size() ),
-						d_as_tmpbuf,
-						as_buffer_sizes.tempSizeInBytes,
-						d_as_outbuf,
-						as_buffer_sizes.outputSizeInBytes,
-						&lp_general.as_handle,
-						nullptr, 0
-						// acceleration structure compaction (must comment previous line)
-//						&oas_request, 1
-						) ) ;
-
-			// retrieve acceleration structure compaction buffer size from GPU memory
-//			unsigned long long as_zipbuf_size ;
-//			CUDA_CHECK( cudaMemcpy(
-//						reinterpret_cast<void*>( &as_zipbuf_size ),
-//						d_as_zipbuf_size,
-//						sizeof( unsigned long long ),
-//						cudaMemcpyDeviceToHost
-//						) ) ;
-
-			// allocate GPU memory for acceleration structure compaction buffer
-//			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf ), as_zipbuf_size ) ) ;
-			// condense previously built acceleration structure
-//			OPTX_CHECK( optixAccelCompact(
-//						optixContext,
-//						0,
-//						lp_general.as_handle,
-//						d_as_zipbuf,
-//						d_as_zipbuf_size,
-//						&lp_general.as_handle) ) ;
-
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
-			// free GPU memory for acceleration structure compaction buffer
-//			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf_size ) ) ) ;
-			for ( auto t : tces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( t ) ) ) ;
+			makeGAS( scene.data(), scene.size(), &lp_general.as_handle, &d_as_outbuf, &d_as_zipbuf ) ;
 		}
 
 
@@ -729,4 +606,134 @@ static void imgtopnm( const std::vector<unsigned int> mono, const int w, const i
 			std::cout
 				<< mono.data()[w*y+x] << '\n' ;
 	std::cout << std::endl ;
+}
+
+static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* as_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) {
+	// build input structures of things in scene
+	std::vector<OptixBuildInput> obi_things ;
+	obi_things.resize( scene_size ) ;
+
+	// GPU pointers at vertices lists of things in scene
+	std::vector<CUdeviceptr> vces ;
+	vces.resize( scene_size ) ;
+
+	// GPU pointers at indexed triangles lists of things
+	std::vector<CUdeviceptr> ices ;
+	ices.resize( scene_size ) ;
+
+	// GPU pointers at pre-transform matrices of things
+	std::vector<CUdeviceptr> tces ;
+	tces.resize( scene_size ) ;
+
+	// thing specific (or one fits all) flags per SBT record
+	// std::vector<std::vector<unsigned int>> obi_thing_flags ;
+	// obi_thing_flags.resize( scene_size ) ;
+	const unsigned int obi_thing_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
+
+	// create build input strucure for each thing in scene
+	for ( unsigned int i = 0 ; scene_size>i ; i++ ) {
+		vces[i] = reinterpret_cast<CUdeviceptr>( scene[i].vces ) ;
+		ices[i] = reinterpret_cast<CUdeviceptr>( scene[i].ices ) ;
+		// setup this thing's build input structure
+		OptixBuildInput obi_thing = {} ;
+		obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
+
+		obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
+		obi_thing.triangleArray.numVertices                 = scene[i].num_vces ;
+		obi_thing.triangleArray.vertexBuffers               = &vces[i] ;
+
+		obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
+		obi_thing.triangleArray.numIndexTriplets            = scene[i].num_ices ;
+		obi_thing.triangleArray.indexBuffer                 = ices[i] ;
+
+		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &tces[i] ), sizeof( float )*12 ) ) ;
+		CUDA_CHECK( cudaMemcpy(
+					reinterpret_cast<void*>( tces[i] ),
+					scene[i].transform,
+					sizeof( float )*12,
+					cudaMemcpyHostToDevice
+					) ) ;
+		obi_thing.triangleArray.preTransform                = tces[i] ;
+		obi_thing.triangleArray.transformFormat             = OPTIX_TRANSFORM_FORMAT_MATRIX_FLOAT12 ;
+
+		// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
+		// obi_thing.triangleArray.flags                       = &obi_thing_flags[i][0] ;
+		obi_thing.triangleArray.flags                       = &obi_thing_flags[0] ;
+		obi_thing.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
+		obi_thing.triangleArray.sbtIndexOffsetBuffer        = 0 ;
+		obi_thing.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
+		obi_thing.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
+
+		obi_things[i] = obi_thing ;
+	}
+
+	OptixAccelBuildOptions oas_options = {} ;
+	oas_options.buildFlags             = OPTIX_BUILD_FLAG_NONE ;
+	oas_options.operation              = OPTIX_BUILD_OPERATION_BUILD ;
+
+	// request acceleration structure buffer sizes from OptiX
+	OptixAccelBufferSizes as_buffer_sizes ;
+	OPTX_CHECK( optixAccelComputeMemoryUsage(
+				optx_context,
+				&oas_options,
+				obi_things.data(),
+				static_cast<unsigned int>( obi_things.size() ),
+				&as_buffer_sizes
+				) ) ;
+
+	// allocate GPU memory for acceleration structure compaction buffer size
+//	CUDABuffer d_as_zipbuf_size ;
+//	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf_size ), sizeof( unsigned long long ) ) ) ;
+
+	// provide request description for acceleration structure compaction buffer size
+//	OptixAccelEmitDesc oas_request ;
+//	oas_request.type   = OPTIX_PROPERTY_TYPE_COMPACTED_SIZE ;
+//	oas_request.result = d_as_zipbuf_size ;
+
+	// allocate GPU memory for acceleration structure buffers
+	CUdeviceptr d_as_tmpbuf ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_tmpbuf ), as_buffer_sizes.tempSizeInBytes ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>(  d_as_outbuf ), as_buffer_sizes.outputSizeInBytes ) ) ;
+
+	// build acceleration structure
+	OPTX_CHECK( optixAccelBuild(
+				optx_context,
+				0,
+				&oas_options,
+				obi_things.data(),
+				static_cast<unsigned int>( obi_things.size() ),
+				d_as_tmpbuf,
+				as_buffer_sizes.tempSizeInBytes,
+				*d_as_outbuf,
+				as_buffer_sizes.outputSizeInBytes,
+				as_handle,
+				nullptr, 0
+				// acceleration structure compaction (must comment previous line)
+//				&oas_request, 1
+				) ) ;
+
+	// retrieve acceleration structure compaction buffer size from GPU memory
+//	unsigned long long as_zipbuf_size ;
+//	CUDA_CHECK( cudaMemcpy(
+//				reinterpret_cast<void*>( &as_zipbuf_size ),
+//				d_as_zipbuf_size,
+//				sizeof( unsigned long long ),
+//				cudaMemcpyDeviceToHost
+//				) ) ;
+
+	// allocate GPU memory for acceleration structure compaction buffer
+//	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_as_zipbuf ), as_zipbuf_size ) ) ;
+	// condense previously built acceleration structure
+//	OPTX_CHECK( optixAccelCompact(
+//				optixContext,
+//				0,
+//				lp_general.as_handle,
+//				d_as_zipbuf,
+//				d_as_zipbuf_size,
+//				&lp_general.as_handle) ) ;
+
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
+	// free GPU memory for acceleration structure compaction buffer
+//	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf_size ) ) ) ;
+	for ( auto t : tces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( t ) ) ) ;
 }

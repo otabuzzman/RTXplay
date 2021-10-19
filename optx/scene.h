@@ -19,8 +19,9 @@ class Scene {
 	public:
 		const Hoist& operator[] ( unsigned int i ) { return things_[i] ; } ;
 
-		void   load() ;
-		size_t size() const ;
+		void         load() ;
+		const Hoist* data() const { return things_.data() ; } ;
+		size_t       size() const { return things_.size() ; } ;
 
 	private:
 		std::vector<std::shared_ptr<Sphere>> meshes_ ; // unique triangle meshes (UTM)
