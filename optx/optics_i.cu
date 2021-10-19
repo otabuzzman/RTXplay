@@ -40,8 +40,9 @@ extern "C" __global__ void __closesthit__diffuse() {
 	const float3 a = vces[trix.x] ;
 	const float3 p = vces[trix.y] ;
 	const float3 c = vces[trix.z] ;
-	// apply AS preTransform matrix
-	const float* t = thing->transform ;
+	// apply IAS transform matrix
+	float t[12] ;
+	optixGetObjectToWorldTransformMatrix( t ) ;
 	const float3 A = {
 		a.x*t[0*4+0]+a.y*t[0*4+1]+a.z*t[0*4+2]+t[0*4+3],
 		a.x*t[1*4+0]+a.y*t[1*4+1]+a.z*t[1*4+2]+t[1*4+3],
@@ -113,8 +114,9 @@ extern "C" __global__ void __closesthit__reflect() {
 	const float3 a = vces[trix.x] ;
 	const float3 p = vces[trix.y] ;
 	const float3 c = vces[trix.z] ;
-	// apply AS preTransform matrix
-	const float* t = thing->transform ;
+	// apply IAS transform matrix
+	float t[12] ;
+	optixGetObjectToWorldTransformMatrix( t ) ;
 	const float3 A = {
 		a.x*t[0*4+0]+a.y*t[0*4+1]+a.z*t[0*4+2]+t[0*4+3],
 		a.x*t[1*4+0]+a.y*t[1*4+1]+a.z*t[1*4+2]+t[1*4+3],
@@ -193,8 +195,9 @@ extern "C" __global__ void __closesthit__refract() {
 	const float3 a = vces[trix.x] ;
 	const float3 p = vces[trix.y] ;
 	const float3 c = vces[trix.z] ;
-	// apply AS preTransform matrix
-	const float* t = thing->transform ;
+	// apply IAS transform matrix
+	float t[12] ;
+	optixGetObjectToWorldTransformMatrix( t ) ;
 	const float3 A = {
 		a.x*t[0*4+0]+a.y*t[0*4+1]+a.z*t[0*4+2]+t[0*4+3],
 		a.x*t[1*4+0]+a.y*t[1*4+1]+a.z*t[1*4+2]+t[1*4+3],

@@ -49,12 +49,6 @@ struct Thing {
 	uint3*  ices = nullptr ;
 
 	Optics  optics ;
-
-	float  transform[12] = {
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0
-	} ;
 } ;
 
 #endif // THING_H

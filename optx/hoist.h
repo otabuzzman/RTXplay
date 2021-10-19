@@ -17,6 +17,12 @@ struct Hoist : public Thing {
 	unsigned int num_vces  =  0 ;
 	unsigned int num_ices  =  0 ;
 
+	float transform[12]    = {
+		1, 0, 0, 0,
+		0, 1, 0, 0,
+		0, 0, 1, 0
+	} ;
+
 	int          utm_index = -1 ;
 } ;
 
