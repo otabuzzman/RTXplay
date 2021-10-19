@@ -229,7 +229,7 @@ int main( int argc, char* argv[] ) {
 			module_cc_options.debugLevel                = OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT ;  // OPTIX_COMPILE_DEBUG_LEVEL_FULL
 
 			pipeline_cc_options.usesMotionBlur                   = false ;
-			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_GAS ;
+			pipeline_cc_options.traversableGraphFlags            = OPTIX_TRAVERSABLE_GRAPH_FLAG_ALLOW_SINGLE_LEVEL_INSTANCING ;
 #ifdef RECURSIVE
 			pipeline_cc_options.numPayloadValues                 = 8 ; // R, G, B, RNG (2x), depth, DGV (2x)
 #else
@@ -399,7 +399,7 @@ int main( int argc, char* argv[] ) {
 						dssTrav, // direct callable stack size (called from AH and IS programs)
 						dssStat, // direct callable stack size (called from RG, MS and CH programs)
 						css,     // continuation callable stack size
-						1        // maxTraversableGraphDepth (acceleration structure depth)
+						2        // maxTraversableGraphDepth (acceleration structure depth)
 						) ) ;
 
 
@@ -410,7 +410,7 @@ int main( int argc, char* argv[] ) {
 						8*1024, // direct callable stack size (called from AH and IS programs)
 						8*1024, // direct callable stack size (called from RG, MS and CH programs)
 						8*1024, // continuation callable stack size
-						1       // maxTraversableGraphDepth (acceleration structure depth)
+						2       // maxTraversableGraphDepth (acceleration structure depth)
 						) ) ;
 			***/
 		}
