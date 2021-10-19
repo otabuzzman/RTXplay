@@ -73,7 +73,7 @@ static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
 	imgtopnm( image, w, h ) ;
 }
 
-static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* as_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) ;
+static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* is_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) ;
 
 
 
@@ -130,14 +130,90 @@ int main( int argc, char* argv[] ) {
 
 
 		// build acceleration structure
-		CUdeviceptr d_as_outbuf ;
-		// acceleration structure compaction buffer
-		CUdeviceptr d_as_zipbuf ;
+		CUdeviceptr d_is_outbuf ;                       // IAS
+		std::vector<OptixTraversableHandle> as_handle ; // one GAS per UTM
+		std::vector<CUdeviceptr> d_as_outbuf ;
+		std::vector<CUdeviceptr> d_as_zipbuf ;
 		Scene scene ;
 		{
-			scene.load() ;
+			size_t num_utm ;
+			scene.load( &num_utm ) ;
+			as_handle.resize( num_utm, 0 ) ;
+			d_as_outbuf.resize( num_utm, 0 ) ;
+			d_as_zipbuf.resize( num_utm, 0 ) ;
 
-			makeGAS( scene.data(), scene.size(), &lp_general.as_handle, &d_as_outbuf, &d_as_zipbuf ) ;
+			// instance structures of things in scene
+			const size_t scene_size = scene.size() ;
+			std::vector<OptixInstance> ises ;
+			ises.resize( scene_size ) ;
+
+			// create instance structure for each thing in scene
+			const size_t transform_size = sizeof( float )*12 ;
+			for ( unsigned int i = 0 ; scene_size>i ; i++ ) {
+				OptixInstance instance     = {} ;
+
+				instance.instanceId        = i ;
+				instance.visibilityMask    = 255 ; // OPTIX_DEVICE_PROPERTY_LIMIT_NUM_BITS_INSTANCE_VISIBILITY_MASK
+
+				instance.flags             = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT ;
+				instance.sbtOffset         = i ;
+
+				memcpy( instance.transform, scene[i].transform, transform_size ) ;
+
+				const int utm_index = scene[i].utm_index ;
+				if ( ! as_handle[utm_index] )
+					makeGAS( &scene[i], 1, &as_handle[utm_index], &d_as_outbuf[utm_index], &d_as_zipbuf[utm_index] ) ;
+				instance.traversableHandle = as_handle[scene[i].utm_index] ;
+
+				ises[i] = instance ;
+			}
+
+			CUdeviceptr d_ises ;
+			const size_t instances_size = sizeof( OptixInstance )*ises.size() ;
+			CUDA_CHECK( cudaMalloc( (void**) &d_ises, instances_size) );
+			CUDA_CHECK( cudaMemcpy( (void*) d_ises, ises.data(), instances_size, cudaMemcpyHostToDevice) );
+
+			// create build input structure for thing instances
+			OptixBuildInput obi_things            = {} ;
+			obi_things.type                       = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
+			obi_things.instanceArray.instances    = d_ises ;
+			obi_things.instanceArray.numInstances = static_cast<unsigned int>( ises.size() ) ;
+
+			OptixAccelBuildOptions ois_options    = {} ;
+			ois_options.buildFlags                = OPTIX_BUILD_FLAG_NONE ;
+			ois_options.operation                 = OPTIX_BUILD_OPERATION_BUILD ;
+
+			// request acceleration structure buffer sizes from OptiX
+			OptixAccelBufferSizes is_buffer_sizes ;
+			OPTX_CHECK( optixAccelComputeMemoryUsage(
+						optx_context,
+						&ois_options,
+						&obi_things,
+						1,
+						&is_buffer_sizes
+						) ) ;
+
+			// allocate GPU memory for acceleration structure buffers
+			CUdeviceptr d_is_tmpbuf ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_is_tmpbuf ), is_buffer_sizes.tempSizeInBytes ) ) ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_is_outbuf ), is_buffer_sizes.outputSizeInBytes ) ) ;
+
+			OPTX_CHECK( optixAccelBuild(
+						optx_context,
+						0,
+						&ois_options,
+						&obi_things,
+						1,
+						d_is_tmpbuf,
+						is_buffer_sizes.tempSizeInBytes,
+						d_is_outbuf,
+						is_buffer_sizes.outputSizeInBytes,
+						&lp_general.is_handle,
+						nullptr, 0
+						) ) ;
+
+			CUDA_CHECK( cudaFree( (void*) d_ises      ) ) ;
+			CUDA_CHECK( cudaFree( (void*) d_is_tmpbuf ) ) ;
 		}
 
 
@@ -537,8 +613,9 @@ int main( int argc, char* argv[] ) {
 		{
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_outbuf            ) ) ) ;
-//			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf            ) ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_is_outbuf            ) ) ) ;
+			for ( auto b : d_as_outbuf ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( b ) ) ) ;
+//			for ( auto b : d_as_zipbuf ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( b ) ) ) ;
 
 			OPTX_CHECK( optixPipelineDestroy    ( pipeline              ) ) ;
 			OPTX_CHECK( optixProgramGroupDestroy( program_group_optics[Optics::TYPE_DIFFUSE] ) ) ;
@@ -608,7 +685,7 @@ static void imgtopnm( const std::vector<unsigned int> mono, const int w, const i
 	std::cout << std::endl ;
 }
 
-static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* as_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) {
+static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* is_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) {
 	// build input structures of things in scene
 	std::vector<OptixBuildInput> obi_things ;
 	obi_things.resize( scene_size ) ;
@@ -621,16 +698,12 @@ static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHand
 	std::vector<CUdeviceptr> ices ;
 	ices.resize( scene_size ) ;
 
-	// GPU pointers at pre-transform matrices of things
-	std::vector<CUdeviceptr> tces ;
-	tces.resize( scene_size ) ;
-
 	// thing specific (or one fits all) flags per SBT record
 	// std::vector<std::vector<unsigned int>> obi_thing_flags ;
 	// obi_thing_flags.resize( scene_size ) ;
 	const unsigned int obi_thing_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
-	// create build input strucure for each thing in scene
+	// create build input structure for each thing in scene
 	for ( unsigned int i = 0 ; scene_size>i ; i++ ) {
 		vces[i] = reinterpret_cast<CUdeviceptr>( scene[i].vces ) ;
 		ices[i] = reinterpret_cast<CUdeviceptr>( scene[i].ices ) ;
@@ -645,16 +718,6 @@ static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHand
 		obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
 		obi_thing.triangleArray.numIndexTriplets            = scene[i].num_ices ;
 		obi_thing.triangleArray.indexBuffer                 = ices[i] ;
-
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &tces[i] ), sizeof( float )*12 ) ) ;
-		CUDA_CHECK( cudaMemcpy(
-					reinterpret_cast<void*>( tces[i] ),
-					scene[i].transform,
-					sizeof( float )*12,
-					cudaMemcpyHostToDevice
-					) ) ;
-		obi_thing.triangleArray.preTransform                = tces[i] ;
-		obi_thing.triangleArray.transformFormat             = OPTIX_TRANSFORM_FORMAT_MATRIX_FLOAT12 ;
 
 		// obi_thing_flags[i].push_back( OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT ) ;
 		// obi_thing.triangleArray.flags                       = &obi_thing_flags[i][0] ;
@@ -706,7 +769,7 @@ static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHand
 				as_buffer_sizes.tempSizeInBytes,
 				*d_as_outbuf,
 				as_buffer_sizes.outputSizeInBytes,
-				as_handle,
+				is_handle,
 				nullptr, 0
 				// acceleration structure compaction (must comment previous line)
 //				&oas_request, 1
@@ -727,13 +790,12 @@ static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHand
 //	OPTX_CHECK( optixAccelCompact(
 //				optixContext,
 //				0,
-//				lp_general.as_handle,
+//				lp_general.is_handle,
 //				d_as_zipbuf,
 //				d_as_zipbuf_size,
-//				&lp_general.as_handle) ) ;
+//				&lp_general.is_handle) ) ;
 
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
 	// free GPU memory for acceleration structure compaction buffer
 //	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_zipbuf_size ) ) ) ;
-	for ( auto t : tces ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( t ) ) ) ;
 }

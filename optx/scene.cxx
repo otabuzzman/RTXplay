@@ -16,9 +16,10 @@
 using V::operator- ;
 using V::operator* ;
 
-void Scene::load() {
+void Scene::load( size_t* num_utm ) {
 	things_.clear() ;
 
+	// create unique triangle meshes (UTM)
 	auto sphere_3 = std::make_shared<Sphere>( 1.f, 3 ) ;
 	auto sphere_6 = std::make_shared<Sphere>() ;
 	auto sphere_8 = std::make_shared<Sphere>( 1.f, 8 ) ;
@@ -109,4 +110,7 @@ void Scene::load() {
 	sphere_3->transform[1*4+3] = 1.f ;
 	sphere_3->transform[2*4+3] = 0.f ;
 	things_.push_back( *sphere_3 ) ;
+
+	if ( num_utm )
+		*num_utm = 4 ; // return number of UTMs
 }

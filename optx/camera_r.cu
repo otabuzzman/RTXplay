@@ -75,7 +75,7 @@ extern "C" __global__ void __raygen__camera() {
 
 		// shoot initial ray
 		optixTrace(
-				lp_general.as_handle,
+				lp_general.is_handle,
 				ori,                        // next ray's origin
 				dir,                        // next ray's direction
 				1e-3f,                      // tmin

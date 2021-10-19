@@ -34,7 +34,7 @@ struct LpGeneral { // launch parameter
 	unsigned int           spp ;   // samples per pixel
 	unsigned int           depth ; // recursion depth
 
-	OptixTraversableHandle as_handle ;
+	OptixTraversableHandle is_handle ;
 
 	// arbitrary output variables (AOV)
 	unsigned int*          rpp ;   // rays per pixel

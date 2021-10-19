@@ -19,7 +19,7 @@ class Scene {
 	public:
 		const Hoist& operator[] ( unsigned int i ) { return things_[i] ; } ;
 
-		void         load() ;
+		void         load( size_t* num_utm = nullptr ) ;
 		const Hoist* data() const { return things_.data() ; } ;
 		size_t       size() const { return things_.size() ; } ;
 

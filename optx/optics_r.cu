@@ -105,7 +105,7 @@ extern "C" __global__ void __closesthit__diffuse() {
 
 	// one step beyond (recursion)
 	optixTrace(
-			lp_general.as_handle,
+			lp_general.is_handle,
 			hit,                        // next ray's origin
 			dir,                        // next ray's direction
 			1e-3f,                      // tmin
@@ -229,7 +229,7 @@ extern "C" __global__ void __closesthit__reflect() {
 
 		// one step beyond (recursion)
 		optixTrace(
-				lp_general.as_handle,
+				lp_general.is_handle,
 				hit,                        // next ray's origin
 				dir,                        // next ray's direction
 				1e-3f,                      // tmin
@@ -379,7 +379,7 @@ extern "C" __global__ void __closesthit__refract() {
 
 	// one step beyond (recursion)
 	optixTrace(
-			lp_general.as_handle,
+			lp_general.is_handle,
 			hit,                        // next ray's origin
 			dir,                        // next ray's direction
 			1e-3f,                      // tmin

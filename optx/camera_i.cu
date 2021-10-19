@@ -70,7 +70,7 @@ extern "C" __global__ void __raygen__camera() {
 		while ( lp_general.depth>depth && rayparam.stat == RP_STAT_CONT ) {
 			// the ray gun
 			optixTrace(
-					lp_general.as_handle,
+					lp_general.is_handle,
 					rayparam.hit,               // next ray's origin
 					rayparam.dir,               // next ray's direction
 					1e-3f,                      // tmin
