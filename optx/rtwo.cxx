@@ -73,6 +73,7 @@ static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
 	imgtopnm( image, w, h ) ;
 }
 
+// build geometry-AS from number of hoists
 static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* is_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) ;
 
 
@@ -89,7 +90,7 @@ int main( int argc, char* argv[] ) {
 
 	lp_general.image_w = args->param_w( 1280 ) ;          // image width in pixels
 	lp_general.image_h = args->param_h( 720 )  ;          // image height in pixels
-	lp_general.spp     = args->param_s( 50 ) ;          // samples per pixel
+	lp_general.spp     = args->param_s( 50 ) ;            // samples per pixel
 #ifdef RECURSIVE
 #define MAX_DEPTH 16
 #else
