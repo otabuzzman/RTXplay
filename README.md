@@ -11,7 +11,7 @@ First aim was a 1:1 port of RTOW to OptiX to get RTWO. Result is in `manastra` b
 Due to lack of appropriate hardware development and tests had been split on Windows and Linux respectively.
 
 #### Windows (Development)
-- Install Cygwin with development tools (GCC, make etc.)
+- Install Cygwin 3.1[^1] with development tools (GCC, make etc.)
 - Install Visual Studio 2017 Community
 - Unpack CUDA Toolkit 11 somewhere, e.g. `/usr/lab/cudacons/cuda_11.4.0_471.11_win10` (Cygwin)
 - Unpack Optix 7 SDK somewhere, e.g. `/usr/lab/cudacons/NVIDIA-OptiX-SDK-7.3.0-win64` (Cygwin)
@@ -19,6 +19,8 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 - Install ImageMagick 7 (Windows installer)
 - Run `make` in top-level directory of repo to get RTOW
 - Run `make` in `optx` directory to check compilation (no linking) of RTWO
+
+[^1]: In case NVCC throws errors with newer versions.
 
 #### Linux
 - Get appropriate hardware, e.g. AWS EC2 instance type `g4dn.xlarge` with Amazon Linux 2 AMI
