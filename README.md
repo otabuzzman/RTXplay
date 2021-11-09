@@ -13,8 +13,8 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 #### Windows (Development)
 - Install Cygwin 3.1[^1] with development tools (GCC, make etc.)
 - Install Visual Studio 2017 Community
-- Install CUDA 11 (omit driver if lacking a GPU)
-- Install Optix 7 SDK
+- Install CUDA 11.4 (omit driver if lacking a GPU)
+- Install Optix 7.3 SDK
 - Add `nvcc.exe` and `cl.exe` to PATH
 - Install ImageMagick 7 (Windows installer)
 - Run `make` in top-level directory of repo to get RTOW
