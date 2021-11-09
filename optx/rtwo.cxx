@@ -172,7 +172,7 @@ int main( int argc, char* argv[] ) {
 			CUdeviceptr d_ises ;
 			const size_t instances_size = sizeof( OptixInstance )*ises.size() ;
 			CUDA_CHECK( cudaMalloc( (void**) &d_ises, instances_size) );
-			CUDA_CHECK( cudaMemcpy( (void*) d_ises, ises.data(), instances_size, cudaMemcpyHostToDevice) );
+			CUDA_CHECK( cudaMemcpy( (void*) d_ises, ises.data(), instances_size, cudaMemcpyHostToDevice ) );
 
 			// create build input structure for thing instances
 			OptixBuildInput obi_things            = {} ;
@@ -794,7 +794,7 @@ static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHand
 //				lp_general.is_handle,
 //				d_as_zipbuf,
 //				d_as_zipbuf_size,
-//				&lp_general.is_handle) ) ;
+//				&lp_general.is_handle ) ) ;
 
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_as_tmpbuf ) ) ) ;
 	// free GPU memory for acceleration structure compaction buffer
