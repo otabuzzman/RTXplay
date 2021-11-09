@@ -175,14 +175,15 @@ Try a cloud service. RTWO developement actually happened on Windows and got its 
 |`scene.cxx`|A collection of things.|
 |`thing.h`|A generalization of a *Thing* in a scene as seen by *Hit Group* programs. Actually a `struct` carried onto device via SBT record.|
 |`hoist.h`|A specialization of *Thing* to support host-side handling.|
-|`sphere.cxx`|A specialization of *Hoist* as triangle-meshed sphere approximation. Actually a tetrahedron *pumped up* by recursively subdividing triangular surfaces.|
+|`object.cxx`|A specialization of *Hoist* to read in a single scene object from a Waveform OBJ file and create an indexed triangle-mesh.|
 |`simpleui.cxx`|The CUDA OpenGL interop code to continuously render on X, as well as input event handling.|
 |`frag.gsgl`<br>`vert.gsgl`|Generic OpenGL fragment and vertex shaders.|
 |`paddle.cxx`|An abstraction of a control device inspired by the `Trackball` class in sutils of the OptiX SDK (name taken from Atari's [Pong](https://en.wikipedia.org/wiki/Pong) game).|
 |`simplesm.cxx`|A finite state machine for UI event processing. Core is a state/ event table with actions represented by functions called on events and leading from current to next state.|
-|`camera_i.cu`<br>`camera_r.cu`|Interactive and recursive versions of Ray generation (RG) and Miss (MS) programs.|
-|`optics_i.cu`<br>`optics_r.cu`|Interactive and recursive versions of Closest-hit (CH) programs für diffuse, reflecting and refracting surfaces.|
+|`camera_i.cu`<br>`camera_r.cu`|Interactive and recursive versions of *Ray generation* (RG) and *Miss* (MS) programs.|
+|`optics_i.cu`<br>`optics_r.cu`|Interactive and recursive versions of *Closest-hit* (CH) programs für diffuse, reflecting and refracting surfaces.|
 |`denoiser.cxx`|Various denoisers. 1) A simple one (SMP) only having set OPTIX_DENOISER_MODEL_KIND_LDR, 2) the simple one plus normals guide layer (NRM), 3) the simple again plus albedos guide layer (ALB), 4) one more simple plus normals and albedos guide layers (NAA), and 5) finally the AOV denoiser with both guide layers and model kind OPTIX_DENOISER_MODEL_KIND_AOV but no AOVs.|
+|`sphere.cxx`|A tool to create triangle-meshed sphere approximations in Wavefront OBJ file format. Actually a tetrahedron *pumped up* by recursively subdividing triangular surfaces. Also a specialization of *Hoist*.|
 |`glxview.cxx`|A simple GLX viewer for X written to practice CUDA OpenGL interop (beyond that not used by RTWO).|
 |`reduce.cxx`|A lab to generate indexed vertice lists. (beyond that not used by RTWO).|
 

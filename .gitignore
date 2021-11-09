@@ -9,6 +9,7 @@ vid/
 *.exp
 *.gz
 *.lib
+*.mtl
 *.ncu-rep
 *.o
 *.obj
@@ -24,3 +25,4 @@ rtow
 rtwo
 sphere
 stb_image.h
+tiny_obj_loader.h

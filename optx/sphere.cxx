@@ -38,7 +38,7 @@ Sphere::Sphere( const float radius, const unsigned int ndiv )
 	utm_index = utm_count_++ ;
 }
 
-Sphere::~Sphere() noexcept (false ) {
+Sphere::~Sphere() noexcept ( false ) {
 #ifndef MAIN
 
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( Thing::vces ) ) ) ;
@@ -159,12 +159,14 @@ int main( const int argc, const char** argv ) {
 	if ( argc>2 ) sscanf( argv[2], "%u", &ndiv ) ;
 	Sphere sphere( radius, ndiv ) ;
 
-	std::cout << "# sphere approximation by pumped-up tetrahedron:"              << std::endl ;
+	std::cout << "# sphere approximation by `pumped-up' tetrahedron:"            << std::endl ;
 	std::cout << "# " << ndiv << " times recursive triangle surface subdivision" << std::endl ;
 
 	for ( auto v : sphere.vces() )
 		printf( "v %f %f %f\n", v.x, v.y, v.z ) ;
 	std::cout << "# " << sphere.vces().size() << " vertices"  << std::endl ;
+
+	printf( "g sphere_%u\n", ndiv ) ;
 
 	for ( auto i : sphere.ices() )
 		printf( "f %d %d %d\n", i.x+1, i.y+1, i.z+1 ) ;

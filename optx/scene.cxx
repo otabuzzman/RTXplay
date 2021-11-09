@@ -6,12 +6,16 @@
 #include <vector_types.h>
 
 // local includes
-#include "sphere.h"
+#include "args.h"
+#include "object.h"
 #include "util.h"
 #include "v.h"
 
 // file specific includes
 #include "scene.h"
+
+// common globals
+extern Args* args ;
 
 using V::operator- ;
 using V::operator* ;
@@ -20,10 +24,18 @@ void Scene::load( size_t* num_utm ) {
 	things_.clear() ;
 
 	// create unique triangle meshes (UTM)
-	auto sphere_3 = std::make_shared<Sphere>( 1.f, 3 ) ;
-	auto sphere_6 = std::make_shared<Sphere>() ;
-	auto sphere_8 = std::make_shared<Sphere>( 1.f, 8 ) ;
-	auto sphere_9 = std::make_shared<Sphere>( 1.f, 9 ) ;
+	auto sphere_3 = std::make_shared<Object>( "sphere_3.scn" ) ;
+	auto sphere_6 = std::make_shared<Object>( "sphere_6.scn" ) ;
+	auto sphere_8 = std::make_shared<Object>( "sphere_8.scn" ) ;
+	auto sphere_9 = std::make_shared<Object>( "sphere_9.scn" ) ;
+
+	if ( args->flag_S() ) {
+		fprintf( stderr, "sphere_3.scn: %u triangles %u vertices\n", static_cast<unsigned int>( sphere_3->vces().size() ), static_cast<unsigned int>( sphere_3->ices().size() ) ) ;
+		fprintf( stderr, "sphere_6.scn: %u triangles %u vertices\n", static_cast<unsigned int>( sphere_6->vces().size() ), static_cast<unsigned int>( sphere_6->ices().size() ) ) ;
+		fprintf( stderr, "sphere_8.scn: %u triangles %u vertices\n", static_cast<unsigned int>( sphere_8->vces().size() ), static_cast<unsigned int>( sphere_8->ices().size() ) ) ;
+		fprintf( stderr, "sphere_9.scn: %u triangles %u vertices\n", static_cast<unsigned int>( sphere_9->vces().size() ), static_cast<unsigned int>( sphere_9->ices().size() ) ) ;
+	}
+
 	meshes_.push_back( sphere_3 ) ;
 	meshes_.push_back( sphere_6 ) ;
 	meshes_.push_back( sphere_8 ) ;

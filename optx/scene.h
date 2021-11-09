@@ -10,7 +10,7 @@
 
 // local includes
 #include "hoist.h"
-#include "sphere.h"
+#include "object.h"
 
 // file specific includes
 // none
@@ -24,7 +24,7 @@ class Scene {
 		size_t       size() const { return things_.size() ; } ;
 
 	private:
-		std::vector<std::shared_ptr<Sphere>> meshes_ ; // unique triangle meshes (UTM)
+		std::vector<std::shared_ptr<Object>> meshes_ ; // unique triangle meshes (UTM)
 		std::vector<Hoist>                   things_ ;
 } ;
 

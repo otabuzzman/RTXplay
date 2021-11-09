@@ -24,7 +24,7 @@ OBJ = \
 	rtwo$o \
 	args$o \
 	scene$o \
-	sphere$o \
+	object$o \
 	camera_i$o \
 	optics_i$o \
 	camera_r$o \
@@ -167,6 +167,8 @@ vpath glad.c glad
 	gcc -c $< -o $@ \
 		-I. \
 
+object$o: object.cxx | tiny_obj_loader.h
+
 %$o: %.cxx
 	nvcc -dc $< -o $@ \
 		$(NVCCFLAGS) \
@@ -208,7 +210,7 @@ sphere_8.scn:
 sphere_9.scn:
 	./sphere$x 1. 9 >$@
 
-sphere$x: sphere.cxx
+%$x: %.cxx
 	nvcc -DMAIN -o $@ $^ \
 		$(NVCCFLAGS) \
 		$(INC) \
@@ -220,12 +222,13 @@ clean:
 ifdef winos
 	rm -f rtwo.lib rtwo.exp
 	rm -f sphere.lib sphere.exp
+	rm -f object.lib object.exp
 endif
 
 eclean: clean
 	rm -f $(EXE) $(IMG)
 	rm -rf $(OPTIX_CACHE_PATH)
-	rm -f glxview$x sphere$x $(SCN)
+	rm -f glxview$x sphere$x object$x $(SCN)
 ifdef winos
 	rm -f args.exe
 endif
@@ -234,7 +237,7 @@ lclean: eclean
 	rm -rf glad KHR
 
 rclean: lclean
-	rm -f glad.zip stb_image.h
+	rm -f glad.zip stb_image.h tiny_obj_loader.h
 
 tidy: rclean
 
@@ -257,3 +260,7 @@ glad.zip:
 # setup STBI
 stb_image.h:
 	wget -q https://raw.githubusercontent.com/nothings/stb/master/stb_image.h
+
+# setup Tiny Object Loader
+tiny_obj_loader.h:
+	wget -q https://raw.githubusercontent.com/tinyobjloader/tinyobjloader/master/tiny_obj_loader.h
