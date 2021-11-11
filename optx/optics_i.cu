@@ -21,6 +21,13 @@ using V::operator*= ;
 extern "C" { __constant__ LpGeneral lp_general ; }
 
 extern "C" __global__ void __closesthit__diffuse() {
+	// just return id of instance being hit, while scene editing
+	if ( lp_general.picker ) {
+		*lp_general.pick_id = optixGetInstanceId() ;
+
+		return ;
+	}
+
 	// retrieve ray parameter from payload
 	unsigned int ph = optixGetPayload_0() ;
 	unsigned int pl = optixGetPayload_1() ;
@@ -95,6 +102,13 @@ extern "C" __global__ void __closesthit__diffuse() {
 }
 
 extern "C" __global__ void __closesthit__reflect() {
+	// just return id of instance being hit, while scene editing
+	if ( lp_general.picker ) {
+		*lp_general.pick_id = optixGetInstanceId() ;
+
+		return ;
+	}
+
 	// retrieve ray parameter from payload
 	unsigned int ph = optixGetPayload_0() ;
 	unsigned int pl = optixGetPayload_1() ;
@@ -176,6 +190,13 @@ extern "C" __global__ void __closesthit__reflect() {
 }
 
 extern "C" __global__ void __closesthit__refract() {
+	// just return id of instance being hit, while scene editing
+	if ( lp_general.picker ) {
+		*lp_general.pick_id = optixGetInstanceId() ;
+
+		return ;
+	}
+
 	// retrieve ray parameter from payload
 	unsigned int ph = optixGetPayload_0() ;
 	unsigned int pl = optixGetPayload_1() ;

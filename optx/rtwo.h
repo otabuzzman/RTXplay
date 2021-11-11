@@ -31,13 +31,19 @@ struct LpGeneral { // launch parameter
 
 	Camera                 camera ;
 
-	unsigned int           spp ;   // samples per pixel
-	unsigned int           depth ; // recursion depth
+	unsigned int           spp ;     // samples per pixel
+	unsigned int           depth ;   // recursion depth
 
 	OptixTraversableHandle is_handle ;
 
 	// arbitrary output variables (AOV)
-	unsigned int*          rpp ;   // rays per pixel
+	unsigned int*          rpp ;     // rays per pixel
+
+	// thing picker for scene editing
+	bool                   picker ;  // (de)activate
+	unsigned int           pick_x ;
+	unsigned int           pick_y ;
+	unsigned int*          pick_id ; // Instance id
 } ;
 
 template <typename T>

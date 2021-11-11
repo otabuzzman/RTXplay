@@ -20,6 +20,13 @@ using V::operator* ;
 extern "C" { __constant__ LpGeneral lp_general ; }
 
 extern "C" __global__ void __closesthit__diffuse() {
+	// just return id of instance being hit, while scene editing
+	if ( lp_general.picker ) {
+		*lp_general.pick_id = optixGetInstanceId() ;
+
+		return ;
+	}
+
 	// retrieve actual trace depth from payload
 	unsigned int depth = optixGetPayload_5()+1u ;
 
@@ -140,6 +147,13 @@ extern "C" __global__ void __closesthit__diffuse() {
 }
 
 extern "C" __global__ void __closesthit__reflect() {
+	// just return id of instance being hit, while scene editing
+	if ( lp_general.picker ) {
+		*lp_general.pick_id = optixGetInstanceId() ;
+
+		return ;
+	}
+
 	// retrieve actual trace depth from payload
 	unsigned int depth = optixGetPayload_5()+1u ;
 
@@ -270,6 +284,13 @@ extern "C" __global__ void __closesthit__reflect() {
 }
 
 extern "C" __global__ void __closesthit__refract() {
+	// just return id of instance being hit, while scene editing
+	if ( lp_general.picker ) {
+		*lp_general.pick_id = optixGetInstanceId() ;
+
+		return ;
+	}
+
 	// retrieve actual trace depth from payload
 	unsigned int depth = optixGetPayload_5()+1u ;
 

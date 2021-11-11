@@ -22,10 +22,15 @@ using V::operator/ ;
 extern "C" { __constant__ LpGeneral lp_general ; }
 
 extern "C" __global__ void __raygen__camera() {
-	// dim.x/ dim.y correspond to image width/ height
-	const uint3 dim = optixGetLaunchDimensions() ;
-	// idx.x/ idx.y correspond to this pixel
-	const uint3 idx = optixGetLaunchIndex() ;
+	uint3 dim ; // dim.x/ dim.y correspond to image width/ height
+	uint3 idx ; // idx.x/ idx.y correspond to this pixel
+	if ( lp_general.picker ) {
+		dim = { lp_general.image_w, lp_general.image_h, 0 } ;
+		idx = { lp_general.pick_x,  lp_general.pick_y,  0 } ;
+	} else {
+		dim = optixGetLaunchDimensions() ;
+		idx = optixGetLaunchIndex() ;
+	}
 
 	// calculate pixel index for image buffer access
 	const unsigned int pix = dim.x*idx.y+idx.x ;
@@ -50,7 +55,7 @@ extern "C" __global__ void __raygen__camera() {
 	// denoiser guide value accumulators
 	float3 normal = {} ;
 	float3 albedo = {} ;
-	for ( int i = 0 ; lp_general.spp>i ; i++ ) {
+	for ( int i = 0 ; lp_general.spp>( lp_general.picker ? 1 : i ) ; i++ ) {
 		// transform x/y pixel coords (range 0/0 to w/h)
 		// into s/t viewport coords (range -1/-1 to 1/1)
 		const float s = 2.f*static_cast<float>( idx.x+util::rnd( &rayparam.rng ) )/static_cast<float>( dim.x )-1.f ;
@@ -67,7 +72,7 @@ extern "C" __global__ void __raygen__camera() {
 		rayparam.albedo = {} ;
 
 		unsigned int depth = 0 ;
-		while ( lp_general.depth>depth && rayparam.stat == RP_STAT_CONT ) {
+		do {
 			// the ray gun
 			optixTrace(
 					lp_general.is_handle,
@@ -84,7 +89,7 @@ extern "C" __global__ void __raygen__camera() {
 					ph, pl                      // payload: ray parameter
 					) ;
 			depth++ ;
-		}
+		} while ( ! lp_general.picker && lp_general.depth>depth && rayparam.stat == RP_STAT_CONT ) ;
 
 		// accumulate this trace's colors
 		color = color+rayparam.color ;
@@ -109,6 +114,13 @@ extern "C" __global__ void __raygen__camera() {
 }
 
 extern "C" __global__ void __miss__ambient() {
+	// return miss indicator, while scene editing
+	if ( lp_general.picker ) {
+		*lp_general.pick_id = UINT_MAX ;
+
+		return ;
+	}
+
 	// retrieve ray parameter from payload
 	unsigned int ph = optixGetPayload_0() ;
 	unsigned int pl = optixGetPayload_1() ;
