@@ -165,4 +165,9 @@ void Denoiser::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( f
 		comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
 		throw std::runtime_error( comment.str() ) ;
 	}
+
+	if ( type_ == Dns::AOV )
+		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrAverageColor ) ) ) ;
+	else
+		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( params_.hdrIntensity    ) ) ) ;
 }

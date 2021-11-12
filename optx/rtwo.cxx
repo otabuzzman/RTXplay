@@ -612,6 +612,7 @@ int main( int argc, char* argv[] ) {
 
 		// cleanup
 		{
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.raygenRecord       ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.missRecordBase     ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( sbt.hitgroupRecordBase ) ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_is_outbuf            ) ) ) ;
