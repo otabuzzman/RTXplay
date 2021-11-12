@@ -17,7 +17,7 @@
 #include "denoiser.h"
 
 // common globals
-extern LpGeneral lp_general ;
+extern LpGeneral          lp_general ;
 extern OptixDeviceContext optx_context ;
 
 Denoiser::Denoiser( const Dns type ) : type_( type ) {

@@ -13,6 +13,7 @@
 #include <cuda_gl_interop.h> // must follow glad.h
 
 // local includes
+#include "launcher.h"
 #include "rtwo.h"
 #include "v.h"
 
@@ -22,6 +23,7 @@
 // common globals
 extern Args*     args ;
 extern LpGeneral lp_general ;
+extern Launcher* launcher ;
 
 SimpleSM::SimpleSM( GLFWwindow* window ) : window_( window ) {
 	h_state_.push( State::STL ) ; // start state
@@ -542,34 +544,18 @@ void SimpleSM::eaReject() {
 
 void SimpleSM::eaRdlDns() {
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-	if ( lp_general.normals ) {
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals ) ) ) ;
-		lp_general.normals = nullptr ;
-	}
-	if ( lp_general.albedos ) {
-		CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.albedos ) ) ) ;
-		lp_general.albedos = nullptr ;
-	}
 	// select next denoiser type from list
-	const int w = lp_general.image_w ;
-	const int h = lp_general.image_h ;
 	if ( ! smparam->denoiser )
 		smparam->denoiser = new Denoiser( Dns::SMP ) ;
-	else if ( smparam->denoiser->type() == Dns::SMP ) {
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
+	else if ( smparam->denoiser->type() == Dns::SMP )
 		smparam->denoiser = new Denoiser( Dns::NRM ) ;
-	} else if ( smparam->denoiser->type() == Dns::NRM ) {
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+	else if ( smparam->denoiser->type() == Dns::NRM )
 		smparam->denoiser = new Denoiser( Dns::ALB ) ;
-	} else if ( smparam->denoiser->type() == Dns::ALB ) {
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+	else if ( smparam->denoiser->type() == Dns::ALB )
 		smparam->denoiser = new Denoiser( Dns::NAA ) ;
-	} else if ( smparam->denoiser->type() == Dns::NAA ) {
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
+	else if ( smparam->denoiser->type() == Dns::NAA )
 		smparam->denoiser = new Denoiser( Dns::AOV ) ;
-	} else if ( smparam->denoiser->type() == Dns::AOV )
+	else if ( smparam->denoiser->type() == Dns::AOV )
 		smparam->denoiser = nullptr ;
 
 	if ( smparam->denoiser && args->flag_v() )
@@ -604,12 +590,8 @@ void SimpleSM::eaRdlRsz() {
 	lp_general.image_h = h ;
 	Camera& camera = lp_general.camera ;
 	camera.aspratio( static_cast<float>( w )/static_cast<float>( h ) ) ;
-	// realloc render buffer
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
-	// realloc rays per pixel (rpp) buffer
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
+	// realloc device buffers
+	launcher->resize( w, h ) ;
 	// resize pixel (image) buffer object
 	GL_CHECK( glGenBuffers( 1, &smparam->pbo ) ) ;
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, smparam->pbo ) ) ;

@@ -36,6 +36,7 @@
 // common globals
 Args*                   args ;
 LpGeneral               lp_general ;
+Launcher*               launcher ;
 OptixDeviceContext      optx_context ;
 OptixPipeline           pipeline ;
 OptixShaderBindingTable sbt ;
@@ -497,15 +498,18 @@ int main( int argc, char* argv[] ) {
 		// if true current is display device as required for GL interop
 		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
+		launcher = new Launcher() ;
 		if ( display_dev>0 ) {
 			SimpleUI simpleui( "RTWO" ) ;
 			simpleui.render( pipeline, sbt ) ;
 		} else {
 			// launch pipeline
-			Launcher launcher ;
-			launcher.ignite() ;
+			CUstream cuda_stream ;
+			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
+			launcher->ignite( cuda_stream ) ;
 
+			CUDA_CHECK( cudaStreamDestroy ( cuda_stream ) ) ;
 
 			// apply denoiser
 			const Dns type = args->param_D( Dns::NONE ) ;
@@ -522,18 +526,12 @@ int main( int argc, char* argv[] ) {
 				delete denoiser ;
 			}
 
-
-
 			// post processing
 			pp_sRGB( lp_general.rawRGB, lp_general.image, lp_general.image_w, lp_general.image_w ) ;
-
-
 
 			// output image
 			if ( ! args->flag_q() )
 				imgtopnm<uchar4>( reinterpret_cast<CUdeviceptr>( lp_general.image ) ) ;
-
-
 
 			// output AOV rays per pixel (RPP)
 			if ( ! args->flag_q() && args->flag_A( Aov::RPP ) )
@@ -563,6 +561,7 @@ int main( int argc, char* argv[] ) {
 			OPTX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
 
 			delete args ;
+			delete launcher ;
 		}
 	} catch ( const std::exception& e ) {
 		std::cerr << "exception: " << e.what() << "\n" ;
