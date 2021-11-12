@@ -16,9 +16,6 @@
 // file specific includes
 // none
 
-// common globals
-extern OptixDeviceContext optx_context ;
-
 class Denoiser {
 	public:
 		Denoiser( const Dns type, const unsigned int w, const unsigned int h ) ;
