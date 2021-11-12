@@ -527,7 +527,7 @@ int main( int argc, char* argv[] ) {
 			}
 
 			// post processing
-			pp_sRGB( lp_general.rawRGB, lp_general.image, lp_general.image_w, lp_general.image_w ) ;
+			pp_sRGB( lp_general.rawRGB, lp_general.image, lp_general.image_w, lp_general.image_h ) ;
 
 			// output image
 			if ( ! args->flag_q() )

@@ -213,7 +213,6 @@ void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTab
 	size_t lp_general_image_size ;
 
 	do {
-		auto t1 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;

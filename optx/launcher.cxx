@@ -35,6 +35,7 @@ Launcher::Launcher() {
 Launcher::~Launcher() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general_        ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB  ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image   ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp     ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals ) ) ) ;
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.albedos ) ) ) ;
@@ -44,6 +45,8 @@ Launcher::~Launcher() noexcept ( false ) {
 void Launcher::resize( const unsigned int w, const unsigned int h ) {
 	// render result buffer
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ),  sizeof( float3 )*w*h ) ) ;
+	// post processing buffer
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ),   sizeof( uchar4 )*w*h ) ) ;
 	// AOV rays per pixel (RPP) buffer
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ),     sizeof( unsigned int )*w*h ) ) ;
 	// denoiser input buffers
@@ -54,8 +57,8 @@ void Launcher::resize( const unsigned int w, const unsigned int h ) {
 }
 
 void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const unsigned int h ) {
-	const unsigned int w0 = w ? lp_general.image_w : w ;
-	const unsigned int h0 = h ? lp_general.image_h : h ;
+	const unsigned int w0 = w ? w : lp_general.image_w ;
+	const unsigned int h0 = h ? h : lp_general.image_h ;
 
 	// update launch parameters
 	const size_t lp_general_size = sizeof( LpGeneral ) ;
