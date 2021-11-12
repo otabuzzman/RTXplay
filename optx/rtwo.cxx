@@ -23,6 +23,7 @@
 #include "camera.h"
 #include "denoiser.h"
 #include "hoist.h"
+#include "launcher.h"
 #include "scene.h"
 #include "simpleui.h"
 #include "sphere.h"
@@ -33,9 +34,11 @@
 #include "rtwo.h"
 
 // common globals
-Args*              args ;
-LpGeneral          lp_general ;
-OptixDeviceContext optx_context ;
+Args*                   args ;
+LpGeneral               lp_general ;
+OptixDeviceContext      optx_context ;
+OptixPipeline           pipeline ;
+OptixShaderBindingTable sbt ;
 
 // PTX sources of shaders
 extern "C" const char camera_r_ptx[] ; // recursive
@@ -61,7 +64,9 @@ static void imgtopnm( const std::vector<float3>       img, const int w, const in
 static void imgtopnm( const std::vector<unsigned int> img, const int w, const int h ) ; // output PGM
 // output device image on stdout
 template<typename T>
-static void imgtopnm( const CUdeviceptr img, const int w, const int h ) {
+static void imgtopnm( const CUdeviceptr img ) {
+	const unsigned int w = lp_general.image_w ;
+	const unsigned int h = lp_general.image_h ;
 	std::vector<T> image ;
 	image.resize( w*h ) ;
 	CUDA_CHECK( cudaMemcpy(
@@ -335,7 +340,6 @@ int main( int argc, char* argv[] ) {
 
 
 		// link pipeline
-		OptixPipeline pipeline = nullptr ;
 		{
 #ifdef RECURSIVE
 			const unsigned int max_trace_depth  = lp_general.depth ;
@@ -419,7 +423,6 @@ int main( int argc, char* argv[] ) {
 
 
 		// build shader binding table
-		OptixShaderBindingTable sbt = {} ;
 		{
 			// Ray Generation program group SBT record header
 			SbtRecordRG sbt_record_nodata ;
@@ -498,84 +501,22 @@ int main( int argc, char* argv[] ) {
 			SimpleUI simpleui( "RTWO" ) ;
 			simpleui.render( pipeline, sbt ) ;
 		} else {
-			const int w = lp_general.image_w ;
-			const int h = lp_general.image_h ;
-			std::vector<unsigned int> rpp ;
-
-			{ // launch pipeline
-				CUstream cuda_stream ;
-				CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-
-				if ( args->param_D( Dns::NONE ) != Dns::NONE ) {
-					lp_general.spp = 1 ;
-					if ( args->param_D( Dns::NONE ) == Dns::NRM )
-						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-					else if ( args->param_D( Dns::NONE ) == Dns::ALB )
-						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-					else { // if ( args->param_D( Dns::NONE ) == Dns::NAA || args->param_D( Dns::NONE ) == Dns::AOV )
-						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-						CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-					}
-				}
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
-
-				CUdeviceptr d_lp_general ;
-				const size_t lp_general_size = sizeof( LpGeneral ) ;
-				CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &d_lp_general ), lp_general_size ) ) ;
-				CUDA_CHECK( cudaMemcpy(
-							reinterpret_cast<void*>( d_lp_general ),
-							&lp_general,
-							lp_general_size,
-							cudaMemcpyHostToDevice
-							) ) ;
-
-				auto t0 = std::chrono::high_resolution_clock::now() ;
-				OPTX_CHECK( optixLaunch(
-							pipeline,
-							cuda_stream,
-							d_lp_general,
-							lp_general_size,
-							&sbt,
-							w/*x*/, h/*y*/, 1/*z*/ ) ) ;
-				CUDA_CHECK( cudaDeviceSynchronize() ) ;
-				auto t1 = std::chrono::high_resolution_clock::now() ;
-
-				CUDA_CHECK( cudaFree( reinterpret_cast<void*>( d_lp_general ) ) ) ;
-
-				if ( args->flag_S() ) { // output statistics
-					long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
-					rpp.resize( w*h ) ;
-					CUDA_CHECK( cudaMemcpy(
-								rpp.data(),
-								lp_general.rpp,
-								w*h*sizeof( unsigned int ),
-								cudaMemcpyDeviceToHost
-								) ) ;
-					long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-					fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w*h, sr, dt, 1000.f/dt ) ;
-				}
-
-				CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
-				if ( cudaGetLastError() != cudaSuccess ) {
-					std::ostringstream comment ;
-					comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
-					throw std::runtime_error( comment.str() ) ;
-				}
-			}
+			// launch pipeline
+			Launcher launcher ;
+			launcher.ignite() ;
 
 
 
 			// apply denoiser
 			const Dns type = args->param_D( Dns::NONE ) ;
 			if ( type != Dns::NONE ) {
-				Denoiser* denoiser = new Denoiser( type, w, h ) ;
+				Denoiser* denoiser = new Denoiser( type ) ;
 				denoiser->beauty( lp_general.rawRGB ) ;
 
 				// output guides
 				if ( ! args->flag_q() && args->flag_G() ) {
-					if ( lp_general.normals ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.normals ), w, h ) ;
-					if ( lp_general.albedos ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.albedos ), w, h ) ;
+					if ( lp_general.normals ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.normals ) ) ;
+					if ( lp_general.albedos ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.albedos ) ) ;
 				}
 
 				delete denoiser ;
@@ -584,28 +525,19 @@ int main( int argc, char* argv[] ) {
 
 
 			// post processing
-			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
-			pp_sRGB( lp_general.rawRGB, lp_general.image, w, h ) ;
+			pp_sRGB( lp_general.rawRGB, lp_general.image, lp_general.image_w, lp_general.image_w ) ;
 
 
 
 			// output image
 			if ( ! args->flag_q() )
-				imgtopnm<uchar4>( reinterpret_cast<CUdeviceptr>( lp_general.image ), w, h ) ;
+				imgtopnm<uchar4>( reinterpret_cast<CUdeviceptr>( lp_general.image ) ) ;
+
+
 
 			// output AOV rays per pixel (RPP)
-			if ( ! args->flag_q() && args->flag_A( Aov::RPP ) ) {
-				if ( rpp.size() == 0 )
-					imgtopnm<unsigned int>( reinterpret_cast<CUdeviceptr>( lp_general.rpp ), w, h ) ;
-				else
-					imgtopnm( rpp, w, h ) ;
-			}
-
-			if ( lp_general.normals ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals    ) ) ) ;
-			if ( lp_general.albedos ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.albedos    ) ) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image  ) ) ) ;
-			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp    ) ) ) ;
+			if ( ! args->flag_q() && args->flag_A( Aov::RPP ) )
+				imgtopnm<unsigned int>( reinterpret_cast<CUdeviceptr>( lp_general.rpp ) ) ;
 		}
 
 

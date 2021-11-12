@@ -31,6 +31,7 @@ OBJ = \
 	optics_r$o \
 	postproc_h$o \
 	postproc_d$o \
+	launcher$o \
 	denoiser$o \
 	paddle$o \
 	simpleui$o \
