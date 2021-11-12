@@ -18,7 +18,7 @@
 
 class Denoiser {
 	public:
-		Denoiser( const Dns type, const unsigned int w, const unsigned int h ) ;
+		Denoiser( const Dns type ) ;
 		~Denoiser() noexcept ( false ) ;
 
 		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) ;
@@ -26,8 +26,6 @@ class Denoiser {
 
 	private:
 		Dns                     type_ = Dns::NONE ;
-		unsigned int            w_    = 0 ;
-		unsigned int            h_    = 0 ;
 		OptixDenoiser           denoiser_   = {} ;
 		OptixDenoiserParams     params_     = {} ;
 		OptixDenoiserGuideLayer guidelayer_ = {} ;

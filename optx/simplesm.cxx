@@ -554,21 +554,21 @@ void SimpleSM::eaRdlDns() {
 	const int w = lp_general.image_w ;
 	const int h = lp_general.image_h ;
 	if ( ! smparam->denoiser )
-		smparam->denoiser = new Denoiser( Dns::SMP, w, h ) ;
+		smparam->denoiser = new Denoiser( Dns::SMP ) ;
 	else if ( smparam->denoiser->type() == Dns::SMP ) {
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
-		smparam->denoiser = new Denoiser( Dns::NRM, w, h ) ;
+		smparam->denoiser = new Denoiser( Dns::NRM ) ;
 	} else if ( smparam->denoiser->type() == Dns::NRM ) {
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-		smparam->denoiser = new Denoiser( Dns::ALB, w, h ) ;
+		smparam->denoiser = new Denoiser( Dns::ALB ) ;
 	} else if ( smparam->denoiser->type() == Dns::ALB ) {
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-		smparam->denoiser = new Denoiser( Dns::NAA, w, h ) ;
+		smparam->denoiser = new Denoiser( Dns::NAA ) ;
 	} else if ( smparam->denoiser->type() == Dns::NAA ) {
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
 		CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-		smparam->denoiser = new Denoiser( Dns::AOV, w, h ) ;
+		smparam->denoiser = new Denoiser( Dns::AOV ) ;
 	} else if ( smparam->denoiser->type() == Dns::AOV )
 		smparam->denoiser = nullptr ;
 
@@ -624,5 +624,5 @@ void SimpleSM::eaRdlRsz() {
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 	// resize denoiser
 	if ( smparam->denoiser )
-		smparam->denoiser = new Denoiser( smparam->denoiser->type(), lp_general.image_w, lp_general.image_h ) ;
+		smparam->denoiser = new Denoiser( smparam->denoiser->type() ) ;
 }

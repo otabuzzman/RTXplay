@@ -20,7 +20,7 @@
 extern LpGeneral lp_general ;
 extern OptixDeviceContext optx_context ;
 
-Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h ) : type_( type ), w_( w ), h_( h ) {
+Denoiser::Denoiser( const Dns type ) : type_( type ) {
 	OptixDenoiserModelKind kind = type_ == Dns::AOV ? OPTIX_DENOISER_MODEL_KIND_AOV : OPTIX_DENOISER_MODEL_KIND_LDR ;
 
 	OptixDenoiserOptions options ;
@@ -29,20 +29,20 @@ Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h )
 	else if ( type_ == Dns::NRM ) {
 		options            = { 0, 1 } ;
 		guidelayer_.normal = {
-			reinterpret_cast<CUdeviceptr>( lp_general.normals ), // OptixImage2D.data
-			w_,                                                  // OptixImage2D.width
-			h_,                                                  // OptixImage2D.height
-			static_cast<unsigned int>( w_*sizeof( float3 ) ),    // OptixImage2D.rowStrideInBytes
-			sizeof( float3 ),                                    // OptixImage2D.pixelStrideInBytes
-			OPTIX_PIXEL_FORMAT_FLOAT3                            // OptixImage2D.format
+			reinterpret_cast<CUdeviceptr>( lp_general.normals ),              // OptixImage2D.data
+			lp_general.image_w,                                               // OptixImage2D.width
+			lp_general.image_h,                                               // OptixImage2D.height
+			static_cast<unsigned int>( lp_general.image_w*sizeof( float3 ) ), // OptixImage2D.rowStrideInBytes
+			sizeof( float3 ),                                                 // OptixImage2D.pixelStrideInBytes
+			OPTIX_PIXEL_FORMAT_FLOAT3                                         // OptixImage2D.format
 		} ;
 	} else if ( type_ == Dns::ALB ) {
 		options            = { 1, 0 } ;
 		guidelayer_.albedo = {
 			reinterpret_cast<CUdeviceptr>( lp_general.albedos ),
-			w_,
-			h_,
-			static_cast<unsigned int>( w_*sizeof( float3 ) ),
+			lp_general.image_w,
+			lp_general.image_h,
+			static_cast<unsigned int>( lp_general.image_w*sizeof( float3 ) ),
 			sizeof( float3 ),
 			OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
@@ -50,17 +50,17 @@ Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h )
 		options            = { 1, 1 } ;
 		guidelayer_.normal = {
 			reinterpret_cast<CUdeviceptr>( lp_general.normals ),
-			w_,
-			h_,
-			static_cast<unsigned int>( w_*sizeof( float3 ) ),
+			lp_general.image_w,
+			lp_general.image_h,
+			static_cast<unsigned int>( lp_general.image_w*sizeof( float3 ) ),
 			sizeof( float3 ),
 			OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
 		guidelayer_.albedo = {
 			reinterpret_cast<CUdeviceptr>( lp_general.albedos ),
-			w_,
-			h_,
-			static_cast<unsigned int>( w_*sizeof( float3 ) ),
+			lp_general.image_w,
+			lp_general.image_h,
+			static_cast<unsigned int>( lp_general.image_w*sizeof( float3 ) ),
 			sizeof( float3 ),
 			OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
@@ -76,8 +76,8 @@ Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h )
 	OptixDenoiserSizes dns_sizes ;
 	OPTX_CHECK( optixDenoiserComputeMemoryResources(
 		denoiser_,
-		w_,
-		h_,
+		lp_general.image_w,
+		lp_general.image_h,
 		&dns_sizes
 		) ) ;
 	scratch_size_ = static_cast<unsigned int>( dns_sizes.withoutOverlapScratchSizeInBytes ) ;
@@ -88,8 +88,8 @@ Denoiser::Denoiser( const Dns type, const unsigned int w, const unsigned int h )
 	OPTX_CHECK( optixDenoiserSetup(
 		denoiser_,
 		nullptr,
-		w_,
-		h_,
+		lp_general.image_w,
+		lp_general.image_h,
 		state_,
 		state_size_,
 		scratch_,
@@ -106,18 +106,18 @@ Denoiser::~Denoiser() noexcept ( false ) {
 void Denoiser::beauty( const float3* rawRGB, const float3* beauty ) noexcept ( false ) {
 	OptixDenoiserLayer dns_layer = {} ;
 	dns_layer.input = {
-		reinterpret_cast<CUdeviceptr>( rawRGB ),          // OptixImage2D.data
-		w_,                                               // OptixImage2D.width
-		h_,                                               // OptixImage2D.height
-		static_cast<unsigned int>( w_*sizeof( float3 ) ), // OptixImage2D.rowStrideInBytes
-		sizeof( float3 ),                                 // OptixImage2D.pixelStrideInBytes
-		OPTIX_PIXEL_FORMAT_FLOAT3                         // OptixImage2D.format
+		reinterpret_cast<CUdeviceptr>( rawRGB ),                          // OptixImage2D.data
+		lp_general.image_w,                                               // OptixImage2D.width
+		lp_general.image_h,                                               // OptixImage2D.height
+		static_cast<unsigned int>( lp_general.image_w*sizeof( float3 ) ), // OptixImage2D.rowStrideInBytes
+		sizeof( float3 ),                                                 // OptixImage2D.pixelStrideInBytes
+		OPTIX_PIXEL_FORMAT_FLOAT3                                         // OptixImage2D.format
 		} ;
 	dns_layer.output = {
 		beauty ? reinterpret_cast<CUdeviceptr>( beauty ) : reinterpret_cast<CUdeviceptr>( rawRGB ),
-		w_,
-		h_,
-		static_cast<unsigned int>( w_*sizeof( float3 ) ),
+		lp_general.image_w,
+		lp_general.image_h,
+		static_cast<unsigned int>( lp_general.image_w*sizeof( float3 ) ),
 		sizeof( float3 ),
 		OPTIX_PIXEL_FORMAT_FLOAT3
 		} ;
