@@ -265,3 +265,8 @@ stb_image.h:
 # setup Tiny Object Loader
 tiny_obj_loader.h:
 	wget -q https://raw.githubusercontent.com/tinyobjloader/tinyobjloader/master/tiny_obj_loader.h
+
+
+# check balanced cudaMalloc/ cudaFree API calls
+check-cudamem:
+	@test $$(( $$(grep -s cudaMalloc *.cxx *.h | wc -l) - $$(grep -s cudaFree *.cxx *.h | wc -l) )) -eq -1
