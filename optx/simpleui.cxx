@@ -129,13 +129,6 @@ SimpleUI::SimpleUI( const std::string& name ) {
 	}
 	GL_CHECK( uniform_ = glGetUniformLocation( program_, "t" ) ) ;
 
-	// allocate render buffer
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ), sizeof( float3 )*w*h ) ) ;
-	// allocate rays per pixel (rpp) buffer
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ), sizeof( unsigned int )*w*h ) ) ;
-	// allocate instance id buffer
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.pick_id ), sizeof( unsigned int ) ) ) ;
-
 	// setup vertex buffer object
 	GL_CHECK( glGenVertexArrays( 1, &vao_ ) ) ;
 	GL_CHECK( glBindVertexArray( vao_ ) ) ;
@@ -194,9 +187,6 @@ SimpleUI::SimpleUI( const std::string& name ) {
 
 SimpleUI::~SimpleUI() noexcept ( false ) {
 	delete simplesm ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.pick_id ) ) ) ;
 	CUDA_CHECK( cudaGraphicsUnregisterResource( smparam.glx ) ) ;
 	GL_CHECK( glDeleteTextures( 1, &tex_ ) ) ;
 	GL_CHECK( glDeleteBuffers( 1, &smparam.pbo ) ) ;
