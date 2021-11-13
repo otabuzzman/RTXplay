@@ -310,6 +310,8 @@ static void keyCb( GLFWwindow* /*window*/, int key, int /*scancode*/, int act, i
 			simplesm->transition( Event::BLR ) ; break ;
 		case GLFW_KEY_D:
 			simplesm->transition( Event::DNS ) ; break ;
+		case GLFW_KEY_E:
+			simplesm->transition( Event::EDT ) ; break ;
 		case GLFW_KEY_F:
 			simplesm->transition( Event::FOC ) ; break ;
 		case GLFW_KEY_Z:

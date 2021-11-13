@@ -85,6 +85,20 @@ void SimpleSM::eaStlDns() {
 	EA_LEAVE( next ) ;
 }
 
+void SimpleSM::eaStlEdt() {
+	EA_ENTER() ;
+	{ // perform action
+		lp_general.picker = true ;
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::EDT ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
 void SimpleSM::eaAnmDns() {
 	EA_ENTER() ;
 	{ // perform action
@@ -95,6 +109,20 @@ void SimpleSM::eaAnmDns() {
 	h_event_.pop() ;
 	// transition
 	const State next = State::ANM ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaAnmEdt() {
+	EA_ENTER() ;
+	{ // perform action
+		lp_general.picker = true ;
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::EDT ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
 }
@@ -531,6 +559,142 @@ void SimpleSM::eaFocRet() {
 	const State next = h_state_.top() ;
 	h_state_.pop() ;
 	h_event_.pop() ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaEdtPos() {
+	EA_ENTER() ;
+	{ // perform action
+		double x, y ;
+		glfwGetCursorPos( window_, &x, &y ) ;
+		lp_general.pick_x = static_cast<int>( x ) ;
+		lp_general.pick_y = static_cast<int>( y ) ;
+		CUstream cuda_stream ;
+		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+		launcher->ignite( cuda_stream, 1, 1 ) ;
+		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
+		// check
+		unsigned int pick_id ;
+		CUDA_CHECK( cudaMemcpy(
+			reinterpret_cast<void*>( &pick_id ),
+			&lp_general.pick_id,
+			sizeof( unsigned int ),
+			cudaMemcpyDeviceToHost
+			) ) ;
+		std::cerr << "*** picked instance id " << pick_id << std::endl ;
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::OPO ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaEdtDir() {
+	EA_ENTER() ;
+	{ // perform action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::ODI ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaEdtRet() {
+	EA_ENTER() ;
+	{ // perform action
+		lp_general.picker = false ;
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = h_state_.top() ;
+	h_state_.pop() ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaOpoRet() {
+	EA_ENTER() ;
+	{ // perform action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::EDT ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaOdiRet() {
+	EA_ENTER() ;
+	{ // perform action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::EDT ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaOdiMov() {
+	EA_ENTER() ;
+	{ // perform action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::ODI ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaOpoMov() {
+	EA_ENTER() ;
+	{ // perform action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::OPO ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaOdiScr() {
+	EA_ENTER() ;
+	{ // perform action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::ODI ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaOpoScr() {
+	EA_ENTER() ;
+	{ // perform action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::OPO ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
 }
