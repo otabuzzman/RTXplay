@@ -23,9 +23,9 @@
 extern "C" void glfwGetScroll( GLFWwindow* /*window*/, double* xscroll, double* yscroll ) ;
 
 enum class State { ANM, BLR, DIR, EDT, FOC, ODI, OPO, POS, STL, ZOM, n } ;
-static const std::string state_name[] = { "ANM", "BLR", "DIR", "FOC", "POS", "STL", "ZOM" } ;
+static const std::string state_name[] = { "ANM", "BLR", "DIR", "EDT", "FOC", "ODI", "OPO", "POS", "STL", "ZOM" } ;
 enum class Event { ANM, BLR, DIR, DNS, EDT, FOC, MOV, PCD, POS, RET, RSZ, SCR, ZOM, n } ;
-static const std::string event_name[] = { "ANM", "BLR", "DIR", "DNS", "FOC", "MOV", "PCD", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
+static const std::string event_name[] = { "ANM", "BLR", "DIR", "DNS", "EDT", "FOC", "MOV", "PCD", "POS", "RET", "RSZ", "SCR", "ZOM" } ;
 
 struct SmParam {
 	GLuint                pbo ;

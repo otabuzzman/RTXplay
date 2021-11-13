@@ -88,11 +88,10 @@ void SimpleSM::eaStlDns() {
 void SimpleSM::eaStlEdt() {
 	EA_ENTER() ;
 	{ // perform action
-		lp_general.picker = true ;
 	}
 	// clear history (comment to keep)
-	h_state_.pop() ;
-	h_event_.pop() ;
+	// h_state_.pop() ;
+	// h_event_.pop() ;
 	// transition
 	const State next = State::EDT ;
 	h_state_.push( next ) ;
@@ -116,11 +115,10 @@ void SimpleSM::eaAnmDns() {
 void SimpleSM::eaAnmEdt() {
 	EA_ENTER() ;
 	{ // perform action
-		lp_general.picker = true ;
 	}
 	// clear history (comment to keep)
-	h_state_.pop() ;
-	h_event_.pop() ;
+	// h_state_.pop() ;
+	// h_event_.pop() ;
 	// transition
 	const State next = State::EDT ;
 	h_state_.push( next ) ;
@@ -568,17 +566,19 @@ void SimpleSM::eaEdtPos() {
 	{ // perform action
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		lp_general.pick_x = static_cast<int>( x ) ;
-		lp_general.pick_y = static_cast<int>( y ) ;
+		lp_general.picker = true ;
+		lp_general.pick_x =  static_cast<int>( x ) ;
+		lp_general.pick_y = -static_cast<int>( y )+lp_general.image_h ;
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 		launcher->ignite( cuda_stream, 1, 1 ) ;
 		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
+		lp_general.picker = false ;
 		// check
 		unsigned int pick_id ;
 		CUDA_CHECK( cudaMemcpy(
 			reinterpret_cast<void*>( &pick_id ),
-			&lp_general.pick_id,
+			lp_general.pick_id,
 			sizeof( unsigned int ),
 			cudaMemcpyDeviceToHost
 			) ) ;
@@ -609,7 +609,6 @@ void SimpleSM::eaEdtDir() {
 void SimpleSM::eaEdtRet() {
 	EA_ENTER() ;
 	{ // perform action
-		lp_general.picker = false ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -617,6 +616,7 @@ void SimpleSM::eaEdtRet() {
 	// transition
 	const State next = h_state_.top() ;
 	h_state_.pop() ;
+	h_event_.pop() ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
 }

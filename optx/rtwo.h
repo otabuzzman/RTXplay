@@ -43,7 +43,7 @@ struct LpGeneral { // launch parameter
 	bool                   picker ;  // (de)activate
 	unsigned int           pick_x ;
 	unsigned int           pick_y ;
-	unsigned int*          pick_id ; // Instance id
+	unsigned int*          pick_id ; // instance id
 } ;
 
 template <typename T>

@@ -52,7 +52,7 @@ void Launcher::resize( const unsigned int w, const unsigned int h ) {
 	// denoiser input buffers
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.normals ), sizeof( float3 )*w*h ) ) ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.albedos ), sizeof( float3 )*w*h ) ) ;
-	// pickered instance id buffer (scene edit)
+	// picked instance id buffer (scene edit)
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.pick_id ), sizeof( unsigned int ) ) ) ;
 }
 
@@ -93,7 +93,7 @@ void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const 
 					) ) ;
 		long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 		long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-		fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w0*h, sr, dt, 1000.f/dt ) ;
+		fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w0*h0, sr, dt, 1000.f/dt ) ;
 	}
 
 	if ( cudaGetLastError() != cudaSuccess ) {
