@@ -27,7 +27,7 @@ Launcher::Launcher() {
 	const unsigned int w = lp_general.image_w ;
 	const unsigned int h = lp_general.image_h ;
 	// launch parameters
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general_ ),  sizeof( float3 )*w*h ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general_ ), sizeof( LpGeneral ) ) ) ;
 	// various buffers
 	resize( w, h ) ;
 }
