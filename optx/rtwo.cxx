@@ -38,8 +38,6 @@ Args*                   args ;
 LpGeneral               lp_general ;
 Launcher*               launcher ;
 OptixDeviceContext      optx_context ;
-OptixPipeline           pipeline ;
-OptixShaderBindingTable sbt ;
 
 // PTX sources of shaders
 extern "C" const char camera_r_ptx[] ; // recursive
@@ -73,7 +71,7 @@ static void imgtopnm( const CUdeviceptr img ) {
 	CUDA_CHECK( cudaMemcpy(
 		image.data(),
 		reinterpret_cast<void*>( img ),
-		w*h*sizeof( T ),
+		sizeof( T )*w*h,
 		cudaMemcpyDeviceToHost
 		) ) ;
 	imgtopnm( image, w, h ) ;
@@ -341,6 +339,7 @@ int main( int argc, char* argv[] ) {
 
 
 		// link pipeline
+		OptixPipeline pipeline ;
 		{
 #ifdef RECURSIVE
 			const unsigned int max_trace_depth  = lp_general.depth ;
@@ -424,6 +423,7 @@ int main( int argc, char* argv[] ) {
 
 
 		// build shader binding table
+		OptixShaderBindingTable sbt = {} ;
 		{
 			// Ray Generation program group SBT record header
 			SbtRecordRG sbt_record_nodata ;
@@ -498,10 +498,10 @@ int main( int argc, char* argv[] ) {
 		// if true current is display device as required for GL interop
 		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
-		launcher = new Launcher() ;
+		launcher = new Launcher( pipeline, sbt ) ;
 		if ( display_dev>0 ) {
 			SimpleUI simpleui( "RTWO" ) ;
-			simpleui.render( pipeline, sbt ) ;
+			simpleui.render() ;
 		} else {
 			// launch pipeline
 			CUstream cuda_stream ;

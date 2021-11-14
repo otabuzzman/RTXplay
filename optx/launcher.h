@@ -15,14 +15,16 @@
 
 class Launcher {
 	public:
-		Launcher() ;
+		Launcher( const OptixPipeline& pipeline, const OptixShaderBindingTable& sbt ) ;
 		~Launcher() noexcept ( false ) ;
 
 		void resize( const unsigned int w, const unsigned int h ) ;
 		void ignite( const CUstream& cuda_stream, const unsigned int w = 0, const unsigned int h = 0 ) ;
 
 	private:
-		CUdeviceptr lp_general_  ;
+		CUdeviceptr             lp_general_ ;
+		OptixPipeline           pipeline_   ;
+		OptixShaderBindingTable sbt_        ;
 } ;
 
 #endif // LAUNCHER_H

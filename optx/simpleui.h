@@ -21,7 +21,7 @@ class SimpleUI {
 		SimpleUI( const std::string& name ) ;
 		~SimpleUI() noexcept ( false ) ;
 
-		void render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) ;
+		void render() ;
 
 		static void usage() ;
 

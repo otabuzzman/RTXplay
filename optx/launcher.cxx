@@ -19,17 +19,12 @@
 // common globals
 extern Args*                   args ;
 extern LpGeneral               lp_general ;
-extern OptixPipeline           pipeline ;
-extern OptixShaderBindingTable sbt ;
 
-Launcher::Launcher() {
-	// allocate device memory
-	const unsigned int w = lp_general.image_w ;
-	const unsigned int h = lp_general.image_h ;
-	// launch parameters
+Launcher::Launcher( const OptixPipeline& pipeline, const OptixShaderBindingTable& sbt ) : pipeline_( pipeline ), sbt_( sbt ) {
+	// allocate device memory for launch parameters
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general_ ), sizeof( LpGeneral ) ) ) ;
 	// various buffers
-	resize( w, h ) ;
+	resize( lp_general.image_w, lp_general.image_h ) ;
 }
 
 Launcher::~Launcher() noexcept ( false ) {
@@ -72,11 +67,11 @@ void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const 
 	// launch pipeline
 	auto t0 = std::chrono::high_resolution_clock::now() ;
 	OPTX_CHECK( optixLaunch(
-				pipeline,
+				pipeline_,
 				cuda_stream,
 				lp_general_,
 				lp_general_size,
-				&sbt,
+				&sbt_,
 				w0/*x*/, h0/*y*/, 1/*z*/ ) ) ;
 	CUDA_CHECK( cudaDeviceSynchronize() ) ;
 	auto t1 = std::chrono::high_resolution_clock::now() ;

@@ -199,7 +199,7 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 	GLFW_CHECK( glfwTerminate() ) ;
 }
 
-void SimpleUI::render( const OptixPipeline pipeline, const OptixShaderBindingTable& sbt ) {
+void SimpleUI::render() {
 	size_t lp_general_image_size ;
 
 	do {
