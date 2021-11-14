@@ -76,6 +76,12 @@ void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const 
 	CUDA_CHECK( cudaDeviceSynchronize() ) ;
 	auto t1 = std::chrono::high_resolution_clock::now() ;
 
+	if ( cudaGetLastError() != cudaSuccess ) {
+		std::ostringstream comment ;
+		comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
+		throw std::runtime_error( comment.str() ) ;
+	}
+
 	// output statistics
 	if ( args->flag_S() ) {
 		std::vector<unsigned int> rpp ;
@@ -89,11 +95,5 @@ void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const 
 		long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 		long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
 		fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w0*h0, sr, dt, 1000.f/dt ) ;
-	}
-
-	if ( cudaGetLastError() != cudaSuccess ) {
-		std::ostringstream comment ;
-		comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
-		throw std::runtime_error( comment.str() ) ;
 	}
 }
