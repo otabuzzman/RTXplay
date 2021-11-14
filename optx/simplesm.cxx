@@ -567,6 +567,7 @@ void SimpleSM::eaFocRet() {
 void SimpleSM::eaEdtPos() {
 	EA_ENTER() ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
 		lp_general.picker = true ;
@@ -578,11 +579,12 @@ void SimpleSM::eaEdtPos() {
 		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 		lp_general.picker = false ;
 		CUDA_CHECK( cudaMemcpy(
-			reinterpret_cast<void*>( &smparam.pick_id ),
+			reinterpret_cast<void*>( &smparam->pick_id ),
 			lp_general.pick_id,
 			sizeof( unsigned int ),
 			cudaMemcpyDeviceToHost
 			) ) ;
+		std::cerr << "*** picked instance id " << smparam->pick_id << std::endl ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -591,8 +593,6 @@ void SimpleSM::eaEdtPos() {
 	const State next = State::OPO ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
-	if ( args->flag_v() )
-		std::cerr << "*** picked instance id " << smparam.pick_id << std::endl ;
 }
 
 void SimpleSM::eaEdtDir() {
