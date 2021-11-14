@@ -207,14 +207,18 @@ SimpleUI::~SimpleUI() noexcept ( false ) {
 void SimpleUI::render() {
 	size_t lp_general_image_size ;
 
+	auto t0 = std::chrono::high_resolution_clock::now() ; // session start time
 	do {
+		auto t1 = std::chrono::high_resolution_clock::now() ;
 		// launch pipeline
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 		CUDA_CHECK( cudaGraphicsMapResources( 1, &smparam.glx, cuda_stream ) ) ;
 		CUDA_CHECK( cudaGraphicsResourceGetMappedPointer( reinterpret_cast<void**>( &lp_general.image ), &lp_general_image_size, smparam.glx ) ) ;
 
+		auto t2 = std::chrono::high_resolution_clock::now() ;
 		launcher->ignite( cuda_stream ) ;
+		auto t3 = std::chrono::high_resolution_clock::now() ;
 
 		CUDA_CHECK( cudaGraphicsUnmapResources( 1, &smparam.glx, cuda_stream ) ) ;
 		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
@@ -277,6 +281,26 @@ void SimpleUI::render() {
 		***/
 
 		GLFW_CHECK( glfwSwapBuffers( window_ ) ) ;
+
+		auto t4 = std::chrono::high_resolution_clock::now() ;
+		// output statistics
+		if ( args->flag_S() ) {
+			const unsigned int w = lp_general.image_w ;
+			const unsigned int h = lp_general.image_h ;
+			std::vector<unsigned int> rpp ;
+			rpp.resize( w*h ) ;
+			CUDA_CHECK( cudaMemcpy(
+						rpp.data(),
+						lp_general.rpp,
+						w*h*sizeof( unsigned int ),
+						cudaMemcpyDeviceToHost
+						) ) ;
+			long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t2 ).count() ;
+			long long lt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
+			long long rc = 0 ; for ( auto const& c : rpp ) rc = rc+c ; // accumulate rays per pixel
+			long long tt = std::chrono::duration_cast<std::chrono::milliseconds>( t4-t1 ).count() ;
+			fprintf( stderr, "%6llu %9u %12llu %4llu (lapse, pixels, rays, msec) %6.2f fps\n", lt, w*h, rc, dt, 1000.f/tt ) ;
+		}
 
 		simplesm->transition( Event::PCD ) ;
 

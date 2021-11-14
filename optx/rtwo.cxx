@@ -517,9 +517,11 @@ int main( int argc, char* argv[] ) {
 			CUstream cuda_stream ;
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
+			auto t0 = std::chrono::high_resolution_clock::now() ;
 			launcher->ignite( cuda_stream ) ;
 
 			CUDA_CHECK( cudaStreamDestroy ( cuda_stream ) ) ;
+			auto t1 = std::chrono::high_resolution_clock::now() ;
 
 			// apply denoiser
 			const Dns type = args->param_D( Dns::NONE ) ;
@@ -546,6 +548,25 @@ int main( int argc, char* argv[] ) {
 			// output AOV rays per pixel (RPP)
 			if ( ! args->flag_q() && args->flag_A( Aov::RPP ) )
 				imgtopnm<unsigned int>( reinterpret_cast<CUdeviceptr>( lp_general.rpp ) ) ;
+
+
+
+			// output statistics
+			if ( args->flag_S() ) {
+				const unsigned int w = lp_general.image_w ;
+				const unsigned int h = lp_general.image_h ;
+				std::vector<unsigned int> rpp ;
+				rpp.resize( w*h ) ;
+				CUDA_CHECK( cudaMemcpy(
+							rpp.data(),
+							lp_general.rpp,
+							w*h*sizeof( unsigned int ),
+							cudaMemcpyDeviceToHost
+							) ) ;
+				long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
+				long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
+				fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w*h, sr, dt, 1000.f/dt ) ;
+			}
 		}
 
 
