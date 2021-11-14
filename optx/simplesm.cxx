@@ -577,15 +577,12 @@ void SimpleSM::eaEdtPos() {
 		launcher->ignite( cuda_stream, 1, 1 ) ;
 		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 		lp_general.picker = false ;
-		// check
-		unsigned int pick_id ;
 		CUDA_CHECK( cudaMemcpy(
-			reinterpret_cast<void*>( &pick_id ),
+			reinterpret_cast<void*>( &smparam.pick_id ),
 			lp_general.pick_id,
 			sizeof( unsigned int ),
 			cudaMemcpyDeviceToHost
 			) ) ;
-		std::cerr << "*** picked instance id " << pick_id << std::endl ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -594,6 +591,8 @@ void SimpleSM::eaEdtPos() {
 	const State next = State::OPO ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
+	if ( args->flag_v() )
+		std::cerr << "*** picked instance id " << smparam.pick_id << std::endl ;
 }
 
 void SimpleSM::eaEdtDir() {

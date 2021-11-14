@@ -35,6 +35,8 @@ struct SmParam {
 
 	OptixDeviceContext*   optx_context = nullptr ;
 	Denoiser*             denoiser     = nullptr ;
+
+	unsigned int          pick_id ;
 } ;
 
 // preserve state history values
