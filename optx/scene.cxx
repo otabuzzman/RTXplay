@@ -15,7 +15,10 @@
 #include "scene.h"
 
 // common globals
-extern Args* args ;
+namespace cg {
+	extern Args* args ;
+}
+using namespace cg ;
 
 using V::operator- ;
 using V::operator* ;

@@ -34,9 +34,12 @@
 #include "rtwo.h"
 
 // common globals
-Args*                   args ;
-LpGeneral               lp_general ;
-Launcher*               launcher ;
+namespace cg {
+	Args*     args ;
+	LpGeneral lp_general ;
+	Launcher* launcher ;
+}
+using namespace cg ;
 
 // PTX sources of shaders
 extern "C" const char camera_r_ptx[] ; // recursive

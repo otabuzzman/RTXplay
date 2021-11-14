@@ -17,7 +17,10 @@
 #include "denoiser.h"
 
 // common globals
-extern LpGeneral          lp_general ;
+namespace cg {
+	extern LpGeneral lp_general ;
+}
+using namespace cg ;
 
 Denoiser::Denoiser( const OptixDeviceContext& optx_context, const Dns type ) : type_( type ) {
 	OptixDenoiserModelKind kind = type_ == Dns::AOV ? OPTIX_DENOISER_MODEL_KIND_AOV : OPTIX_DENOISER_MODEL_KIND_LDR ;

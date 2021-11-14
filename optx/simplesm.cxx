@@ -21,9 +21,12 @@
 #include "simplesm.h"
 
 // common globals
-extern Args*     args ;
-extern LpGeneral lp_general ;
-extern Launcher* launcher ;
+namespace cg {
+	extern Args*                   args ;
+	extern LpGeneral               lp_general ;
+	extern Launcher*               launcher ;
+}
+using namespace cg ;
 
 SimpleSM::SimpleSM( GLFWwindow* window ) : window_( window ) {
 	h_state_.push( State::STL ) ; // start state

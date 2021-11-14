@@ -17,8 +17,11 @@
 #include "launcher.h"
 
 // common globals
-extern Args*                   args ;
-extern LpGeneral               lp_general ;
+namespace cg {
+	extern Args*     args ;
+	extern LpGeneral lp_general ;
+}
+using namespace cg ;
 
 Launcher::Launcher( const OptixPipeline& pipeline, const OptixShaderBindingTable& sbt ) : pipeline_( pipeline ), sbt_( sbt ) {
 	// allocate device memory for launch parameters

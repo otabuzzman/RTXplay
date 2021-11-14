@@ -23,9 +23,12 @@
 #include "simpleui.h"
 
 // common globals
-extern Args*     args ;
-extern LpGeneral lp_general ;
-extern Launcher* launcher ;
+namespace cg {
+	extern Args*     args ;
+	extern LpGeneral lp_general ;
+	extern Launcher* launcher ;
+}
+using namespace cg ;
 
 // missing in GLFW
 void glfwSetScroll( GLFWwindow* window, const double xscroll, const double yscroll ) ;
