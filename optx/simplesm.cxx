@@ -710,15 +710,15 @@ void SimpleSM::eaRdlDns() {
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 	// select next denoiser type from list
 	if ( ! smparam->denoiser )
-		smparam->denoiser = new Denoiser( Dns::SMP ) ;
+		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::SMP ) ;
 	else if ( smparam->denoiser->type() == Dns::SMP )
-		smparam->denoiser = new Denoiser( Dns::NRM ) ;
+		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::NRM ) ;
 	else if ( smparam->denoiser->type() == Dns::NRM )
-		smparam->denoiser = new Denoiser( Dns::ALB ) ;
+		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::ALB ) ;
 	else if ( smparam->denoiser->type() == Dns::ALB )
-		smparam->denoiser = new Denoiser( Dns::NAA ) ;
+		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::NAA ) ;
 	else if ( smparam->denoiser->type() == Dns::NAA )
-		smparam->denoiser = new Denoiser( Dns::AOV ) ;
+		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::AOV ) ;
 	else if ( smparam->denoiser->type() == Dns::AOV )
 		smparam->denoiser = nullptr ;
 
@@ -770,5 +770,5 @@ void SimpleSM::eaRdlRsz() {
 	GL_CHECK( glBindBuffer( GL_ARRAY_BUFFER, 0 ) ) ;
 	// resize denoiser
 	if ( smparam->denoiser )
-		smparam->denoiser = new Denoiser( smparam->denoiser->type() ) ;
+		smparam->denoiser = new Denoiser( *smparam->optx_context, smparam->denoiser->type() ) ;
 }

@@ -37,7 +37,6 @@
 Args*                   args ;
 LpGeneral               lp_general ;
 Launcher*               launcher ;
-OptixDeviceContext      optx_context ;
 
 // PTX sources of shaders
 extern "C" const char camera_r_ptx[] ; // recursive
@@ -78,7 +77,14 @@ static void imgtopnm( const CUdeviceptr img ) {
 }
 
 // build geometry-AS from number of hoists
-static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* is_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) ;
+static void makeGAS(
+	const OptixDeviceContext& optx_context,
+	const Hoist*              scene,
+	size_t                    scene_size,
+	OptixTraversableHandle*   is_handle,
+	CUdeviceptr*              d_as_outbuf,
+	CUdeviceptr*              d_as_zipbuf
+) ;
 
 
 
@@ -92,9 +98,9 @@ int main( int argc, char* argv[] ) {
 		return 0 ;
 	}
 
-	lp_general.image_w = args->param_w( 1280 ) ;          // image width in pixels
-	lp_general.image_h = args->param_h( 720 )  ;          // image height in pixels
-	lp_general.spp     = args->param_s( 50 ) ;            // samples per pixel
+	lp_general.image_w = args->param_w( 1280 ) ; // image width in pixels
+	lp_general.image_h = args->param_h( 720 )  ; // image height in pixels
+	lp_general.spp     = args->param_s( 50 )   ; // samples per pixel
 #ifdef RECURSIVE
 #define MAX_DEPTH 16
 #else
@@ -118,6 +124,7 @@ int main( int argc, char* argv[] ) {
 
 	try {
 		// initialize
+		OptixDeviceContext optx_context = {} ;
 		{
 			CUDA_CHECK( cudaFree( 0 ) ) ;
 			OPTX_CHECK( optixInit() ) ;
@@ -167,7 +174,7 @@ int main( int argc, char* argv[] ) {
 
 				const int utm_index = scene[i].utm_index ;
 				if ( ! as_handle[utm_index] )
-					makeGAS( &scene[i], 1, &as_handle[utm_index], &d_as_outbuf[utm_index], &d_as_zipbuf[utm_index] ) ;
+					makeGAS( optx_context, &scene[i], 1, &as_handle[utm_index], &d_as_outbuf[utm_index], &d_as_zipbuf[utm_index] ) ;
 				instance.traversableHandle = as_handle[scene[i].utm_index] ;
 
 				ises[i] = instance ;
@@ -500,7 +507,7 @@ int main( int argc, char* argv[] ) {
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
 		launcher = new Launcher( pipeline, sbt ) ;
 		if ( display_dev>0 ) {
-			SimpleUI simpleui( "RTWO" ) ;
+			SimpleUI simpleui( optx_context, "RTWO" ) ;
 			simpleui.render() ;
 		} else {
 			// launch pipeline
@@ -514,7 +521,7 @@ int main( int argc, char* argv[] ) {
 			// apply denoiser
 			const Dns type = args->param_D( Dns::NONE ) ;
 			if ( type != Dns::NONE ) {
-				Denoiser* denoiser = new Denoiser( type ) ;
+				Denoiser* denoiser = new Denoiser( optx_context, type ) ;
 				denoiser->beauty( lp_general.rawRGB ) ;
 
 				// output guides
@@ -618,7 +625,7 @@ static void imgtopnm( const std::vector<unsigned int> mono, const int w, const i
 	std::cout << std::endl ;
 }
 
-static void makeGAS( const Hoist* scene, size_t scene_size, OptixTraversableHandle* is_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) {
+static void makeGAS( const OptixDeviceContext& optx_context, const Hoist* scene, size_t scene_size, OptixTraversableHandle* is_handle, CUdeviceptr* d_as_outbuf, CUdeviceptr* d_as_zipbuf ) {
 	// build input structures of things in scene
 	std::vector<OptixBuildInput> obi_things ;
 	obi_things.resize( scene_size ) ;

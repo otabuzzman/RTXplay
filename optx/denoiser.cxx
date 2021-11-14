@@ -18,9 +18,8 @@
 
 // common globals
 extern LpGeneral          lp_general ;
-extern OptixDeviceContext optx_context ;
 
-Denoiser::Denoiser( const Dns type ) : type_( type ) {
+Denoiser::Denoiser( const OptixDeviceContext& optx_context, const Dns type ) : type_( type ) {
 	OptixDenoiserModelKind kind = type_ == Dns::AOV ? OPTIX_DENOISER_MODEL_KIND_AOV : OPTIX_DENOISER_MODEL_KIND_LDR ;
 
 	OptixDenoiserOptions options ;

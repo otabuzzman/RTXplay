@@ -18,7 +18,7 @@
 
 class SimpleUI {
 	public:
-		SimpleUI( const std::string& name ) ;
+		SimpleUI( OptixDeviceContext& optx_context, const std::string& name ) ;
 		~SimpleUI() noexcept ( false ) ;
 
 		void render() ;

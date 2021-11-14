@@ -33,7 +33,8 @@ struct SmParam {
 
 	void                  ( *glfwPoWaEvents )() = &glfwWaitEvents ;
 
-	Denoiser*             denoiser              = nullptr ;
+	OptixDeviceContext*   optx_context = nullptr ;
+	Denoiser*             denoiser     = nullptr ;
 } ;
 
 // preserve state history values

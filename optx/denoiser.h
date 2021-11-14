@@ -18,7 +18,7 @@
 
 class Denoiser {
 	public:
-		Denoiser( const Dns type ) ;
+		Denoiser( const OptixDeviceContext& optx_context, const Dns type ) ;
 		~Denoiser() noexcept ( false ) ;
 
 		void beauty( const float3* rawRGB, const float3* beauty = nullptr ) ;

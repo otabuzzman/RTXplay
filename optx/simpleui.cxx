@@ -51,7 +51,9 @@ extern "C" const char frag_glsl[] ;
 extern "C" void pp_none( const float3* src, uchar4* dst, const int w, const int h ) ;
 extern "C" void pp_sRGB( const float3* src, uchar4* dst, const int w, const int h ) ;
 
-SimpleUI::SimpleUI( const std::string& name ) {
+SimpleUI::SimpleUI( OptixDeviceContext& optx_context, const std::string& name ) {
+	smparam.optx_context = &optx_context ;
+
 	// initialize GLFW
 	GLFW_CHECK( glfwInit() ) ;
 
