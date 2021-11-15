@@ -25,6 +25,8 @@ class Launcher {
 		CUdeviceptr             lp_general_ ;
 		OptixPipeline           pipeline_   ;
 		OptixShaderBindingTable sbt_        ;
+
+		void free() noexcept ( false ) ;
 } ;
 
 #endif // LAUNCHER_H

@@ -539,11 +539,15 @@ int main( int argc, char* argv[] ) {
 			}
 
 			// post processing
-			pp_sRGB( lp_general.rawRGB, lp_general.image, lp_general.image_w, lp_general.image_h ) ;
+			const unsigned int w = lp_general.image_w ;
+			const unsigned int h = lp_general.image_h ;
+			CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ), sizeof( uchar4 )*w*h ) ) ;
+			pp_sRGB( lp_general.rawRGB, lp_general.image, w, h ) ;
 
 			// output image
 			if ( ! args->flag_q() )
 				imgtopnm<uchar4>( reinterpret_cast<CUdeviceptr>( lp_general.image ) ) ;
+			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image  ) ) ) ;
 
 			// output AOV rays per pixel (RPP)
 			if ( ! args->flag_q() && args->flag_A( Aov::RPP ) )
@@ -553,8 +557,6 @@ int main( int argc, char* argv[] ) {
 
 			// output statistics
 			if ( args->flag_S() ) {
-				const unsigned int w = lp_general.image_w ;
-				const unsigned int h = lp_general.image_h ;
 				std::vector<unsigned int> rpp ;
 				rpp.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(

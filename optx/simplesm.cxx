@@ -22,9 +22,9 @@
 
 // common globals
 namespace cg {
-	extern Args*                   args ;
-	extern LpGeneral               lp_general ;
-	extern Launcher*               launcher ;
+	extern Args*     args ;
+	extern LpGeneral lp_general ;
+	extern Launcher* launcher ;
 }
 using namespace cg ;
 

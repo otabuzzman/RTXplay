@@ -32,19 +32,13 @@ Launcher::Launcher( const OptixPipeline& pipeline, const OptixShaderBindingTable
 
 Launcher::~Launcher() noexcept ( false ) {
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general_        ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB  ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image   ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp     ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.albedos ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.pick_id ) ) ) ;
+	free() ;
 }
 
 void Launcher::resize( const unsigned int w, const unsigned int h ) {
+	free() ;
 	// render result buffer
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rawRGB ),  sizeof( float3 )*w*h ) ) ;
-	// post processing buffer
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.image ),   sizeof( uchar4 )*w*h ) ) ;
 	// AOV rays per pixel (RPP) buffer
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.rpp ),     sizeof( unsigned int )*w*h ) ) ;
 	// denoiser input buffers
@@ -82,4 +76,12 @@ void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const 
 		comment << "CUDA error: " << cudaGetErrorString( cudaGetLastError() ) << "\n" ;
 		throw std::runtime_error( comment.str() ) ;
 	}
+}
+
+void Launcher::free() noexcept ( false ) {
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rawRGB  ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.rpp     ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.normals ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.albedos ) ) ) ;
+	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.pick_id ) ) ) ;
 }
