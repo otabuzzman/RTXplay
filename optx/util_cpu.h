@@ -2,7 +2,6 @@
 #define UTIL_CPU_H
 
 // system includes
-#include <cstdlib>
 #include <iomanip>
 #include <iostream>
 #include <sstream>

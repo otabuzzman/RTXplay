@@ -10,7 +10,6 @@
 #include <vector_types.h>
 
 // local includes
-#include "args.h"
 #include "rtwo.h"
 
 // file specific includes
@@ -18,7 +17,6 @@
 
 // common globals
 namespace cg {
-	extern Args*     args ;
 	extern LpGeneral lp_general ;
 }
 using namespace cg ;

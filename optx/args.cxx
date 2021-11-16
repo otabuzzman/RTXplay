@@ -4,11 +4,7 @@
 #ifndef _MSC_VER
 #include <getopt.h>
 #else
-#ifdef __GNUG__
-#include <cstring>
-#else
 #define strcasecmp _stricmp
-#endif // __GNUG__
 #endif // _MSC_VER
 
 // subsystem includes

@@ -2,7 +2,7 @@
 #define THING_H
 
 // system includes
-#include <vector>
+// none
 
 // subsystem includes
 // CUDA

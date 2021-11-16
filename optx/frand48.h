@@ -5,7 +5,8 @@
 // none
 
 // subsystem includes
-// none
+// CUDA
+#include <vector_types.h>
 
 // local includes
 // none

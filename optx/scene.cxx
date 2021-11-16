@@ -7,7 +7,6 @@
 
 // local includes
 #include "args.h"
-#include "object.h"
 #include "util.h"
 #include "v.h"
 

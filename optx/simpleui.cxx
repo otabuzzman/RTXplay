@@ -3,9 +3,6 @@
 #include <vector>
 
 // subsystem includes
-// OptiX
-#include <optix.h>
-#include <optix_stubs.h>
 // GLAD
 #include <glad/glad.h>
 // GLFW

@@ -5,7 +5,8 @@
 // none
 
 // subsystem includes
-// none
+// OptiX
+#include <optix.h>
 
 // local includes
 // none

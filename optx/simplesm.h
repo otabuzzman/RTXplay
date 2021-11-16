@@ -6,10 +6,12 @@
 #include <string>
 
 // subsystem includes
-// CUDA
-#include <cuda_gl_interop.h>
+// GLAD
+#include <glad/glad.h>
 // GLFW
 #include <GLFW/glfw3.h>
+// CUDA
+#include <cuda_gl_interop.h> // must follow glad.h
 
 // local includes
 #include "args.h"

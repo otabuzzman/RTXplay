@@ -2,14 +2,14 @@
 #define V_H
 
 // system includes
-#include <cmath>
+// none
 
 // subsystem includes
 // CUDA
+#include <vector_functions.h>
 #ifdef CURAND
 #include <curand_kernel.h>
 #endif // CURAND
-#include <vector_functions.h>
 #include <vector_types.h>
 
 // local includes

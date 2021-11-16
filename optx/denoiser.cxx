@@ -8,10 +8,7 @@
 
 // local includes
 #include "args.h"
-#include "camera.h"
-#include "thing.h"
 #include "rtwo.h"
-#include "util.h"
 
 // file specific includes
 #include "denoiser.h"

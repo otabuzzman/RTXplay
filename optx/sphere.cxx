@@ -3,12 +3,9 @@
 #include <vector>
 
 // subsystem includes
-// CUDA
-#include <vector_types.h>
+// none
 
 // local includes
-#include "hoist.h"
-#include "util.h"
 #include "v.h"
 
 // file specific includes

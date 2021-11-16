@@ -1,6 +1,5 @@
 // system includes
 #include <algorithm>
-#include <cmath>
 
 // subsystem includes
 // none

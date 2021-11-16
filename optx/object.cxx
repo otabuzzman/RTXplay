@@ -4,13 +4,11 @@
 // subsystem includes
 // CUDA
 #include <vector_functions.h>
-#include <vector_types.h>
 
 // local includes
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #include "thing.h"
-#include "util.h"
 
 // file specific includes
 #include "object.h"

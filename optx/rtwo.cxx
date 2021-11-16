@@ -12,15 +12,9 @@
 ***/
 #include <optix_stack_size.h>
 #include <optix_function_table_definition.h>
-// CUDA
-#include <vector_functions.h>
-#include <vector_types.h>
-// GLFW
-#include <GLFW/glfw3.h>
 
 // local includes
 #include "args.h"
-#include "camera.h"
 #include "denoiser.h"
 #include "hoist.h"
 #include "launcher.h"

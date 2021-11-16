@@ -2,15 +2,7 @@
 // none
 
 // subsystem includes
-// OptiX
-#include <optix.h>
-#include <optix_stubs.h>
-// GLAD
-#include <glad/glad.h>
-// GLFW
-#include <GLFW/glfw3.h>
-// CUDA
-#include <cuda_gl_interop.h> // must follow glad.h
+// none
 
 // local includes
 #include "launcher.h"
