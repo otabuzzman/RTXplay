@@ -8,8 +8,14 @@
 // CUDA
 #include <vector_functions.h>
 #include <vector_types.h>
+#ifdef CURAND
+#include <curand_kernel.h>
+#endif // CURAND
 
 // local includes
+#ifndef CURAND
+#include "frand48.h"
+#endif // CURAND
 #include "util.h"
 #include "v.h"
 

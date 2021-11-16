@@ -8,8 +8,10 @@
 // CUDA
 #ifdef CURAND
 #include <curand_kernel.h>
-#else
+#endif // CURAND
+
 // local includes
+#ifndef CURAND
 #include "frand48.h"
 #endif // CURAND
 

@@ -8,11 +8,16 @@
 // OptiX
 #include <optix.h>
 // CUDA
+#ifdef CURAND
+#include <curand_kernel.h>
+#endif // CURAND
 #include <vector_types.h>
 
 // local includes
 #include "camera.h"
+#ifndef CURAND
 #include "frand48.h"
+#endif // CURAND
 #include "thing.h"
 
 // file specific includes
