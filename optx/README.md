@@ -85,7 +85,7 @@ Options:
     mode.
 
     Available AOVs:
-      RPP (1) - Rays per pixel. Sort of `data´ AOV (opposed to AOVs for
+      RPP (1) - Rays per pixel. Sort of `data' AOV (opposed to AOVs for
                 lighting or shading). Values add up total number of rays
                 traced for each pixel. Output format is PGM.
 
@@ -244,7 +244,7 @@ Steps below assume an [AWS EC2 G4 instance](https://aws.amazon.com/ec2/instance-
   export LD_LIBRARY_PATH=/usr/local/lib64:$LD_LIBRARY_PATH
   x11vnc -display :0 &
 
-  # set password for `ec2-user´
+  # set password for `ec2-user'
   sudo passwd ec2-user
   ```
 

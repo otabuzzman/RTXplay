@@ -236,7 +236,7 @@ Options:\n\
     mode.\n\
 \n\
     Available AOVs:\n\
-      RPP (1) - Rays per pixel. Sort of `data´ AOV (opposed to AOVs for\n\
+      RPP (1) - Rays per pixel. Sort of `data' AOV (opposed to AOVs for\n\
                 lighting or shading). Values add up total number of rays\n\
                 traced for each pixel. Output format is PGM.\n\
 \n\

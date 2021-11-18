@@ -255,7 +255,7 @@ glad.zip:
 	@echo "*** 1. open GLAD in browser and click generation button:"
 	@echo "***        https://glad.dav1d.de/#profile=core&language=c&specification=gl&loader=on&api=gl%3D3.3"
 	@echo "*** 2. download ZIP archive and copy into $$(pwd) (this) folder"
-	@echo '*** 3. re-run `make´'
+	@echo '*** 3. re-run `make'\'
 	@false
 
 # setup STBI

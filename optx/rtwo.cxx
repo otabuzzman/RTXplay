@@ -370,7 +370,7 @@ int main( int argc, char* argv[] ) {
 
 
 
-			/*** calculate stack sizes (see `fixed stack sizes´ alternative below)
+			/*** calculate stack sizes (see `fixed stack sizes' alternative below)
 			***/
 			OptixStackSizes stack_sizes = {} ;
 			for ( auto& prog_group : program_groups )
@@ -410,7 +410,7 @@ int main( int argc, char* argv[] ) {
 
 
 
-			/*** fixed stack sizes (see `calculate stack sizes´ alternative above)
+			/*** fixed stack sizes (see `calculate stack sizes' alternative above)
 			OPTX_CHECK( optixPipelineSetStackSize(
 						pipeline,
 						8*1024, // direct callable stack size (called from AH and IS programs)
