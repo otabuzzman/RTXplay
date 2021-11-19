@@ -20,7 +20,7 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 - Run `make` in top-level directory of repo to get RTOW
 - Run `make` in `optx` directory to check compilation (no linking) of RTWO
 
-[^1]: In case NVCC throws errors with newer versions.
+[^1]: NVCC may fail with newer versions.
 
 #### Linux
 - Get appropriate hardware, e.g. AWS EC2 instance type `g4dn.xlarge` with Amazon Linux 2 AMI
