@@ -2,7 +2,7 @@
 #define CAMERA_H
 
 // system includes
-// none
+#include <cmath>
 
 // subsystem includes
 // CUDA

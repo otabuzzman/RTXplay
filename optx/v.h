@@ -2,7 +2,7 @@
 #define V_H
 
 // system includes
-// none
+#include <cmath>
 
 // subsystem includes
 // CUDA
