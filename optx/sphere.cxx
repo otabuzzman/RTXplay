@@ -14,34 +14,15 @@
 using V::operator+ ;
 using V::operator* ;
 
-// initilaize UTM counter
-int Sphere::utm_count_ = 0 ;
-
-Sphere::Sphere( const float radius, const unsigned int ndiv )
-	: radius_( radius ), ndiv_( ndiv ) {
-
+Sphere::Sphere( const float radius, const unsigned int ndiv ) : radius_( radius ), ndiv_( ndiv ) {
 	tetrahedron() ;
-
-#ifndef MAIN
-
-	copyVcesToDevice() ;
-	num_vces = static_cast<unsigned int>( vces_.size() ) ;
-	copyIcesToDevice()  ;
-	num_ices = static_cast<unsigned int>( ices_.size()  ) ;
-
-#endif // MAIN
-
-	// count UTM and record current
-	utm_index = utm_count_++ ;
 }
 
-Sphere::~Sphere() noexcept ( false ) {
-#ifndef MAIN
-
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( Thing::vces ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( Thing::ices ) ) ) ;
-
-#endif // MAIN
+const Mesh Sphere::mesh() {
+	return Mesh(
+		vces_.data(), static_cast<unsigned int>( vces_.size() ),
+		ices_.data(), static_cast<unsigned int>( ices_.size() )
+	) ;
 }
 
 void Sphere::tetrahedron() {
@@ -124,28 +105,6 @@ void Sphere::reduce() { // (SO #14396788)
 	vtmp_.clear() ;
 }
 
-void Sphere::copyVcesToDevice() {
-	const size_t vces_size = sizeof( float3 )*static_cast<unsigned int>( vces_.size() ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &( Thing::vces ) ), vces_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( Thing::vces ),
-		vces_.data(),
-		vces_size,
-		cudaMemcpyHostToDevice
-		) ) ;
-}
-
-void Sphere::copyIcesToDevice() {
-	const size_t ices_size = sizeof( uint3 )*static_cast<unsigned int>( ices_.size() ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &( Thing::ices ) ), ices_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( Thing::ices ),
-		ices_.data(),
-		ices_size,
-		cudaMemcpyHostToDevice
-		) ) ;
-}
-
 #ifdef MAIN
 
 int main( const int argc, const char** argv ) {
@@ -159,15 +118,21 @@ int main( const int argc, const char** argv ) {
 	std::cout << "# sphere approximation by `pumped-up' tetrahedron:"            << std::endl ;
 	std::cout << "# " << ndiv << " times recursive triangle surface subdivision" << std::endl ;
 
-	for ( auto v : sphere.vces() )
-		printf( "v %f %f %f\n", v.x, v.y, v.z ) ;
-	std::cout << "# " << sphere.vces().size() << " vertices"  << std::endl ;
+	float3*      vces ;
+	unsigned int vces_size ;
+	uint3*       ices ;
+	unsigned int ices_size ;
+	std::tie( vces, vces_size, ices, ices_size ) = sphere.mesh() ;
+
+	for ( unsigned int v = 0 ; vces_size>v ; v++ )
+		printf( "v %f %f %f\n", vces[v].x, vces[v].y, vces[v].z ) ;
+	std::cout << "# " << vces_size << " vertices"  << std::endl ;
 
 	printf( "g sphere_%u\n", ndiv ) ;
 
-	for ( auto i : sphere.ices() )
-		printf( "f %d %d %d\n", i.x+1, i.y+1, i.z+1 ) ;
-	std::cout << "# " << sphere.ices().size() << " triangles" << std::endl ;
+	for ( unsigned int i = 0 ; ices_size>i ; i++ )
+		printf( "f %d %d %d\n", ices[i].x+1, ices[i].y+1, ices[i].z+1 ) ;
+	std::cout << "# " << ices_size << " triangles" << std::endl ;
 
 	std::cout << std::endl ;
 
