@@ -115,8 +115,10 @@ int main( const int argc, const char** argv ) {
 	if ( argc>2 ) sscanf( argv[2], "%u", &ndiv ) ;
 	Sphere sphere( radius, ndiv ) ;
 
-	std::cout << "# sphere approximation by `pumped-up' tetrahedron:"            << std::endl ;
-	std::cout << "# " << ndiv << " times recursive triangle surface subdivision" << std::endl ;
+	std::cout << "# sphere approximation by `inflated' tetrahedron" << std::endl ;
+	std::cout << "# obtained by 6-fold triangular area subdivision" << std::endl ;
+
+	std::cout << "o sphere_" << ndiv << std::endl ;
 
 	float3*      vces ;
 	unsigned int vces_size ;
@@ -127,8 +129,6 @@ int main( const int argc, const char** argv ) {
 	for ( unsigned int v = 0 ; vces_size>v ; v++ )
 		printf( "v %f %f %f\n", vces[v].x, vces[v].y, vces[v].z ) ;
 	std::cout << "# " << vces_size << " vertices"  << std::endl ;
-
-	printf( "g sphere_%u\n", ndiv ) ;
 
 	for ( unsigned int i = 0 ; ices_size>i ; i++ )
 		printf( "f %d %d %d\n", ices[i].x+1, ices[i].y+1, ices[i].z+1 ) ;

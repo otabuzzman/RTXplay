@@ -21,7 +21,7 @@ class Sphere {
 	public:
 		Sphere( const float radius = 1.f, const unsigned int ndiv = 6 ) ;
 
-	const Mesh mesh() ;
+		const Mesh mesh() ;
 
 	private:
 		float               radius_ ;

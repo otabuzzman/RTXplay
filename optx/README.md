@@ -183,7 +183,7 @@ Try a cloud service. RTWO developement actually happened on Windows and got its 
 |`camera_i.cu`<br>`camera_r.cu`|Interactive and recursive versions of *Ray generation* (RG) and *Miss* (MS) programs.|
 |`optics_i.cu`<br>`optics_r.cu`|Interactive and recursive versions of *Closest-hit* (CH) programs für diffuse, reflecting and refracting surfaces.|
 |`denoiser.cxx`|Various denoisers. 1) A simple one (SMP) only having set OPTIX_DENOISER_MODEL_KIND_LDR, 2) the simple one plus normals guide layer (NRM), 3) the simple again plus albedos guide layer (ALB), 4) one more simple plus normals and albedos guide layers (NAA), and 5) finally the AOV denoiser with both guide layers and model kind OPTIX_DENOISER_MODEL_KIND_AOV but no AOVs.|
-|`sphere.cxx`|A tool to create triangle-meshed sphere approximations in Wavefront OBJ file format. Actually a tetrahedron *pumped up* by recursively subdividing triangular surfaces. Also a specialization of *Hoist*.|
+|`sphere.cxx`|A tool to create triangle-meshed sphere approximations in Wavefront OBJ file format. Actually a tetrahedron *pumped up* by recursively subdividing triangular surfaces.|
 |`glxview.cxx`|A simple GLX viewer for X written to practice CUDA OpenGL interop (beyond that not used by RTWO).|
 |`reduce.cxx`|A lab to generate indexed vertice lists. (beyond that not used by RTWO).|
 
