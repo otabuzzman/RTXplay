@@ -175,7 +175,7 @@ Try a cloud service. RTWO developement actually happened on Windows and got its 
 |`scene.cxx`|A collection of things.|
 |`thing.h`|A generalization of a *Thing* in a scene as seen by *Hit Group* programs. Actually a `struct` carried onto device via SBT record.|
 |`hoist.h`|A specialization of *Thing* to support host-side handling.|
-|`object.cxx`|A specialization of *Hoist* to read in a single scene object from a Waveform OBJ file and create an indexed triangle-mesh.|
+|`object.cxx`|A tool to read in a single scene object from a Waveform OBJ file.|
 |`simpleui.cxx`|The CUDA OpenGL interop code to continuously render on X, as well as input event handling.|
 |`frag.gsgl`<br>`vert.gsgl`|Generic OpenGL fragment and vertex shaders.|
 |`paddle.cxx`|An abstraction of a control device inspired by the `Trackball` class in sutils of the OptiX SDK (name taken from Atari's [Pong](https://en.wikipedia.org/wiki/Pong) game).|

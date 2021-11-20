@@ -1,4 +1,5 @@
 // system includes
+#include <iostream>
 #include <map>
 
 // subsystem includes
@@ -8,13 +9,9 @@
 // local includes
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
-#include "thing.h"
 
 // file specific includes
 #include "object.h"
-
-// initilaize UTM counter
-int Object::utm_count_ = 0 ;
 
 // map comparison function for procWavefrontObj
 namespace std {
@@ -25,29 +22,14 @@ namespace std {
 
 Object::Object( const std::string& wavefront ) {
 	procWavefrontObj( wavefront ) ;
-
-#ifndef MAIN
-
-	copyVcesToDevice() ;
-	num_vces = static_cast<unsigned int>( vces_.size() ) ;
-	copyIcesToDevice()  ;
-	num_ices = static_cast<unsigned int>( ices_.size() ) ;
-
-#endif // MAIN
-
-	// count UTM and record current
-	utm_index = utm_count_++ ;
 }
 
-Object::~Object() noexcept ( false ) {
-#ifndef MAIN
-
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( Thing::vces ) ) ) ;
-	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( Thing::ices ) ) ) ;
-
-#endif // MAIN
+const Mesh Object::operator[] ( unsigned int i ) {
+	return Mesh(
+		vces_[i].data(), static_cast<unsigned int>( vces_[i].size() ),
+		ices_[i].data(), static_cast<unsigned int>( ices_[i].size() )
+	) ;
 }
-
 void Object::procWavefrontObj( const std::string& wavefront ) {
 	tinyobj::ObjReader       reader ;
 	tinyobj::ObjReaderConfig config ;
@@ -59,9 +41,12 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 	auto& attrib = reader.GetAttrib() ;
 	const size_t vertices_size = attrib.vertices.size() ;
 
-	// loop over shapes
+	// loop over shapes (submeshes)
 	for ( size_t s = 0 ; shapes.size()>s ; s++ ) {
-		// loop over faces
+		std::vector<float3> vces ;
+		std::vector<uint3>  ices ;
+
+		// loop over faces (triangles)
 		for ( size_t f = 0 ; shapes[s].mesh.num_face_vertices.size()>f ; f++ ) {
 			// triangle check
 			if ( shapes[s].mesh.num_face_vertices[f] == 3 ) {
@@ -78,20 +63,20 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 					comment << wavefront << ": index out of bounds" << std::endl ;
 					throw std::runtime_error( comment.str() ) ;
 				}
-				ices_.push_back( { i0, i1, i2 } ) ;
+				ices.push_back( { i0, i1, i2 } ) ;
 
 				// fetch triangle vertices
 				if ( recall.find( tol_i0 ) == recall.end() ) {
-					recall[tol_i0] = vces_.size() ;
-					vces_.push_back( { attrib.vertices[3*i0+0], attrib.vertices[3*i0+1], attrib.vertices[3*i0+2] } ) ;
+					recall[tol_i0] = vces.size() ;
+					vces.push_back( { attrib.vertices[3*i0+0], attrib.vertices[3*i0+1], attrib.vertices[3*i0+2] } ) ;
 				}
 				if ( recall.find( tol_i1 ) == recall.end() ) {
-					recall[tol_i1] = vces_.size() ;
-					vces_.push_back( { attrib.vertices[3*i1+0], attrib.vertices[3*i1+1], attrib.vertices[3*i1+2] } ) ;
+					recall[tol_i1] = vces.size() ;
+					vces.push_back( { attrib.vertices[3*i1+0], attrib.vertices[3*i1+1], attrib.vertices[3*i1+2] } ) ;
 				}
 				if ( recall.find( tol_i2 ) == recall.end() ) {
-					recall[tol_i2] = vces_.size() ;
-					vces_.push_back( { attrib.vertices[3*i2+0], attrib.vertices[3*i2+1], attrib.vertices[3*i2+2] } ) ;
+					recall[tol_i2] = vces.size() ;
+					vces.push_back( { attrib.vertices[3*i2+0], attrib.vertices[3*i2+1], attrib.vertices[3*i2+2] } ) ;
 				}
 			} else {
 				std::ostringstream comment ;
@@ -100,29 +85,10 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 				throw std::runtime_error( comment.str() ) ;
 			}
 		}
+
+		vces_.push_back( vces ) ;
+		ices_.push_back( ices ) ;
 	}
-}
-
-void Object::copyVcesToDevice() {
-	const size_t vces_size = sizeof( float3 )*static_cast<unsigned int>( vces_.size() ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &( Thing::vces ) ), vces_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( Thing::vces ),
-		vces_.data(),
-		vces_size,
-		cudaMemcpyHostToDevice
-		) ) ;
-}
-
-void Object::copyIcesToDevice() {
-	const size_t ices_size = sizeof( uint3 )*static_cast<unsigned int>( ices_.size() ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &( Thing::ices ) ), ices_size ) ) ;
-	CUDA_CHECK( cudaMemcpy(
-		reinterpret_cast<void*>( Thing::ices ),
-		ices_.data(),
-		ices_size,
-		cudaMemcpyHostToDevice
-		) ) ;
 }
 
 #ifdef MAIN
@@ -131,10 +97,27 @@ int main( const int argc, const char** argv ) {
 	Object object( argv[1] ) ;
 
 	std::cout << "o " << argv[1] << std::endl ;
-	for ( auto& v : object.vces() )
-		printf( "v %f %f %f\n", v.x, v.y, v.z ) ;
-	for ( auto& i : object.ices() )
-		printf( "f %u %u %u\n", i.x+1, i.y+1, i.z+1 ) ;
+
+	float3*      vces ;
+	unsigned int vces_size ;
+	uint3*       ices ;
+	unsigned int ices_size ;
+
+	unsigned int v, vsum = 0 ;
+	for ( unsigned int o = 0 ; object.size()>o ; o++ ) {
+		std::tie( vces, vces_size, ices, ices_size ) = object[o] ;
+		for ( v = 0 ; vces_size>v ; v++ )
+			printf( "v %f %f %f\n", vces[v].x, vces[v].y, vces[v].z ) ;
+		vsum += v ;
+	}
+	std::cout << "# " << vsum << " vertices"  << std::endl ;
+
+	for ( unsigned int o = 0 ; object.size()>o ; o++ ) {
+		std::tie( vces, vces_size, ices, ices_size ) = object[o] ;
+		for ( unsigned int i = 0 ; ices_size>i ; i++ )
+			printf( "f %d %d %d\n", ices[i].x+1, ices[i].y+1, ices[i].z+1 ) ;
+		std::cout << "# " << ices_size << " triangles"  << std::endl ;
+	}
 
 	return 0 ;
 }

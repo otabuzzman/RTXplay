@@ -2,6 +2,7 @@
 #define OBJECT_H
 
 // system includes
+#include <tuple>
 #include <vector>
 
 // subsystem includes
@@ -9,29 +10,26 @@
 #include <vector_types.h>
 
 // local includes
-#include "hoist.h"
+// none
 
 // file specific includes
 // none
 
-class Object : public Hoist {
-	public:
-		Object( const std::string& wavefront ) ;
-		~Object() noexcept ( false ) ;
+typedef std::tuple<float3*, unsigned int, uint3*, unsigned int> Mesh ;
 
-		const std::vector<float3>& vces() const { return vces_ ; } ;
-		const std::vector<uint3>&  ices() const { return ices_ ; } ;
+class Object {
+	public:
+		const Mesh operator[] ( unsigned int i ) ;
+
+		Object( const std::string& wavefront ) ;
+
+		const size_t size() { return vces_.size() ; } ;
 
 	private:
+		std::vector<std::vector<float3>> vces_ ; // submesh's unique vertices...
+		std::vector<std::vector<uint3>>  ices_ ; // ...as indexed triangles
+
 		void procWavefrontObj( const std::string& wavefront ) ;
-
-		void copyVcesToDevice() ;
-		void copyIcesToDevice() ;
-
-		std::vector<float3> vces_ ; // object's unique vertices...
-		std::vector<uint3>  ices_ ; // ...as indexed triangles
-
-		static int utm_count_ ;
 } ;
 
 #endif // OBJECT_H
