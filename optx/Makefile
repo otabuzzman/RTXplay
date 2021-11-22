@@ -269,4 +269,4 @@ tiny_obj_loader.h:
 
 # check balanced cudaMalloc/ cudaFree API calls
 check-cudamem:
-	@test $$(( $$(grep -s cudaMalloc *.cxx *.h | wc -l) - $$(grep -s cudaFree *.cxx *.h | wc -l) )) -eq -1
+	@test $$(( $$(grep -s cudaMalloc *.cxx *.h | wc -l) - $$(grep -s cudaFree *.cxx *.h | wc -l) )) -eq -2

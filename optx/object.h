@@ -19,11 +19,11 @@ typedef std::tuple<float3*, unsigned int, uint3*, unsigned int> Mesh ;
 
 class Object {
 	public:
-		const Mesh operator[] ( unsigned int i ) ;
+		const Mesh operator[] ( unsigned int m ) ;
 
 		Object( const std::string& wavefront ) ;
 
-		const size_t size() { return vces_.size() ; } ;
+		size_t size() const { return vces_.size() ; } ;
 
 	private:
 		std::vector<std::vector<float3>> vces_ ; // submesh's unique vertices...

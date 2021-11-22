@@ -24,12 +24,13 @@ Object::Object( const std::string& wavefront ) {
 	procWavefrontObj( wavefront ) ;
 }
 
-const Mesh Object::operator[] ( unsigned int i ) {
+const Mesh Object::operator[] ( unsigned int m ) {
 	return Mesh(
-		vces_[i].data(), static_cast<unsigned int>( vces_[i].size() ),
-		ices_[i].data(), static_cast<unsigned int>( ices_[i].size() )
+		vces_[m].data(), static_cast<unsigned int>( vces_[m].size() ),
+		ices_[m].data(), static_cast<unsigned int>( ices_[m].size() )
 	) ;
 }
+
 void Object::procWavefrontObj( const std::string& wavefront ) {
 	tinyobj::ObjReader       reader ;
 	tinyobj::ObjReaderConfig config ;

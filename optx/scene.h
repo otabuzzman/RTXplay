@@ -2,30 +2,54 @@
 #define SCENE_H
 
 // system includes
-#include <memory>
 #include <vector>
 
 // subsystem includes
-// none
+// OptiX
+#include <optix.h>
+#include <optix_stubs.h>
 
 // local includes
-#include "hoist.h"
 #include "object.h"
+#include "thing.h"
 
 // file specific includes
 // none
 
 class Scene {
 	public:
-		const Hoist& operator[] ( unsigned int i ) { return things_[i] ; } ;
+		const Thing& operator[] ( unsigned int i ) { return things_[i] ; } ;
 
-		void         load( size_t* num_utm = nullptr ) ;
-		const Hoist* data() const { return things_.data() ; } ;
-		size_t       size() const { return things_.size() ; } ;
+		Scene() = default ;
+		Scene( const OptixDeviceContext& optx_context ) ;
+		virtual ~Scene() noexcept ( false ) ;
+
+		virtual void load( unsigned int* size ) = 0 ;
+
+		unsigned int add( Object& object ) ;                                            // create GAS for object's submeshes
+		unsigned int add( Thing& thing, const float* transform, unsigned int object ) ; // create thing and connect with GAS
+
+		void build( OptixTraversableHandle* handle ) ;
 
 	private:
-		std::vector<std::shared_ptr<Object>> meshes_ ; // unique triangle meshes (UTM)
-		std::vector<Hoist>                   things_ ;
+		OptixDeviceContext optx_context_ ;
+
+		// per object GAS handles
+		std::vector<OptixTraversableHandle> as_handle_ ;
+		// per GAS device buffers
+		std::vector<CUdeviceptr>            as_outbuf_ ;
+		std::vector<CUdeviceptr>            vces_ ;
+		std::vector<CUdeviceptr>            ices_ ;
+
+		// per instance host data structures
+		std::vector<OptixInstance> h_ises_ ;
+		// per instance SBT record data buffers
+		std::vector<Thing>         things_ ;
+
+		// IAS device buffer
+		CUdeviceptr is_outbuf_ ;
+		// catenated instances device buffer
+		CUdeviceptr d_ises_ ;
 } ;
 
 #endif // SCENE_H
