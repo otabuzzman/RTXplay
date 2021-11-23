@@ -1,4 +1,5 @@
 // system includes
+#include <cstring>
 #include <tuple>
 
 // subsystem includes
@@ -13,9 +14,9 @@
 #include "scene.h"
 
 template<typename T>
-void copyVIToDevice( CUdeviceptr* to, T* from, size_t size ) {
-	const size_t vces_size = sizeof( T )*size ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( to ), size ) ) ;
+void copyVIToDevice( CUdeviceptr to, const T* from, unsigned int num ) {
+	const size_t size = sizeof( T )*num ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &to ), size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( to ),
 		from,
@@ -37,14 +38,10 @@ Scene::~Scene() noexcept ( false ) {
 
 unsigned int Scene::add( Object& object ) {
 	const unsigned int id = static_cast<unsigned int>( as_handle_.size() ) ;
-	as_handle_.resize( id+1 ) ;
-	as_outbuf_.resize( id+1 ) ;
-	vces_.resize( id+1 ) ;
-	ices_.resize( id+1 ) ;
 
 	// collect object's submeshes into one
-	std::vector<float3> all_vces ;
-	std::vector<uint3>  all_ices ;
+	std::vector<float3> o_vces ;
+	std::vector<uint3>  o_ices ;
 
 	// submesh tuple
 	float3*      vces ;
@@ -55,26 +52,30 @@ unsigned int Scene::add( Object& object ) {
 	for ( unsigned int o = 0 ; object.size()>o ; o++ ) {
 		std::tie( vces, vces_size, ices, ices_size ) = object[o] ;
 		for ( unsigned int v = 0 ; vces_size>v ; v++ )
-			all_vces.push_back( vces[v] ) ;
+			o_vces.push_back( vces[v] ) ;
 		for ( unsigned int i = 0 ; ices_size>i ; i++ )
-			all_ices.push_back( ices[i] ) ;
+			o_ices.push_back( ices[i] ) ;
 	}
 
 	// setup this object's build input structure
 	OptixBuildInput obi_object = {} ;
 	obi_object.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
-	const unsigned int all_vces_size = static_cast<unsigned int>( all_vces.size() ) ;
-	copyVIToDevice<float3>( &vces_[id], all_vces.data(), all_vces_size ) ;
+	CUdeviceptr d_vces = 0 ;
+	const unsigned int o_vces_size = static_cast<unsigned int>( o_vces.size() ) ;
+	copyVIToDevice<float3>( d_vces, o_vces.data(), o_vces_size ) ;
 	obi_object.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-	obi_object.triangleArray.numVertices                 = all_vces_size ;
-	obi_object.triangleArray.vertexBuffers               = &vces_[id] ;
+	obi_object.triangleArray.numVertices                 = o_vces_size ;
+	obi_object.triangleArray.vertexBuffers               = &d_vces ;
+	vces_.push_back( d_vces ) ;
 
-	const unsigned int all_ices_size = static_cast<unsigned int>( all_ices.size() ) ;
-	copyVIToDevice<uint3>( &ices_[id], all_ices.data(), all_ices_size ) ;
+	CUdeviceptr d_ices = 0 ;
+	const unsigned int o_ices_size = static_cast<unsigned int>( o_ices.size() ) ;
+	copyVIToDevice<uint3>( d_ices, o_ices.data(), o_ices_size ) ;
 	obi_object.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-	obi_object.triangleArray.numIndexTriplets            = all_ices_size ;
-	obi_object.triangleArray.indexBuffer                 = ices_[id] ;
+	obi_object.triangleArray.numIndexTriplets            = o_ices_size ;
+	obi_object.triangleArray.indexBuffer                 = d_ices ;
+	ices_.push_back( d_ices ) ;
 
 	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 	obi_object.triangleArray.flags                       = &obi_object_flags[0] ;
@@ -98,9 +99,9 @@ unsigned int Scene::add( Object& object ) {
 				) ) ;
 
 	// allocate GPU memory for acceleration structure buffers
-	CUdeviceptr as_tmpbuf ;
+	CUdeviceptr as_tmpbuf, as_outbuf ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &as_tmpbuf ), as_buffer_sizes.tempSizeInBytes ) ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &as_outbuf_[id] ), as_buffer_sizes.outputSizeInBytes ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &as_outbuf ), as_buffer_sizes.outputSizeInBytes ) ) ;
 
 	// allocate GPU memory for acceleration structure compaction buffer
 //	CUdeviceptr as_zipbuf ;
@@ -115,6 +116,7 @@ unsigned int Scene::add( Object& object ) {
 //	oas_request.result = as_zipbuf_size ;
 
 	// build acceleration structure
+	OptixTraversableHandle as_handle ;
 	OPTX_CHECK( optixAccelBuild(
 				optx_context_,
 				0,
@@ -123,15 +125,16 @@ unsigned int Scene::add( Object& object ) {
 				1,
 				as_tmpbuf,
 				as_buffer_sizes.tempSizeInBytes,
-				as_outbuf_[id],
+				as_outbuf,
 				// acceleration structure compaction (must comment previous line)
 //				as_zipbuf,
 				as_buffer_sizes.outputSizeInBytes,
-				&as_handle_[id],
+				&as_handle,
 				nullptr, 0
 				// acceleration structure compaction (must comment previous line)
 //				&oas_request, 1
 				) ) ;
+	as_handle_.push_back( as_handle ) ;
 
 	// retrieve acceleration structure compaction buffer size from GPU memory
 //	unsigned long long as_zipbuf_size ;
@@ -146,10 +149,12 @@ unsigned int Scene::add( Object& object ) {
 //	OPTX_CHECK( optixAccelCompact(
 //				optx_context_,
 //				0,
-//				as_handle_[id],
-//				as_outbuf_[id],
+//				as_handle,
+//				as_outbuf,
 //				as_zipbuf_size,
-//				&as_handle_[id] ) ) ;
+//				&as_handle ) ) ;
+
+	as_outbuf_.push_back( as_outbuf ) ;
 
 	CUDA_CHECK( cudaFree( reinterpret_cast<void*>( as_tmpbuf ) ) ) ;
 	// free GPU memory for acceleration structure compaction buffer
@@ -161,8 +166,6 @@ unsigned int Scene::add( Object& object ) {
 
 unsigned int Scene::add( Thing& thing, const float* transform, unsigned int object ) {
 	const unsigned int id = static_cast<unsigned int>( things_.size() ) ;
-	h_ises_.resize( id+1 ) ;
-	things_.resize( id+1 ) ;
 
 	OptixInstance instance     = {} ;
 

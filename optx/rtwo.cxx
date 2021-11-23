@@ -228,9 +228,12 @@ int main( int argc, char* argv[] ) {
 					add( thing, transform, gas_3 ) ;
 				}
 		} ;
+
 		RTWO rtwo( optx_context ) ;
+
 		unsigned int rtwo_size ;
 		rtwo.load( &rtwo_size ) ;
+
 		rtwo.build( &lp_general.is_handle ) ;
 
 
