@@ -24,7 +24,7 @@ class Scene {
 		Scene( const OptixDeviceContext& optx_context ) ;
 		virtual ~Scene() noexcept ( false ) ;
 
-		virtual void load( unsigned int* size ) = 0 ;
+		virtual unsigned int load() = 0 ;
 
 		unsigned int add( Object& object ) ;                                            // create GAS for object's submeshes
 		unsigned int add( Thing& thing, const float* transform, unsigned int object ) ; // create thing and connect with GAS

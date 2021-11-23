@@ -132,7 +132,7 @@ int main( int argc, char* argv[] ) {
 			public:
 				RTWO( const OptixDeviceContext& optx_context ) : Scene( optx_context ) {} ;
 
-				void load(  unsigned int* size ) override {
+				unsigned int load() override {
 					Object sphere_3 = Object( "sphere_3.scn" ) ;
 					Object sphere_6 = Object( "sphere_6.scn" ) ;
 					Object sphere_8 = Object( "sphere_8.scn" ) ;
@@ -225,15 +225,13 @@ int main( int argc, char* argv[] ) {
 					transform[0*4+3] = 4.f ;
 					transform[1*4+3] = 1.f ;
 					transform[2*4+3] = 0.f ;
-					*size = add( thing, transform, gas_3 )+1 ;
+					return 1+add( thing, transform, gas_3 ) ;
 				}
 		} ;
 
 		RTWO rtwo( optx_context ) ;
 
-		unsigned int rtwo_size ;
-		rtwo.load( &rtwo_size ) ;
-
+		unsigned int rtwo_size = rtwo.load() ;
 		rtwo.build( &lp_general.is_handle ) ;
 
 

@@ -15,12 +15,12 @@
 
 template<typename T>
 void copyVIToDevice( CUdeviceptr& to, const T* from, unsigned int num ) {
-	const size_t to_size = sizeof( T )*num ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &to ), to_size ) ) ;
+	const size_t size = sizeof( T )*num ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &to ), size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( to ),
 		from,
-		to_size,
+		size,
 		cudaMemcpyHostToDevice
 		) ) ;
 }
@@ -39,7 +39,7 @@ Scene::~Scene() noexcept ( false ) {
 unsigned int Scene::add( Object& object ) {
 	const unsigned int id = static_cast<unsigned int>( as_handle_.size() ) ;
 
-	// collect object's submeshes into one
+	// catenate object's submeshes
 	std::vector<float3> o_vces ;
 	std::vector<uint3>  o_ices ;
 
