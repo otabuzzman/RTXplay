@@ -14,13 +14,13 @@
 #include "scene.h"
 
 template<typename T>
-void copyVIToDevice( CUdeviceptr to, const T* from, unsigned int num ) {
-	const size_t size = sizeof( T )*num ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &to ), size ) ) ;
+void copyVIToDevice( CUdeviceptr& to, const T* from, unsigned int num ) {
+	const size_t to_size = sizeof( T )*num ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &to ), to_size ) ) ;
 	CUDA_CHECK( cudaMemcpy(
 		reinterpret_cast<void*>( to ),
 		from,
-		size,
+		to_size,
 		cudaMemcpyHostToDevice
 		) ) ;
 }
@@ -64,18 +64,18 @@ unsigned int Scene::add( Object& object ) {
 	CUdeviceptr d_vces = 0 ;
 	const unsigned int o_vces_size = static_cast<unsigned int>( o_vces.size() ) ;
 	copyVIToDevice<float3>( d_vces, o_vces.data(), o_vces_size ) ;
+	vces_.push_back( d_vces ) ;
 	obi_object.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 	obi_object.triangleArray.numVertices                 = o_vces_size ;
-	obi_object.triangleArray.vertexBuffers               = &d_vces ;
-	vces_.push_back( d_vces ) ;
+	obi_object.triangleArray.vertexBuffers               = &vces_[id] ;
 
 	CUdeviceptr d_ices = 0 ;
 	const unsigned int o_ices_size = static_cast<unsigned int>( o_ices.size() ) ;
 	copyVIToDevice<uint3>( d_ices, o_ices.data(), o_ices_size ) ;
+	ices_.push_back( d_ices ) ;
 	obi_object.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
 	obi_object.triangleArray.numIndexTriplets            = o_ices_size ;
-	obi_object.triangleArray.indexBuffer                 = d_ices ;
-	ices_.push_back( d_ices ) ;
+	obi_object.triangleArray.indexBuffer                 = ices_[id] ;
 
 	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 	obi_object.triangleArray.flags                       = &obi_object_flags[0] ;

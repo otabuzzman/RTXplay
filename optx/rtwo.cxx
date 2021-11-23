@@ -130,7 +130,7 @@ int main( int argc, char* argv[] ) {
 		// build acceleration structure
 		class RTWO : public Scene {
 			public:
-				RTWO( const OptixDeviceContext& optx_context ) {} ;
+				RTWO( const OptixDeviceContext& optx_context ) : Scene( optx_context ) {} ;
 
 				void load(  unsigned int* size ) override {
 					Object sphere_3 = Object( "sphere_3.scn" ) ;
