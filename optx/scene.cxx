@@ -43,47 +43,47 @@ unsigned int Scene::add( Object& object ) {
 	std::vector<uint3>  as_ices ;
 
 	// submesh tuple (Mesh)
-	float3*      vces ;
-	unsigned int vces_size ;
-	uint3*       ices ;
-	unsigned int ices_size ;
+	{
+		float3*      vces ;
+		unsigned int vces_size ;
+		uint3*       ices ;
+		unsigned int ices_size ;
 
-	for ( unsigned int o = 0 ; object.size()>o ; o++ ) {
-		std::tie( vces, vces_size, ices, ices_size ) = object[o] ;
-		for ( unsigned int v = 0 ; vces_size>v ; v++ )
-			as_vces.push_back( vces[v] ) ;
-		for ( unsigned int i = 0 ; ices_size>i ; i++ )
-			as_ices.push_back( ices[i] ) ;
+		for ( unsigned int o = 0 ; object.size()>o ; o++ ) {
+			std::tie( vces, vces_size, ices, ices_size ) = object[o] ;
+			for ( unsigned int v = 0 ; vces_size>v ; v++ )
+				as_vces.push_back( vces[v] ) ;
+			for ( unsigned int i = 0 ; ices_size>i ; i++ )
+				as_ices.push_back( ices[i] ) ;
+		}
 	}
 
 	// set up this object's build input structure
 	OptixBuildInput obi_object = {} ;
-	{
-		obi_object.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
+	obi_object.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
-		CUdeviceptr vces = 0 ;
-		const unsigned int as_vces_size = static_cast<unsigned int>( as_vces.size() ) ;
-		copyDataToDevice<float3>( vces, as_vces.data(), as_vces_size ) ;
-		vces_.push_back( vces ) ;
-		obi_object.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-		obi_object.triangleArray.numVertices                 = as_vces_size ;
-		obi_object.triangleArray.vertexBuffers               = &vces_[id] ;
+	CUdeviceptr vces = 0 ;
+	const unsigned int as_vces_size = static_cast<unsigned int>( as_vces.size() ) ;
+	copyDataToDevice<float3>( vces, as_vces.data(), as_vces_size ) ;
+	vces_.push_back( vces ) ;
+	obi_object.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
+	obi_object.triangleArray.numVertices                 = as_vces_size ;
+	obi_object.triangleArray.vertexBuffers               = &vces_[id] ;
 
-		CUdeviceptr ices = 0 ;
-		const unsigned int as_ices_size = static_cast<unsigned int>( as_ices.size() ) ;
-		copyDataToDevice<uint3>( ices, as_ices.data(), as_ices_size ) ;
-		ices_.push_back( ices ) ;
-		obi_object.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-		obi_object.triangleArray.numIndexTriplets            = as_ices_size ;
-		obi_object.triangleArray.indexBuffer                 = ices_[id] ;
+	CUdeviceptr ices = 0 ;
+	const unsigned int as_ices_size = static_cast<unsigned int>( as_ices.size() ) ;
+	copyDataToDevice<uint3>( ices, as_ices.data(), as_ices_size ) ;
+	ices_.push_back( ices ) ;
+	obi_object.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
+	obi_object.triangleArray.numIndexTriplets            = as_ices_size ;
+	obi_object.triangleArray.indexBuffer                 = ices_[id] ;
 
-		const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
-		obi_object.triangleArray.flags                       = &obi_object_flags[0] ;
-		obi_object.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
-		obi_object.triangleArray.sbtIndexOffsetBuffer        = 0 ;
-		obi_object.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
-		obi_object.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
-	}
+	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
+	obi_object.triangleArray.flags                       = &obi_object_flags[0] ;
+	obi_object.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
+	obi_object.triangleArray.sbtIndexOffsetBuffer        = 0 ;
+	obi_object.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
+	obi_object.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
 
 	// GAS options
 	OptixAccelBuildOptions oas_options = {} ;
@@ -171,18 +171,16 @@ unsigned int Scene::add( Thing& thing, const float* transform, unsigned int obje
 
 	// set up this things's instance structure
 	OptixInstance ois_thing     = {} ;
-	{
-		ois_thing.instanceId        = id ;
-		ois_thing.visibilityMask    = 255 ; // OPTIX_DEVICE_PROPERTY_LIMIT_NUM_BITS_INSTANCE_VISIBILITY_MASK
+	ois_thing.instanceId        = id ;
+	ois_thing.visibilityMask    = 255 ; // OPTIX_DEVICE_PROPERTY_LIMIT_NUM_BITS_INSTANCE_VISIBILITY_MASK
 
-		ois_thing.flags             = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT ;
-		ois_thing.sbtOffset         = id ;
+	ois_thing.flags             = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT ;
+	ois_thing.sbtOffset         = id ;
 
-		const size_t transform_size = sizeof( float )*12 ;
-		memcpy( ois_thing.transform, transform, transform_size ) ;
+	const size_t transform_size = sizeof( float )*12 ;
+	memcpy( ois_thing.transform, transform, transform_size ) ;
 
-		ois_thing.traversableHandle = as_handle_[object] ;
-	}
+	ois_thing.traversableHandle = as_handle_[object] ;
 
 	is_ises_.push_back( ois_thing ) ;
 
