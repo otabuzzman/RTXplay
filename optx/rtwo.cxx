@@ -225,7 +225,7 @@ int main( int argc, char* argv[] ) {
 					transform[0*4+3] = 4.f ;
 					transform[1*4+3] = 1.f ;
 					transform[2*4+3] = 0.f ;
-					add( thing, transform, gas_3 ) ;
+					*size = add( thing, transform, gas_3 )+1 ;
 				}
 		} ;
 

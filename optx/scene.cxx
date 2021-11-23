@@ -190,7 +190,7 @@ unsigned int Scene::add( Thing& thing, const float* transform, unsigned int obje
 
 void Scene::build( OptixTraversableHandle* handle ) {
 	const size_t instances_size = sizeof( OptixInstance )*h_ises_.size() ;
-	CUDA_CHECK( cudaMalloc( (void**) &d_ises_, instances_size) );
+	CUDA_CHECK( cudaMalloc( (void**) &d_ises_, instances_size ) );
 	CUDA_CHECK( cudaMemcpy( (void*) d_ises_, h_ises_.data(), instances_size, cudaMemcpyHostToDevice ) );
 
 	// create build input structure for thing instances
