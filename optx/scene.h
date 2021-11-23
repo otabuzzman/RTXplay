@@ -20,7 +20,6 @@ class Scene {
 	public:
 		const Thing& operator[] ( unsigned int i ) { return things_[i] ; } ;
 
-		Scene() = default ;
 		Scene( const OptixDeviceContext& optx_context ) ;
 		virtual ~Scene() noexcept ( false ) ;
 
@@ -29,7 +28,7 @@ class Scene {
 		unsigned int add( Object& object ) ;                                            // create GAS for object's submeshes
 		unsigned int add( Thing& thing, const float* transform, unsigned int object ) ; // create thing and connect with GAS
 
-		void build( OptixTraversableHandle* handle ) ;
+		void build( OptixTraversableHandle* is_handle ) ;
 
 	private:
 		OptixDeviceContext optx_context_ ;
@@ -42,14 +41,15 @@ class Scene {
 		std::vector<CUdeviceptr>            ices_ ;
 
 		// per instance host data structures
-		std::vector<OptixInstance> h_ises_ ;
-		// per instance SBT record data buffers
-		std::vector<Thing>         things_ ;
+		std::vector<OptixInstance>          is_ises_ ;
+		// IAS device buffers
+		CUdeviceptr                         is_outbuf_ ; // IAS output buffer
+		CUdeviceptr                         ises_ ;      // concatenated instances
 
-		// IAS device buffer
-		CUdeviceptr is_outbuf_ ;
-		// catenated instances device buffer
-		CUdeviceptr d_ises_ ;
+		// per instance SBT record data buffers
+		std::vector<Thing>                  things_ ;
+
+		void free() noexcept ( false ) ;
 } ;
 
 #endif // SCENE_H

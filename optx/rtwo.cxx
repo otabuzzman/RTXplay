@@ -133,17 +133,17 @@ int main( int argc, char* argv[] ) {
 				RTWO( const OptixDeviceContext& optx_context ) : Scene( optx_context ) {} ;
 
 				unsigned int load() override {
-					Object sphere_3 = Object( "sphere_3.scn" ) ;
-					Object sphere_6 = Object( "sphere_6.scn" ) ;
-					Object sphere_8 = Object( "sphere_8.scn" ) ;
-					Object sphere_9 = Object( "sphere_9.scn" ) ;
+					Object sphere_3( "sphere_3.scn" ) ;
+					Object sphere_6( "sphere_6.scn" ) ;
+					Object sphere_8( "sphere_8.scn" ) ;
+					Object sphere_9( "sphere_9.scn" ) ;
 					unsigned int gas_3 = add( sphere_3 ) ;
 					unsigned int gas_6 = add( sphere_6 ) ;
 					unsigned int gas_8 = add( sphere_8 ) ;
 					unsigned int gas_9 = add( sphere_9 ) ;
 
-					Thing thing ;
-					float transform[12] ;
+					Thing thing         = {} ;
+					float transform[12] = { 0 } ;
 
 					thing.optics.type = Optics::TYPE_DIFFUSE ;
 					thing.optics.diffuse.albedo = { .5f, .5f, .5f } ;
