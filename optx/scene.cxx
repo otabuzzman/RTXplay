@@ -25,7 +25,7 @@ void copyDataToDevice( CUdeviceptr& dst, const T* src, unsigned int num ) {
 		) ) ;
 }
 
-Scene::Scene( const OptixDeviceContext& optx_context ) : optx_context_( optx_context ), is_outbuf_( 0 ), ises_( 0 ), obi_things_( {} ) {
+Scene::Scene( const OptixDeviceContext& optx_context ) : optx_context_( optx_context ), is_outbuf_( 0 ), is_updbuf_( 0 ), ises_( 0 ), obi_things_( {} ) {
 }
 
 Scene::~Scene() noexcept ( false ) {
@@ -240,7 +240,7 @@ void Scene::build( OptixTraversableHandle* is_handle ) {
 	// allocate GPU memory for acceleration structure buffers
 	CUdeviceptr is_tmpbuf ;
 	is_updbuf_size_ = is_buffer_sizes.tempUpdateSizeInBytes ;
-	is_outbuf_size_ = is_buffer_sizes.tempUpdateSizeInBytes ;
+	is_outbuf_size_ = is_buffer_sizes.outputSizeInBytes ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_tmpbuf  ), is_buffer_sizes.tempSizeInBytes ) ) ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_updbuf_ ), is_updbuf_size_                 ) ) ;
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_outbuf_ ), is_outbuf_size_                 ) ) ;
