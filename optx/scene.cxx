@@ -25,7 +25,7 @@ void copyDataToDevice( CUdeviceptr& dst, const T* src, unsigned int num ) {
 		) ) ;
 }
 
-Scene::Scene( const OptixDeviceContext& optx_context ) : optx_context_( optx_context ), is_outbuf_( 0 ), ises_( 0 ) {
+Scene::Scene( const OptixDeviceContext& optx_context ) : optx_context_( optx_context ), is_outbuf_( 0 ), ises_( 0 ), obi_things_( {} ) {
 }
 
 Scene::~Scene() noexcept ( false ) {
@@ -195,17 +195,20 @@ unsigned int Scene::add( Thing& thing, unsigned int object ) {
 	return id ;
 }
 
-bool Scene::set( unsigned int thing, const float* transform ) {
+bool Scene::set( unsigned int thing, const float* transform, bool update ) {
 	if ( is_ises_.size()>thing ) {
-		memcpy( &is_ises_[thing].transform, transform, sizeof( float )*12 ) ;
-		return true ;
-	} else
-		return false ;
-}
+		OptixInstance* is_instance = &is_ises_[thing] ;
+		memcpy( &is_instance->transform, transform, sizeof( float )*12 ) ;
 
-bool Scene::set( unsigned int thing, unsigned int object ) {
-	if ( is_ises_.size()>thing ) {
-		is_ises_[thing].traversableHandle = as_handle_[object] ;
+		if ( update ) {
+			OptixInstance* instance = &reinterpret_cast<OptixInstance*>( ises_ )[thing] ;
+			CUDA_CHECK( cudaMemcpy(
+				reinterpret_cast<void*>( instance ),
+				is_instance,
+				sizeof( OptixInstance ),
+				cudaMemcpyHostToDevice
+				) ) ;
+		}
 		return true ;
 	} else
 		return false ;
@@ -215,14 +218,13 @@ void Scene::build( OptixTraversableHandle* is_handle ) {
 	free() ;
 	// set up build input structure for thing instances
 	copyDataToDevice<OptixInstance>( ises_, is_ises_.data(), static_cast<unsigned int>( is_ises_.size() ) ) ;
-	OptixBuildInput obi_things            = {} ;
-	obi_things.type                       = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
-	obi_things.instanceArray.instances    = ises_ ;
-	obi_things.instanceArray.numInstances = static_cast<unsigned int>( is_ises_.size() ) ;
+	obi_things_.type                       = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
+	obi_things_.instanceArray.instances    = ises_ ;
+	obi_things_.instanceArray.numInstances = static_cast<unsigned int>( is_ises_.size() ) ;
 
 	// IAS options
 	OptixAccelBuildOptions ois_options    = {} ;
-	ois_options.buildFlags                = OPTIX_BUILD_FLAG_NONE ;
+	ois_options.buildFlags                = OPTIX_BUILD_FLAG_ALLOW_UPDATE ;
 	ois_options.operation                 = OPTIX_BUILD_OPERATION_BUILD ;
 
 	// request acceleration structure buffer sizes from OptiX
@@ -230,26 +232,29 @@ void Scene::build( OptixTraversableHandle* is_handle ) {
 	OPTX_CHECK( optixAccelComputeMemoryUsage(
 				optx_context_,
 				&ois_options,
-				&obi_things,
+				&obi_things_,
 				1,
 				&is_buffer_sizes
 				) ) ;
 
 	// allocate GPU memory for acceleration structure buffers
 	CUdeviceptr is_tmpbuf ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_tmpbuf  ), is_buffer_sizes.tempSizeInBytes   ) ) ;
-	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_outbuf_ ), is_buffer_sizes.outputSizeInBytes ) ) ;
+	is_updbuf_size_ = is_buffer_sizes.tempUpdateSizeInBytes ;
+	is_outbuf_size_ = is_buffer_sizes.tempUpdateSizeInBytes ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_tmpbuf  ), is_buffer_sizes.tempSizeInBytes ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_updbuf_ ), is_updbuf_size_                 ) ) ;
+	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &is_outbuf_ ), is_outbuf_size_                 ) ) ;
 
 	OPTX_CHECK( optixAccelBuild(
 				optx_context_,
 				0,
 				&ois_options,
-				&obi_things,
+				&obi_things_,
 				1,
 				is_tmpbuf,
 				is_buffer_sizes.tempSizeInBytes,
 				is_outbuf_,
-				is_buffer_sizes.outputSizeInBytes,
+				is_outbuf_size_,
 				is_handle,
 				nullptr, 0
 				) ) ;
@@ -257,7 +262,29 @@ void Scene::build( OptixTraversableHandle* is_handle ) {
 	CUDA_CHECK( cudaFree( (void*) is_tmpbuf ) ) ;
 }
 
+void Scene::update( OptixTraversableHandle is_handle ) {
+	// IAS options
+	OptixAccelBuildOptions ois_options    = {} ;
+	ois_options.buildFlags                = OPTIX_BUILD_FLAG_NONE ;
+	ois_options.operation                 = OPTIX_BUILD_OPERATION_UPDATE ;
+
+	OPTX_CHECK( optixAccelBuild(
+				optx_context_,
+				0,
+				&ois_options,
+				&obi_things_,
+				1,
+				is_updbuf_,
+				is_updbuf_size_,
+				is_outbuf_,
+				is_outbuf_size_,
+				&is_handle,
+				nullptr, 0
+				) ) ;
+}
+
 void Scene::free() noexcept ( false ) {
+	if ( is_updbuf_ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( is_updbuf_ ) ) ) ;
 	if ( is_outbuf_ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( is_outbuf_ ) ) ) ;
 	if ( ises_      ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ises_      ) ) ) ;
 }

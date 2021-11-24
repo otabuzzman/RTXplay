@@ -28,11 +28,10 @@ class Scene {
 		unsigned int add( Object& object ) ;                     // create GAS for object's submeshes
 		unsigned int add( Thing& thing, unsigned int object ) ;  // create thing and connect with GAS
 
-		bool set( unsigned int thing, const float* transform ) ; // set thing's transform
-		bool set( unsigned int thing, unsigned int object ) ;    // set thing's object (GAS)
+		bool set( unsigned int thing, const float* transform, bool update = false ) ; // set thing's transform
 
 		void build( OptixTraversableHandle* is_handle ) ;
-		void update() ;
+		void update( OptixTraversableHandle is_handle ) ;
 
 	private:
 		OptixDeviceContext optx_context_ ;
@@ -48,10 +47,16 @@ class Scene {
 		std::vector<OptixInstance>          is_ises_ ;
 		// IAS device buffers
 		CUdeviceptr                         is_outbuf_ ; // IAS output buffer
+		CUdeviceptr                         is_updbuf_ ; // IAS updates buffer
 		CUdeviceptr                         ises_ ;      // concatenated instances
 
 		// per instance SBT record data buffers
 		std::vector<Thing>                  things_ ;
+
+		// data structures for IAS updates
+		OptixBuildInput                     obi_things_ ;
+		size_t                              is_outbuf_size_ ;
+		size_t                              is_updbuf_size_ ;
 
 		void free() noexcept ( false ) ;
 } ;
