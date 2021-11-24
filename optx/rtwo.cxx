@@ -29,6 +29,7 @@
 // common globals
 namespace cg {
 	Args*     args ;
+	Scene*    scene ;
 	LpGeneral lp_general ;
 	Launcher* launcher ;
 }
@@ -244,6 +245,7 @@ int main( int argc, char* argv[] ) {
 		} ;
 
 		RTWO rtwo( optx_context ) ;
+		cg::scene = &rtwo ;
 
 		unsigned int rtwo_size = rtwo.load() ;
 		rtwo.build( &lp_general.is_handle ) ;

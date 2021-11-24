@@ -7,6 +7,7 @@
 // local includes
 #include "launcher.h"
 #include "rtwo.h"
+#include "scene.h"
 #include "v.h"
 
 // file specific includes
@@ -15,6 +16,7 @@
 // common globals
 namespace cg {
 	extern Args*     args ;
+	extern Scene*    scene ;
 	extern LpGeneral lp_general ;
 	extern Launcher* launcher ;
 }
@@ -577,6 +579,13 @@ void SimpleSM::eaEdtPos() {
 			cudaMemcpyDeviceToHost
 			) ) ;
 		std::cerr << "*** picked instance id " << smparam->pick_id << std::endl ;
+		const float transform[12] = {
+			1.f, 0.f, 0.f, 4.f,
+			0.f, 1.f, 0.f, 1.2f,
+			0.f, 0.f, 1.f, 0.f
+		} ;
+		scene->set( smparam->pick_id, &transform[0], true ) ;
+		scene->update( lp_general.is_handle ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
