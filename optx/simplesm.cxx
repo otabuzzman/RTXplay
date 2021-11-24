@@ -705,16 +705,22 @@ void SimpleSM::eaRdlDns() {
 	// select next denoiser type from list
 	if ( ! smparam->denoiser )
 		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::SMP ) ;
-	else if ( smparam->denoiser->type() == Dns::SMP )
+	else if ( smparam->denoiser->type() == Dns::SMP ) {
+		delete smparam->denoiser ;
 		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::NRM ) ;
-	else if ( smparam->denoiser->type() == Dns::NRM )
+	} else if ( smparam->denoiser->type() == Dns::NRM ) {
+		delete smparam->denoiser ;
 		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::ALB ) ;
-	else if ( smparam->denoiser->type() == Dns::ALB )
+	} else if ( smparam->denoiser->type() == Dns::ALB ) {
+		delete smparam->denoiser ;
 		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::NAA ) ;
-	else if ( smparam->denoiser->type() == Dns::NAA )
+	} else if ( smparam->denoiser->type() == Dns::NAA ) {
+		delete smparam->denoiser ;
 		smparam->denoiser = new Denoiser( *smparam->optx_context, Dns::AOV ) ;
-	else if ( smparam->denoiser->type() == Dns::AOV )
+	} else if ( smparam->denoiser->type() == Dns::AOV ) {
+		delete smparam->denoiser ;
 		smparam->denoiser = nullptr ;
+	}
 
 	if ( smparam->denoiser && args->flag_v() )
 		std::cerr << "denoiser " << static_cast<int>( smparam->denoiser->type() ) << std::endl ;
