@@ -32,7 +32,7 @@ namespace cg {
 	LpGeneral lp_general ;
 	Launcher* launcher ;
 }
-using namespace cg ;
+using cg::lp_general ;
 
 // PTX sources of shaders
 extern "C" const char camera_r_ptx[] ; // recursive
@@ -75,24 +75,25 @@ static void imgtopnm( const CUdeviceptr img ) {
 
 
 int main( int argc, char* argv[] ) {
-	args = new Args( argc, argv ) ;
+	Args args( argc, argv ) ;
+	cg::args = &args ;
 
-	if ( args->flag_h() ) {
+	if ( args.flag_h() ) {
 		Args::usage() ;
 		SimpleUI::usage() ;
 
 		return 0 ;
 	}
 
-	lp_general.image_w = args->param_w( 1280 ) ; // image width in pixels
-	lp_general.image_h = args->param_h( 720 )  ; // image height in pixels
-	lp_general.spp     = args->param_s( 50 )   ; // samples per pixel
+	lp_general.image_w = args.param_w( 1280 ) ; // image width in pixels
+	lp_general.image_h = args.param_h( 720 )  ; // image height in pixels
+	lp_general.spp     = args.param_s( 50 )   ; // samples per pixel
 #ifdef RECURSIVE
 #define MAX_DEPTH 16
 #else
 #define MAX_DEPTH 50
 #endif // RECURSIVE
-	const int depth    = args->param_d( MAX_DEPTH ) ; // recursion depth or number of iterations
+	const int depth    = args.param_d( MAX_DEPTH ) ; // recursion depth or number of iterations
 	lp_general.depth   = depth>MAX_DEPTH ? MAX_DEPTH : depth ;
 
 	float aspratio = static_cast<float>( lp_general.image_w )/static_cast<float>( lp_general.image_h ) ;
@@ -117,7 +118,7 @@ int main( int argc, char* argv[] ) {
 
 			OptixDeviceContextOptions optx_options = {} ;
 			optx_options.logCallbackFunction       = &util::optxLogStderr ;
-			optx_options.logCallbackLevel          = args->flag_v() ? 4 : 0 ;
+			optx_options.logCallbackLevel          = args.flag_v() ? 4 : 0 ;
 			optx_options.validationMode            = OPTIX_DEVICE_CONTEXT_VALIDATION_MODE_ALL ;
 
 			// use current (0) CUDA context
@@ -524,7 +525,10 @@ int main( int argc, char* argv[] ) {
 		// if true current is display device as required for GL interop
 		CUDA_CHECK( cudaGetDevice( &current_dev ) ) ;
 		CUDA_CHECK( cudaDeviceGetAttribute( &display_dev, cudaDevAttrKernelExecTimeout, current_dev ) ) ;
-		launcher = new Launcher( pipeline, sbt ) ;
+
+		Launcher launcher( pipeline, sbt ) ;
+		cg::launcher = &launcher ;
+
 		if ( display_dev>0 ) {
 			SimpleUI simpleui( optx_context, "RTWO" ) ;
 			simpleui.render() ;
@@ -534,24 +538,22 @@ int main( int argc, char* argv[] ) {
 			CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
 
 			auto t0 = std::chrono::high_resolution_clock::now() ;
-			launcher->ignite( cuda_stream ) ;
+			launcher.ignite( cuda_stream ) ;
 
 			CUDA_CHECK( cudaStreamDestroy ( cuda_stream ) ) ;
 			auto t1 = std::chrono::high_resolution_clock::now() ;
 
 			// apply denoiser
-			const Dns type = args->param_D( Dns::NONE ) ;
+			const Dns type = args.param_D( Dns::NONE ) ;
 			if ( type != Dns::NONE ) {
-				Denoiser* denoiser = new Denoiser( optx_context, type ) ;
-				denoiser->beauty( lp_general.rawRGB ) ;
+				Denoiser denoiser( optx_context, type ) ;
+				denoiser.beauty( lp_general.rawRGB ) ;
 
 				// output guides
-				if ( ! args->flag_q() && args->flag_G() ) {
+				if ( ! args.flag_q() && args.flag_G() ) {
 					if ( lp_general.normals ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.normals ) ) ;
 					if ( lp_general.albedos ) imgtopnm<float3>( reinterpret_cast<CUdeviceptr>( lp_general.albedos ) ) ;
 				}
-
-				delete denoiser ;
 			}
 
 			// post processing
@@ -561,18 +563,18 @@ int main( int argc, char* argv[] ) {
 			pp_sRGB( lp_general.rawRGB, lp_general.image, w, h ) ;
 
 			// output image
-			if ( ! args->flag_q() )
+			if ( ! args.flag_q() )
 				imgtopnm<uchar4>( reinterpret_cast<CUdeviceptr>( lp_general.image ) ) ;
 			CUDA_CHECK( cudaFree( reinterpret_cast<void*>( lp_general.image  ) ) ) ;
 
 			// output AOV rays per pixel (RPP)
-			if ( ! args->flag_q() && args->flag_A( Aov::RPP ) )
+			if ( ! args.flag_q() && args.flag_A( Aov::RPP ) )
 				imgtopnm<unsigned int>( reinterpret_cast<CUdeviceptr>( lp_general.rpp ) ) ;
 
 
 
 			// output statistics
-			if ( args->flag_S() ) {
+			if ( args.flag_S() ) {
 				std::vector<unsigned int> rpp ;
 				rpp.resize( w*h ) ;
 				CUDA_CHECK( cudaMemcpy(
@@ -605,9 +607,6 @@ int main( int argc, char* argv[] ) {
 			OPTX_CHECK( optixModuleDestroy      ( module_optics         ) ) ;
 
 			OPTX_CHECK( optixDeviceContextDestroy( optx_context ) ) ;
-
-			delete args ;
-			delete launcher ;
 		}
 	} catch ( const std::exception& e ) {
 		std::cerr << "exception: " << e.what() << "\n" ;
