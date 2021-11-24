@@ -25,10 +25,14 @@ class Scene {
 
 		virtual unsigned int load() = 0 ;
 
-		unsigned int add( Object& object ) ;                                            // create GAS for object's submeshes
-		unsigned int add( Thing& thing, const float* transform, unsigned int object ) ; // create thing and connect with GAS
+		unsigned int add( Object& object ) ;                     // create GAS for object's submeshes
+		unsigned int add( Thing& thing, unsigned int object ) ;  // create thing and connect with GAS
+
+		bool set( unsigned int thing, const float* transform ) ; // set thing's transform
+		bool set( unsigned int thing, unsigned int object ) ;    // set thing's object (GAS)
 
 		void build( OptixTraversableHandle* is_handle ) ;
+		void update() ;
 
 	private:
 		OptixDeviceContext optx_context_ ;

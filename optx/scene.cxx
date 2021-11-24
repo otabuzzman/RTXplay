@@ -166,7 +166,7 @@ unsigned int Scene::add( Object& object ) {
 	return id ;
 }
 
-unsigned int Scene::add( Thing& thing, const float* transform, unsigned int object ) {
+unsigned int Scene::add( Thing& thing, unsigned int object ) {
 	const unsigned int id = static_cast<unsigned int>( things_.size() ) ;
 
 	// set up this things's instance structure
@@ -177,8 +177,12 @@ unsigned int Scene::add( Thing& thing, const float* transform, unsigned int obje
 	ois_thing.flags             = OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT ;
 	ois_thing.sbtOffset         = id ;
 
-	const size_t transform_size = sizeof( float )*12 ;
-	memcpy( ois_thing.transform, transform, transform_size ) ;
+	const float transform[12] = {
+		1., 0., 0., 0.,
+		0., 1., 0., 0.,
+		0., 0., 1., 0.
+	} ;
+	memcpy( ois_thing.transform, transform, sizeof( float )*12 ) ;
 
 	ois_thing.traversableHandle = as_handle_[object] ;
 
@@ -189,6 +193,22 @@ unsigned int Scene::add( Thing& thing, const float* transform, unsigned int obje
 	things_.push_back( thing ) ;
 
 	return id ;
+}
+
+bool Scene::set( unsigned int thing, const float* transform ) {
+	if ( is_ises_.size()>thing ) {
+		memcpy( &is_ises_[thing].transform, transform, sizeof( float )*12 ) ;
+		return true ;
+	} else
+		return false ;
+}
+
+bool Scene::set( unsigned int thing, unsigned int object ) {
+	if ( is_ises_.size()>thing ) {
+		is_ises_[thing].traversableHandle = as_handle_[object] ;
+		return true ;
+	} else
+		return false ;
 }
 
 void Scene::build( OptixTraversableHandle* is_handle ) {
