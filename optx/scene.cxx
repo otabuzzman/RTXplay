@@ -195,12 +195,12 @@ unsigned int Scene::add( Thing& thing, unsigned int object ) {
 	return id ;
 }
 
-bool Scene::set( unsigned int thing, const float* transform, bool update ) {
+bool Scene::set( unsigned int thing, const float* transform ) {
 	if ( is_ises_.size()>thing ) {
 		OptixInstance* is_instance = &is_ises_[thing] ;
 		memcpy( &is_instance->transform, transform, sizeof( float )*12 ) ;
 
-		if ( update ) {
+		if ( ises_ ) { // update
 			OptixInstance* instance = &reinterpret_cast<OptixInstance*>( ises_ )[thing] ;
 			CUDA_CHECK( cudaMemcpy(
 				reinterpret_cast<void*>( instance ),
@@ -265,7 +265,7 @@ void Scene::build( OptixTraversableHandle* is_handle ) {
 void Scene::update( OptixTraversableHandle is_handle ) {
 	// IAS options
 	OptixAccelBuildOptions ois_options    = {} ;
-	ois_options.buildFlags                = OPTIX_BUILD_FLAG_NONE ;
+	ois_options.buildFlags                = OPTIX_BUILD_FLAG_ALLOW_UPDATE ;
 	ois_options.operation                 = OPTIX_BUILD_OPERATION_UPDATE ;
 
 	OPTX_CHECK( optixAccelBuild(

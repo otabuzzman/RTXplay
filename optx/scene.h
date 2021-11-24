@@ -28,7 +28,7 @@ class Scene {
 		unsigned int add( Object& object ) ;                     // create GAS for object's submeshes
 		unsigned int add( Thing& thing, unsigned int object ) ;  // create thing and connect with GAS
 
-		bool set( unsigned int thing, const float* transform, bool update = false ) ; // set thing's transform
+		bool set( unsigned int thing, const float* transform ) ; // set thing's transform
 
 		void build( OptixTraversableHandle* is_handle ) ;
 		void update( OptixTraversableHandle is_handle ) ;

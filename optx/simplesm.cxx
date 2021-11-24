@@ -561,31 +561,7 @@ void SimpleSM::eaFocRet() {
 void SimpleSM::eaEdtPos() {
 	EA_ENTER() ;
 	{ // perform action
-		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
-		double x, y ;
-		glfwGetCursorPos( window_, &x, &y ) ;
-		lp_general.picker = true ;
-		lp_general.pick_x =  static_cast<int>( x ) ;
-		lp_general.pick_y = -static_cast<int>( y )+lp_general.image_h ;
-		CUstream cuda_stream ;
-		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-		launcher->ignite( cuda_stream, true ) ;
-		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
-		lp_general.picker = false ;
-		CUDA_CHECK( cudaMemcpy(
-			reinterpret_cast<void*>( &smparam->pick_id ),
-			lp_general.pick_id,
-			sizeof( unsigned int ),
-			cudaMemcpyDeviceToHost
-			) ) ;
-		std::cerr << "*** picked instance id " << smparam->pick_id << std::endl ;
-		const float transform[12] = {
-			1.f, 0.f, 0.f, 4.f,
-			0.f, 1.f, 0.f, 1.2f,
-			0.f, 0.f, 1.f, 0.f
-		} ;
-		scene->set( smparam->pick_id, &transform[0], true ) ;
-		scene->update( lp_general.is_handle ) ;
+		SimpleSM::eaEdtSed() ; // SED group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -599,6 +575,7 @@ void SimpleSM::eaEdtPos() {
 void SimpleSM::eaEdtDir() {
 	EA_ENTER() ;
 	{ // perform action
+		SimpleSM::eaEdtSed() ; // SED group action
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -627,6 +604,10 @@ void SimpleSM::eaEdtRet() {
 void SimpleSM::eaOpoRet() {
 	EA_ENTER() ;
 	{ // perform action
+		// restore RT quality after editing
+		SmFrame smframe = h_values_.top() ;
+		lp_general.spp = smframe.spp ;
+		h_values_.pop() ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -640,6 +621,10 @@ void SimpleSM::eaOpoRet() {
 void SimpleSM::eaOdiRet() {
 	EA_ENTER() ;
 	{ // perform action
+		// restore RT quality after editing
+		SmFrame smframe = h_values_.top() ;
+		lp_general.spp = smframe.spp ;
+		h_values_.pop() ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -653,6 +638,9 @@ void SimpleSM::eaOdiRet() {
 void SimpleSM::eaOdiMov() {
 	EA_ENTER() ;
 	{ // perform action
+		double x, y ;
+		glfwGetCursorPos( window_, &x, &y ) ;
+		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -666,6 +654,9 @@ void SimpleSM::eaOdiMov() {
 void SimpleSM::eaOpoMov() {
 	EA_ENTER() ;
 	{ // perform action
+		double x, y ;
+		glfwGetCursorPos( window_, &x, &y ) ;
+		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -679,6 +670,9 @@ void SimpleSM::eaOpoMov() {
 void SimpleSM::eaOdiScr() {
 	EA_ENTER() ;
 	{ // perform action
+		double x, y ;
+		glfwGetCursorPos( window_, &x, &y ) ;
+		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -692,6 +686,9 @@ void SimpleSM::eaOdiScr() {
 void SimpleSM::eaOpoScr() {
 	EA_ENTER() ;
 	{ // perform action
+		double x, y ;
+		glfwGetCursorPos( window_, &x, &y ) ;
+		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -780,4 +777,33 @@ void SimpleSM::eaRdlRsz() {
 	// resize denoiser
 	if ( smparam->denoiser )
 		smparam->denoiser = new Denoiser( *smparam->optx_context, smparam->denoiser->type() ) ;
+}
+
+void SimpleSM::eaEdtSed() {
+	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+	double x, y ;
+	glfwGetCursorPos( window_, &x, &y ) ;
+	paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
+	// one shot thru selected pixel
+	lp_general.picker = true ;
+	lp_general.pick_x =  static_cast<int>( x ) ;
+	lp_general.pick_y = -static_cast<int>( y )+lp_general.image_h ;
+	CUstream cuda_stream ;
+	CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
+	launcher->ignite( cuda_stream, true ) ;
+	CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
+	lp_general.picker = false ;
+	// retrieve picked instance id
+	CUDA_CHECK( cudaMemcpy(
+		reinterpret_cast<void*>( &smparam->pick_id ),
+		lp_general.pick_id,
+		sizeof( unsigned int ),
+		cudaMemcpyDeviceToHost
+		) ) ;
+	if ( args->flag_v() )
+		std::cerr << "picked instance id " << smparam->pick_id << std::endl ;
+	// reduce RT quality while editing
+	SmFrame smframe = { lp_general.spp } ;
+	h_values_.push( smframe ) ;
+	lp_general.spp = 1 ;
 }

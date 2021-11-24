@@ -140,11 +140,13 @@ class SimpleSM {
 
 		void eaReject() ;
 
-		// group actions
-		void eaRdlDns() ;
+		// shared group actions called in different states on same event
+		void eaRdlDns() ; // RDL state group
 		void eaRdlDir() ;
 		void eaRdlPos() ;
 		void eaRdlRsz() ;
+		// shared group actions called in single state on different events
+		void eaEdtSed() ; // SED state group
 } ;
 
 #endif // SIMPLESM_H
