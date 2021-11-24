@@ -20,7 +20,7 @@ class Launcher {
 		~Launcher() noexcept ( false ) ;
 
 		void resize( const unsigned int w, const unsigned int h ) ;
-		void ignite( const CUstream& cuda_stream, const unsigned int w = 0, const unsigned int h = 0 ) ;
+		void ignite( const CUstream& cuda_stream, bool once = false ) ;
 
 	private:
 		CUdeviceptr             lp_general_ ;

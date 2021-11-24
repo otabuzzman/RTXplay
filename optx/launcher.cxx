@@ -46,10 +46,7 @@ void Launcher::resize( const unsigned int w, const unsigned int h ) {
 	CUDA_CHECK( cudaMalloc( reinterpret_cast<void**>( &lp_general.pick_id ), sizeof( unsigned int ) ) ) ;
 }
 
-void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const unsigned int h ) {
-	const unsigned int w0 = w ? w : lp_general.image_w ;
-	const unsigned int h0 = h ? h : lp_general.image_h ;
-
+void Launcher::ignite( const CUstream& cuda_stream, bool once ) {
 	// update launch parameters
 	const size_t lp_general_size = sizeof( LpGeneral ) ;
 	CUDA_CHECK( cudaMemcpy(
@@ -66,7 +63,10 @@ void Launcher::ignite( const CUstream& cuda_stream, const unsigned int w, const 
 				lp_general_,
 				lp_general_size,
 				&sbt_,
-				w0/*x*/, h0/*y*/, 1/*z*/ ) ) ;
+				once ? 1 : lp_general.image_w/*x*/,
+				once ? 1 : lp_general.image_h/*y*/,
+				1/*z*/
+				) ) ;
 	CUDA_CHECK( cudaDeviceSynchronize() ) ;
 
 	if ( cudaGetLastError() != cudaSuccess ) {

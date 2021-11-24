@@ -567,7 +567,7 @@ void SimpleSM::eaEdtPos() {
 		lp_general.pick_y = -static_cast<int>( y )+lp_general.image_h ;
 		CUstream cuda_stream ;
 		CUDA_CHECK( cudaStreamCreate( &cuda_stream ) ) ;
-		launcher->ignite( cuda_stream, 1, 1 ) ;
+		launcher->ignite( cuda_stream, true ) ;
 		CUDA_CHECK( cudaStreamDestroy( cuda_stream ) ) ;
 		lp_general.picker = false ;
 		CUDA_CHECK( cudaMemcpy(
