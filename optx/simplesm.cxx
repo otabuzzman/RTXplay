@@ -608,6 +608,8 @@ void SimpleSM::eaOpoRet() {
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
 		h_values_.pop() ;
+		// force render loop
+		glfwPostEmptyEvent() ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -625,6 +627,8 @@ void SimpleSM::eaOdiRet() {
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
 		h_values_.pop() ;
+		// force render loop
+		glfwPostEmptyEvent() ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -654,9 +658,21 @@ void SimpleSM::eaOdiMov() {
 void SimpleSM::eaOpoMov() {
 	EA_ENTER() ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		float transform[12] ;
+		scene->get( smparam->pick_id, &transform[0] ) ;
+		const float3 pat = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ;
+		Camera& camera = lp_general.camera ;
+		const float3 eye = camera.eye() ;
+		const float  len = V::len( eye-pat ) ;
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
+		const float3 tmp = eye-len*paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		transform[0*4+3] = tmp.x ;
+		transform[1*4+3] = tmp.y ;
+		transform[2*4+3] = tmp.z ;
+		scene->set( smparam->pick_id, &transform[0] ) ;
+		scene->update( lp_general.is_handle ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;

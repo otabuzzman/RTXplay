@@ -29,6 +29,7 @@ class Scene {
 		unsigned int add( Thing& thing, unsigned int object ) ;  // create thing and connect with GAS
 
 		bool set( unsigned int thing, const float* transform ) ; // set thing's transform
+		bool get( unsigned int thing, float* transform ) ;       // get thing's transform
 
 		void build( OptixTraversableHandle* is_handle ) ;
 		void update( OptixTraversableHandle is_handle ) ;

@@ -214,6 +214,16 @@ bool Scene::set( unsigned int thing, const float* transform ) {
 		return false ;
 }
 
+bool Scene::get( unsigned int thing, float* transform ) {
+	if ( is_ises_.size()>thing ) {
+		OptixInstance* is_instance = &is_ises_[thing] ;
+		memcpy( transform, &is_instance->transform, sizeof( float )*12 ) ;
+
+		return true ;
+	} else
+		return false ;
+}
+
 void Scene::build( OptixTraversableHandle* is_handle ) {
 	free() ;
 	// set up build input structure for thing instances
