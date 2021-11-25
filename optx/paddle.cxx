@@ -16,6 +16,10 @@ using V::operator- ;
 using V::operator* ;
 
 Paddle::Paddle( const float3& eye, const float3& pat, const float3& vup ) {
+	gauge( eye, pat, vup ) ;
+}
+
+void Paddle::gauge( const float3& eye, const float3& pat, const float3& vup ) {
 	// initialize move
 	const float3 d = V::unitV( eye-pat ) ;
 	float x = V::dot( d, u_ ) ;
@@ -31,7 +35,7 @@ Paddle::Paddle( const float3& eye, const float3& pat, const float3& vup ) {
 	phi_ = atan2( y, x ) ;
 }
 
-void Paddle::start( const int x, const int y ) {
+void Paddle::reset( const int x, const int y ) {
 	x_ = x ;
 	y_ = y ;
 }

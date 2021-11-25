@@ -330,7 +330,7 @@ void SimpleSM::eaAnmPcd() {
 		const float3 eye = camera.eye() ;
 		const float3 pat = camera.pat() ;
 		const float  len = V::len( eye-pat ) ;
-		paddle_->start( 0, 0 ) ;
+		paddle_->reset( 0, 0 ) ;
 		camera.eye( pat+len*paddle_->move( -1, 0 ) ) ;
 	}
 	// clear history (comment to keep)
@@ -589,6 +589,8 @@ void SimpleSM::eaEdtDir() {
 void SimpleSM::eaEdtRet() {
 	EA_ENTER() ;
 	{ // perform action
+		Camera& camera = lp_general.camera ;
+		paddle_->gauge( camera.eye(), camera.pat(), camera.vup() ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -608,8 +610,6 @@ void SimpleSM::eaOpoRet() {
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
 		h_values_.pop() ;
-		// force render loop
-		glfwPostEmptyEvent() ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -627,8 +627,6 @@ void SimpleSM::eaOdiRet() {
 		SmFrame smframe = h_values_.top() ;
 		lp_general.spp = smframe.spp ;
 		h_values_.pop() ;
-		// force render loop
-		glfwPostEmptyEvent() ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -661,16 +659,16 @@ void SimpleSM::eaOpoMov() {
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		float transform[12] ;
 		scene->get( smparam->pick_id, &transform[0] ) ;
-		const float3 pat = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ;
+		float3 pat = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ;
 		Camera& camera = lp_general.camera ;
 		const float3 eye = camera.eye() ;
 		const float  len = V::len( eye-pat ) ;
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		const float3 tmp = eye-len*paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ;
-		transform[0*4+3] = tmp.x ;
-		transform[1*4+3] = tmp.y ;
-		transform[2*4+3] = tmp.z ;
+		pat = eye-len*paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ;
+		transform[0*4+3] = pat.x ;
+		transform[1*4+3] = pat.y ;
+		transform[2*4+3] = pat.z ;
 		scene->set( smparam->pick_id, &transform[0] ) ;
 		scene->update( lp_general.is_handle ) ;
 	}
@@ -751,7 +749,7 @@ void SimpleSM::eaRdlDns() {
 void SimpleSM::eaRdlDir() {
 	double x, y ;
 	glfwGetCursorPos( window_, &x, &y ) ;
-	paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
+	paddle_->reset( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	// reduce RT quality while moving
 	SmFrame smframe = { lp_general.spp } ;
 	h_values_.push( smframe ) ;
@@ -761,7 +759,7 @@ void SimpleSM::eaRdlDir() {
 void SimpleSM::eaRdlPos() {
 	double x, y ;
 	glfwGetCursorPos( window_, &x, &y ) ;
-	paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
+	paddle_->reset( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	// reduce RT quality while moving
 	SmFrame smframe = { lp_general.spp } ;
 	h_values_.push( smframe ) ;
@@ -799,7 +797,7 @@ void SimpleSM::eaEdtSed() {
 	SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 	double x, y ;
 	glfwGetCursorPos( window_, &x, &y ) ;
-	paddle_->start( static_cast<int>( x ), static_cast<int>( y ) ) ;
+	paddle_->reset( static_cast<int>( x ), static_cast<int>( y ) ) ;
 	// one shot thru selected pixel
 	lp_general.picker = true ;
 	lp_general.pick_x =  static_cast<int>( x ) ;
@@ -816,10 +814,17 @@ void SimpleSM::eaEdtSed() {
 		sizeof( unsigned int ),
 		cudaMemcpyDeviceToHost
 		) ) ;
-	if ( args->flag_v() )
-		std::cerr << "picked instance id " << smparam->pick_id << std::endl ;
+	// recalibrate paddle
+	float transform[12] ;
+	scene->get( smparam->pick_id, &transform[0] ) ;
+	const float3 pat = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ;
+	Camera& camera = lp_general.camera ;
+	paddle_->gauge( camera.eye(), pat, camera.vup() ) ;
 	// reduce RT quality while editing
 	SmFrame smframe = { lp_general.spp } ;
 	h_values_.push( smframe ) ;
 	lp_general.spp = 1 ;
+
+	if ( args->flag_v() )
+		std::cerr << "picked instance id " << smparam->pick_id << std::endl ;
 }
