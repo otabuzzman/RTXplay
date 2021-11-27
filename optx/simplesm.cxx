@@ -22,6 +22,16 @@ namespace cg {
 }
 using namespace cg ;
 
+template<unsigned int D>
+static void matmul( const float a[D*D] /* input/ result */, const float b[D*D] ) {
+	float m[D*D] = { 0 } ;
+	for ( unsigned int i = 0 ; D>i ; i++ )
+		for ( unsigned int j = 0 ; D>j ; j++ )
+			for ( unsigned int k = 0 ; D>k ; k++ )
+				m[i*D+j] += a[i*D+k]*b[k*D+j] ;
+	memcpy( &a[0], &m[0], sizeof( float )*D*D ;
+}
+
 SimpleSM::SimpleSM( GLFWwindow* window ) : window_( window ) {
 	h_state_.push( State::STL ) ; // start state
 
@@ -589,6 +599,7 @@ void SimpleSM::eaEdtDir() {
 void SimpleSM::eaEdtRet() {
 	EA_ENTER() ;
 	{ // perform action
+		// recalibrate paddle
 		Camera& camera = lp_general.camera ;
 		paddle_->gauge( camera.eye(), camera.pat(), camera.vup() ) ;
 	}
@@ -640,9 +651,44 @@ void SimpleSM::eaOdiRet() {
 void SimpleSM::eaOdiMov() {
 	EA_ENTER() ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		float transform[12] ;
+		scene->get( smparam->pick_id, &transform[0] ) ;
+		// retrieve data from instance transform
+		const float3 pat    = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ; // thing's center position vector
+		const float  msr[9] = {
+			transform[0*4+0], transform[0*4+1], transform[0*4+2], // thing's SR matrix
+			transform[1*4+0], transform[1*4+1], transform[1*4+2],
+			transform[2*4+0], transform[2*4+1], transform[1*4+2],
+		} ;
+		// set up x/ y rotate matrices
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
+		const float3 vrx = paddle_->move( 0, static_cast<int>( y ) ) ) ;        // paddle vector of x-axis rotation
+		const float cosx = V::dot( pat, vrx )/( V::len( pat )*V::len( vrx ) ) ; // paddle angle
+		const float sinx = sqrtf( 1-cosx*cosx ) ;
+		const float3 vry = paddle_->move( static_cast<int>( x ), 0 ) ) ;        // paddle vector of y-axis rotation
+		const float cosy = V::dot( vrx, vry )/( V::len( vrx )*V::len( vry ) ) ;
+		const float siny = sqrtf( 1-cosy*cosy ) ;
+		const float rox = {
+			1,    0,    0,
+			0, cosx, -sinx,
+			0, sinx,  cosx
+		} ;
+		const float roy = {
+			 cosx, 0, sinx,
+			    0, 1, 0,
+			-sinx, 0, cosx
+		} ;
+		// combine SR with x/ y rotate matrices
+		matmul( &msr[0], &rox[0] ) ;
+		matmul( &msr[0], &roy[0] ) ;
+		// update instance transform
+		transform[0*4+0] = msr[0*3+0] ; transform[1*4+0] = msr[1*3+0] ; transform[2*4+0] = msr[2*3+2] ;
+		transform[0*4+1] = msr[0*3+1] ; transform[1*4+1] = msr[1*3+1] ; transform[2*4+1] = msr[2*3+1] ;
+		transform[0*4+2] = msr[0*3+2] ; transform[1*4+2] = msr[1*3+0] ; transform[2*4+2] = msr[2*3+2] ;
+		scene->set( smparam->pick_id, &transform[0] ) ;
+		scene->update( lp_general.is_handle ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
