@@ -666,7 +666,7 @@ void SimpleSM::eaOdiMov() {
 		glfwGetCursorPos( window_, &x, &y ) ;
 		const float3 vrx = paddle_->move( 0, static_cast<int>( y ) ) ;          // paddle vector of x-axis rotation
 		const float cosx = V::dot( pat, vrx )/( V::len( pat )*V::len( vrx ) ) ; // paddle angle
-		const float sinx = sqrtf( 1-cosx*cosx ) ;
+		const float sinx = sqrtf( 1.f-cosx*cosx ) ;
 		const float rox[9] = {
 			1.f,  0.f,   0.f,
 			0.f, cosx, -sinx,
@@ -674,7 +674,7 @@ void SimpleSM::eaOdiMov() {
 		} ;
 		const float3 vry = paddle_->move( static_cast<int>( x ), 0 ) ;          // paddle vector of y-axis rotation
 		const float cosy = V::dot( vrx, vry )/( V::len( vrx )*V::len( vry ) ) ;
-		const float siny = sqrtf( 1-cosy*cosy ) ;
+		const float siny = sqrtf( 1.f-cosy*cosy ) ;
 		const float roy[9] = {
 			 cosy, 0.f, siny,
 			  0.f, 1.f, 0.f,
