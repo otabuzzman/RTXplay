@@ -58,11 +58,13 @@ float3 Paddle::move( const int x, const int y, float* lo, float* la ) {
 	return u*u_+v*v_+w*w_ ;
 }
 
-float3 Paddle::roll( const int s ) {
+float3 Paddle::roll( const int s, float* phi ) {
 	phi_ = util::rad( fmod( util::deg( phi_ )+s, 360.f ) ) ;
 	const float x = cos( phi_ ) ;
 	const float y = sin( phi_ ) ;
 	const float z = vup_.z ;
+
+	if ( phi ) *phi = util::rad( static_cast<float>( s ) ) ;
 
 	return make_float3( x, y, z ) ;
 }

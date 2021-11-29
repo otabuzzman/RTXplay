@@ -680,9 +680,9 @@ void SimpleSM::eaOdiMov() {
 		Camera& camera = lp_general.camera ;
 		const float3 vex = V::unitV( V::cross( pat-camera.eye(), camera.vup() ) ) ;
 		float rox[9] = {
-			vex.x*vex.x*( 1-cosx )+      cosx, vex.x*vex.y*( 1-cosx )-vex.z*sinx, vex.x*vex.z*( 1-cosx )+vex.y*sinx,
-			vex.y*vex.x*( 1-cosx )+vex.z*sinx, vex.y*vex.y*( 1-cosx )+      cosx, vex.y*vex.z*( 1-cosx )-vex.x*sinx,
-			vex.z*vex.x*( 1-cosx )-vex.y*sinx, vex.z*vex.y*( 1-cosx )+vex.x*sinx, vex.z*vex.z*( 1-cosx )+      cosx
+			vex.x*vex.x*( 1.f-cosx )+      cosx, vex.x*vex.y*( 1.f-cosx )-vex.z*sinx, vex.x*vex.z*( 1.f-cosx )+vex.y*sinx,
+			vex.y*vex.x*( 1.f-cosx )+vex.z*sinx, vex.y*vex.y*( 1.f-cosx )+      cosx, vex.y*vex.z*( 1.f-cosx )-vex.x*sinx,
+			vex.z*vex.x*( 1.f-cosx )-vex.y*sinx, vex.z*vex.y*( 1.f-cosx )+vex.x*sinx, vex.z*vex.z*( 1.f-cosx )+      cosx
 		} ;
 		// set x-axis in terms of WC
 //		float rox[9] = {
@@ -697,9 +697,9 @@ void SimpleSM::eaOdiMov() {
 		// set y-axis in terms of camera up direction
 		const float3 vey = camera.vup() ;
 		float roy[9] = {
-			vey.x*vey.x*( 1-cosy )+      cosy, vey.x*vey.y*( 1-cosy )-vey.z*siny, vey.x*vey.z*( 1-cosy )+vey.y*siny,
-			vey.y*vey.x*( 1-cosy )+vey.z*siny, vey.y*vey.y*( 1-cosy )+      cosy, vey.y*vey.z*( 1-cosy )-vey.x*siny,
-			vey.z*vey.x*( 1-cosy )-vey.y*siny, vey.z*vey.y*( 1-cosy )+vey.x*siny, vey.z*vey.z*( 1-cosy )+      cosy
+			vey.x*vey.x*( 1.f-cosy )+      cosy, vey.x*vey.y*( 1.f-cosy )-vey.z*siny, vey.x*vey.z*( 1.f-cosy )+vey.y*siny,
+			vey.y*vey.x*( 1.f-cosy )+vey.z*siny, vey.y*vey.y*( 1.f-cosy )+      cosy, vey.y*vey.z*( 1.f-cosy )-vey.x*siny,
+			vey.z*vey.x*( 1.f-cosy )-vey.y*siny, vey.z*vey.y*( 1.f-cosy )+vey.x*siny, vey.z*vey.z*( 1.f-cosy )+      cosy
 		} ;
 		// set y-axis in terms of WC
 //		float roy[9] = {
@@ -759,9 +759,41 @@ void SimpleSM::eaOpoMov() {
 void SimpleSM::eaOdiScr() {
 	EA_ENTER() ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		float transform[12] ;
+		scene->get( smparam->pick_id, &transform[0] ) ;
+		// retrieve data from instance transform
+		const float3 pat = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ; // thing's center position
+		float msr[9] = {
+			transform[0*4+0], transform[0*4+1], transform[0*4+2],                     // thing's SR matrix
+			transform[1*4+0], transform[1*4+1], transform[1*4+2],
+			transform[2*4+0], transform[2*4+1], transform[2*4+2],
+		} ;
+		// set up z rotate matrix
 		double x, y ;
+		float phi ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
+		paddle_->roll( static_cast<int>( y ), &phi ) ;         // rotation angle (phi) in radiants
+		const float cosz = cosf( phi ) ;
+		const float sinz = sqrtf( 1.f-cosz*cosz ) ;
+		// set z-axis in terms of camera up direction
+		Camera& camera = lp_general.camera ;
+		const float3 vez = V::unitV( camera.eye()-pat ) ;
+		float roz[9] = {
+			vez.x*vez.x*( 1.f-cosz )+      cosz, vez.x*vez.y*( 1.f-cosz )-vez.z*sinz, vez.x*vez.z*( 1.f-cosz )+vez.y*sinz,
+			vez.y*vez.x*( 1.f-cosz )+vez.z*sinz, vez.y*vez.y*( 1.f-cosz )+      cosz, vez.y*vez.z*( 1.f-cosz )-vez.x*sinz,
+			vez.z*vez.x*( 1.f-cosz )-vez.y*sinz, vez.z*vez.y*( 1.f-cosz )+vez.x*sinz, vez.z*vez.z*( 1.f-cosz )+      cosz
+		} ;
+		if ( 0.f>phi )
+			mattrs<3>( &roz[0] ) ;
+		// combine SR with z rotate matrix
+		matmul<3>( &msr[0], &roz[0] ) ;
+		// update instance transform
+		transform[0*4+0] = msr[0*3+0] ; transform[0*4+1] = msr[0*3+1] ; transform[0*4+2] = msr[0*3+2] ;
+		transform[1*4+0] = msr[1*3+0] ; transform[1*4+1] = msr[1*3+1] ; transform[1*4+2] = msr[1*3+2] ;
+		transform[2*4+0] = msr[2*3+0] ; transform[2*4+1] = msr[2*3+1] ; transform[2*4+2] = msr[2*3+2] ;
+		scene->set( smparam->pick_id, &transform[0] ) ;
+		scene->update( lp_general.is_handle ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
