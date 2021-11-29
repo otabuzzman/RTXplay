@@ -20,7 +20,7 @@ class Paddle {
 
 		void gauge( const float3& eye, const float3& pat, const float3& vup ) ;
 		void reset( const int x, const int y ) ;
-		float3 move( const int x, const int y ) ;
+		float3 move( const int x, const int y, float* lo = nullptr, float* la = nullptr ) ;
 		float3 roll( const int s ) ;
 
 	private:
