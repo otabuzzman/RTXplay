@@ -676,14 +676,15 @@ void SimpleSM::eaOdiMov() {
 		paddle_->move( static_cast<int>( x ), static_cast<int>( y ), &lo, &la ) ;     // rotation angles (lo/ la) in radiants
 		const float cosx = cosf( la ) ;
 		const float sinx = sqrtf( 1.f-cosx*cosx ) ;
+		// set x-axis in terms of camera up direction
 		Camera& camera = lp_general.camera ;
-		const float3 vex = V::unitV( V::cross( pat-camera.eye(), camera.vup() ) ) ;   // x-axis in terms of view direction
-//		const float3 vex = { 1.f, 0.f, 0.f } ;
+		const float3 vex = V::unitV( V::cross( pat-camera.eye(), camera.vup() ) ) ;
 		float rox[9] = {
 			vex.x*vex.x*( 1-cosx )+      cosx, vex.x*vex.y*( 1-cosx )-vex.z*sinx, vex.x*vex.z*( 1-cosx )+vex.y*sinx,
 			vex.y*vex.x*( 1-cosx )+vex.z*sinx, vex.y*vex.y*( 1-cosx )+      cosx, vex.y*vex.z*( 1-cosx )-vex.x*sinx,
 			vex.z*vex.x*( 1-cosx )-vex.y*sinx, vex.z*vex.y*( 1-cosx )+vex.x*sinx, vex.z*vex.z*( 1-cosx )+      cosx
 		} ;
+		// set x-axis in terms of WC
 //		float rox[9] = {
 //			1.f,  0.f,   0.f,
 //			0.f, cosx, -sinx,
@@ -693,11 +694,19 @@ void SimpleSM::eaOdiMov() {
 			mattrs<3>( &rox[0] ) ;
 		const float cosy = cosf( lo ) ;
 		const float siny = sqrtf( 1.f-cosy*cosy ) ;
+		// set y-axis in terms of camera up direction
+		const float3 vey = camera.vup() ;
 		float roy[9] = {
-			 cosy, 0.f, siny,
-			  0.f, 1.f, 0.f,
-			-siny, 0.f, cosy
+			vey.x*vey.x*( 1-cosy )+      cosy, vey.x*vey.y*( 1-cosy )-vey.z*siny, vey.x*vey.z*( 1-cosy )+vey.y*siny,
+			vey.y*vey.x*( 1-cosy )+vey.z*siny, vey.y*vey.y*( 1-cosy )+      cosy, vey.y*vey.z*( 1-cosy )-vey.x*siny,
+			vey.z*vey.x*( 1-cosy )-vey.y*siny, vey.z*vey.y*( 1-cosy )+vey.x*siny, vey.z*vey.z*( 1-cosy )+      cosy
 		} ;
+		// set y-axis in terms of WC
+//		float roy[9] = {
+//			 cosy, 0.f, siny,
+//			  0.f, 1.f, 0.f,
+//			-siny, 0.f, cosy
+//		} ;
 		if ( 0.f>lo )
 			mattrs<3>( &roy[0] ) ;
 		// combine SR with x/ y rotate matrices
