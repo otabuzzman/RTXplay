@@ -52,8 +52,8 @@ float3 Paddle::move( const int x, const int y, float* lo, float* la ) {
 	const float v = cos( la_ )*cos( lo_ ) ;
 	const float w = sin( la_ ) ;
 
-	if ( lo ) *lo = util::rad( -.25f*dx ) ;
-	if ( la ) *la = util::rad(  .25f*dy ) ;
+	if ( lo ) *lo = util::rad( .25f*dx ) ;
+	if ( la ) *la = util::rad( .25f*dy ) ;
 
 	return u*u_+v*v_+w*w_ ;
 }

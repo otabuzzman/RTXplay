@@ -31,6 +31,14 @@ static void matmul( float a[D*D] /* input/ result */, const float b[D*D] ) {
 				m[i*D+j] += a[i*D+k]*b[k*D+j] ;
 	memcpy( &a[0], &m[0], sizeof( float )*D*D ) ;
 }
+template<unsigned int D>
+static void mattrs( float a[D*D] /* input/ result */ ) {
+	float m[D*D] = { 0 } ;
+	for ( unsigned int i = 0 ; D>i ; i++ )
+		for ( unsigned int j = 0 ; D>j ; j++ )
+			m[j*D+i] = a[i*D+j] ;
+	memcpy( &a[0], &m[0], sizeof( float )*D*D ) ;
+}
 
 SimpleSM::SimpleSM( GLFWwindow* window ) : window_( window ) {
 	h_state_.push( State::STL ) ; // start state
@@ -654,10 +662,9 @@ void SimpleSM::eaOdiMov() {
 		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
 		float transform[12] ;
 		scene->get( smparam->pick_id, &transform[0] ) ;
-		// retrieve data from instance transform
-		const float3 pat = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ; // thing's center position vector
+		// retrieve thing's SR matrix from instance transform
 		float msr[9] = {
-			transform[0*4+0], transform[0*4+1], transform[0*4+2], // thing's SR matrix
+			transform[0*4+0], transform[0*4+1], transform[0*4+2],
 			transform[1*4+0], transform[1*4+1], transform[1*4+2],
 			transform[2*4+0], transform[2*4+1], transform[2*4+2],
 		} ;
@@ -665,21 +672,25 @@ void SimpleSM::eaOdiMov() {
 		double x, y ;
 		float lo, la ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		const float3 rot = paddle_->move( static_cast<int>( x ), static_cast<int>( y ), &lo, &la ) ; // paddle vector of combined x/ y rotation
+		paddle_->move( static_cast<int>( x ), static_cast<int>( y ), &lo, &la ) ; // x/ y rotations in radiants (lo/ la)
 		const float cosx = cosf( lo ) ;
 		const float sinx = sqrtf( 1.f-cosx*cosx ) ;
-		const float rox[9] = {
+		float rox[9] = {
 			1.f,  0.f,   0.f,
 			0.f, cosx, -sinx,
 			0.f, sinx,  cosx
 		} ;
+		if ( 0.f>lo )
+			mattrs<3>( &rox[0] ) ;
 		const float cosy = cosf( la ) ;
 		const float siny = sqrtf( 1.f-cosy*cosy ) ;
-		const float roy[9] = {
+		float roy[9] = {
 			 cosy, 0.f, siny,
 			  0.f, 1.f, 0.f,
 			-siny, 0.f, cosy
 		} ;
+		if ( 0.f>la )
+			mattrs<3>( &roy[0] ) ;
 		// combine SR with x/ y rotate matrices
 		matmul<3>( &msr[0], &rox[0] ) ;
 		matmul<3>( &msr[0], &roy[0] ) ;
