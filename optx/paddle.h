@@ -20,8 +20,8 @@ class Paddle {
 
 		void gauge( const float3& eye, const float3& pat, const float3& vup ) ;
 		void reset( const int x, const int y ) ;
-		float3 move( const int x, const int y, uint2* dxy = nullptr, const float stepping =  .25f ) ;
-		float3 roll( const int s,                                    const float stepping = 2.f   ) ;
+		float3 move( const int x, const int y, int* deltax = nullptr, int* deltay = nullptr, const float stepping =  .25f ) ;
+		float3 roll( const int s,                                                            const float stepping = 2.f   ) ;
 
 	private:
 		// reference frame coordinate system

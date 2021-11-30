@@ -40,7 +40,7 @@ void Paddle::reset( const int x, const int y ) {
 	y_ = y ;
 }
 
-float3 Paddle::move( const int x, const int y, uint2* dxy, const float stepping ) {
+float3 Paddle::move( const int x, const int y, int* deltax, int* deltay, const float stepping ) {
 	const int dx = x-x_ ;
 	const int dy = y-y_ ;
 	x_ = x ;
@@ -52,10 +52,8 @@ float3 Paddle::move( const int x, const int y, uint2* dxy, const float stepping 
 	const float v = cosf( la_ )*cosf( lo_ ) ;
 	const float w = sinf( la_ ) ;
 
-	if ( dxy ) {
-		dxy->x = dx ;
-		dxy->y = dy ;
-	}
+	if ( deltax ) *deltax = dx ;
+	if ( deltay ) *deltay = dy ;
 
 	return u*u_+v*v_+w*w_ ;
 }
