@@ -25,14 +25,14 @@ void Paddle::gauge( const float3& eye, const float3& pat, const float3& vup ) {
 	float x = V::dot( d, u_ ) ;
 	float y = V::dot( d, v_ ) ;
 	float z = V::dot( d, w_ ) ;
-	lo_ = atan2( x, y ) ;
-	la_ = asin ( z ) ;
+	lo_ = atan2f( x, y ) ;
+	la_ = asinf ( z ) ;
 
 	// initialize roll
 	vup_ = V::unitV( vup ) ;
 	x = V::dot( vup_, u_ ) ;
 	y = V::dot( vup_, w_ ) ;
-	phi_ = atan2( y, x ) ;
+	phi_ = atan2f( y, x ) ;
 }
 
 void Paddle::reset( const int x, const int y ) {
@@ -40,31 +40,26 @@ void Paddle::reset( const int x, const int y ) {
 	y_ = y ;
 }
 
-float3 Paddle::move( const int x, const int y, float* lo, float* la ) {
+float3 Paddle::move( const int x, const int y, const bool spherical, const float stepping ) {
 	const int dx = x-x_ ;
 	const int dy = y-y_ ;
 	x_ = x ;
 	y_ = y ;
-	lo_ = util::rad( fmod( util::deg( lo_ )-.25f*dx, 360.f ) ) ;
-	la_ = util::rad( std::min( 89.999f, std::max( -89.999f, util::deg( la_ )+.25f*dy ) ) ) ;
+	lo_ = util::rad( fmod( util::deg( lo_ )-stepping*dx, 360.f ) ) ;
+	la_ = util::rad( std::min( 89.999f, std::max( -89.999f, util::deg( la_ )+stepping*dy ) ) ) ;
 
-	const float u = cos( la_ )*sin( lo_ ) ;
-	const float v = cos( la_ )*cos( lo_ ) ;
-	const float w = sin( la_ ) ;
+	const float u = cosf( la_ )*sinf( lo_ ) ;
+	const float v = cosf( la_ )*cosf( lo_ ) ;
+	const float w = sinf( la_ ) ;
 
-	if ( lo ) *lo = util::rad( .25f*dx ) ;
-	if ( la ) *la = util::rad( .25f*dy ) ;
-
-	return u*u_+v*v_+w*w_ ;
+	return spherical ? make_float3( lo_, la_, 1.f ) : u*u_+v*v_+w*w_ ;
 }
 
-float3 Paddle::roll( const int s, float* phi ) {
-	phi_ = util::rad( fmod( util::deg( phi_ )+s, 360.f ) ) ;
-	const float x = cos( phi_ ) ;
-	const float y = sin( phi_ ) ;
+float3 Paddle::roll( const int s, const bool spherical, const float stepping ) {
+	phi_ = util::rad( fmod( util::deg( phi_ )+stepping*s, 360.f ) ) ;
+	const float x = cosf( phi_ ) ;
+	const float y = sinf( phi_ ) ;
 	const float z = vup_.z ;
 
-	if ( phi ) *phi = util::rad( static_cast<float>( s ) ) ;
-
-	return make_float3( x, y, z ) ;
+	return spherical ? make_float3( 0.f>x ? 180.f : 0.f, atan2f( y, x ), 1.f ) : make_float3( x, y, z ) ;
 }

@@ -671,10 +671,9 @@ void SimpleSM::eaOdiMov() {
 		} ;
 		// set up x/ y rotate matrices
 		double x, y ;
-		float lo, la ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		paddle_->move( static_cast<int>( x ), static_cast<int>( y ), &lo, &la ) ;     // rotation angles (lo/ la) in radiants
-		const float cosx = cosf( la ) ;
+		const float3 mov = paddle_->move( static_cast<int>( x ), static_cast<int>( y ), true ) ;
+		const float cosx = cosf( mov.y ) ;
 		const float sinx = sqrtf( 1.f-cosx*cosx ) ;
 		// set x-axis in terms of camera up direction
 		Camera& camera = lp_general.camera ;
@@ -690,9 +689,9 @@ void SimpleSM::eaOdiMov() {
 //			0.f, cosx, -sinx,
 //			0.f, sinx,  cosx
 //		} ;
-		if ( 0.f>la )
+		if ( 0.f>mov.y )
 			mattrs<3>( &rox[0] ) ;
-		const float cosy = cosf( lo ) ;
+		const float cosy = cosf( mov.x ) ;
 		const float siny = sqrtf( 1.f-cosy*cosy ) ;
 		// set y-axis in terms of camera up direction
 		const float3 vey = camera.vup() ;
@@ -707,7 +706,7 @@ void SimpleSM::eaOdiMov() {
 //			  0.f, 1.f, 0.f,
 //			-siny, 0.f, cosy
 //		} ;
-		if ( 0.f>lo )
+		if ( 0.f>mov.x )
 			mattrs<3>( &roy[0] ) ;
 		// combine SR with x/ y rotate matrices
 		matmul<3>( &msr[0], &rox[0] ) ;
@@ -771,9 +770,9 @@ void SimpleSM::eaOdiScr() {
 		} ;
 		// set up z rotate matrix
 		double x, y ;
-		float phi ;
-		glfwGetCursorPos( window_, &x, &y ) ;
-		paddle_->roll( static_cast<int>( y ), &phi ) ;         // rotation angle (phi) in radiants
+		glfwGetScroll( window_, &x, &y ) ;
+		const float3 mov = paddle_->roll( static_cast<int>( y ), true ) ;
+		const float phi = util::kPi/2.f-mov.y ;
 		const float cosz = cosf( phi ) ;
 		const float sinz = sqrtf( 1.f-cosz*cosz ) ;
 		// set z-axis in terms of camera up direction
