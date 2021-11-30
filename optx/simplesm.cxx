@@ -806,9 +806,22 @@ void SimpleSM::eaOdiScr() {
 void SimpleSM::eaOpoScr() {
 	EA_ENTER() ;
 	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		float transform[12] ;
+		scene->get( smparam->pick_id, &transform[0] ) ;
+		// retrieve data from instance transform
+		float3 pat = { transform[0*4+3], transform[1*4+3], transform[2*4+3] } ; // thing's center position
 		double x, y ;
-		glfwGetCursorPos( window_, &x, &y ) ;
-		// paddle_->move( static_cast<int>( x ), static_cast<int>( y ) ) ) ;
+		glfwGetScroll( window_, &x, &y ) ;
+		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
+		Camera& camera = lp_general.camera ;
+		const float3 eye = camera.eye() ;
+		pat = adj*( pat-eye )+eye ;
+		transform[0*4+3] = pat.x ;
+		transform[1*4+3] = pat.y ;
+		transform[2*4+3] = pat.z ;
+		scene->set( smparam->pick_id, &transform[0] ) ;
+		scene->update( lp_general.is_handle ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
