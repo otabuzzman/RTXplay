@@ -40,7 +40,7 @@ void Paddle::reset( const int x, const int y ) {
 	y_ = y ;
 }
 
-float3 Paddle::move( const int x, const int y, const bool spherical, const float stepping ) {
+float3 Paddle::move( const int x, const int y, const float stepping ) {
 	const int dx = x-x_ ;
 	const int dy = y-y_ ;
 	x_ = x ;
@@ -52,14 +52,14 @@ float3 Paddle::move( const int x, const int y, const bool spherical, const float
 	const float v = cosf( la_ )*cosf( lo_ ) ;
 	const float w = sinf( la_ ) ;
 
-	return spherical ? make_float3( lo_, la_, 1.f ) : u*u_+v*v_+w*w_ ;
+	return u*u_+v*v_+w*w_ ;
 }
 
-float3 Paddle::roll( const int s, const bool spherical, const float stepping ) {
+float3 Paddle::roll( const int s, const float stepping ) {
 	phi_ = util::rad( fmod( util::deg( phi_ )+stepping*s, 360.f ) ) ;
 	const float x = cosf( phi_ ) ;
 	const float y = sinf( phi_ ) ;
 	const float z = vup_.z ;
 
-	return spherical ? make_float3( 0.f>x ? 180.f : 0.f, atan2f( y, x ), 1.f ) : make_float3( x, y, z ) ;
+	return make_float3( x, y, z ) ;
 }
