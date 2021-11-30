@@ -672,8 +672,10 @@ void SimpleSM::eaOdiMov() {
 		// set up x/ y rotate matrices
 		double x, y ;
 		glfwGetCursorPos( window_, &x, &y ) ;
-		const float lo = util::rad( static_cast<float>( .5f*y ) ) ;
-		const float la = util::rad( static_cast<float>( .5f*x ) ) ;
+		uint2 dxy ;
+		paddle_->move( static_cast<int>( x ), static_cast<int>( y ), &dxy ) ;
+		const float lo = util::rad( static_cast<float>( .5f*dxy.y ) ) ;
+		const float la = util::rad( static_cast<float>( .5f*dxy.x ) ) ;
 		const float cosx = cosf( la ) ;
 		const float sinx = sqrtf( 1.f-cosx*cosx ) ;
 		// set x-axis in terms of camera up direction
