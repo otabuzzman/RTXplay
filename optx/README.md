@@ -127,9 +127,10 @@ UI functions:
   'e' key                   - enter scene edit mode (<ESC> to leave)
       left button + move      pick thing and move v/ h
       left button + scroll    change distance
+      left button + 's' key   enter scale mode (<ESC> to leave)
+      left button + scroll    scale thing
       right button + move     pick thing and turn/ nick
       right button + scroll   roll thing
-      double click + scroll   scale thing
   'f' key                   - enter focus mode (<ESC> to leave)
       scroll (wheel)          change focus distance
   'z' key                   - enter zoom mode (<ESC> to leave)

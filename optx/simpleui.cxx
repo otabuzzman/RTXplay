@@ -376,9 +376,10 @@ void SimpleUI::usage() {
   'e' key                   - enter scene edit mode (<ESC> to leave)\n\
       left button + move      pick thing and move v/ h\n\
       left button + scroll    change distance\n\
+      left button + 's' key   enter scale mode (<ESC> to leave)\n\
+      left button + scroll    scale thing\n\
       right button + move     pick thing and turn/ nick\n\
       right button + scroll   roll thing\n\
-      double click + scroll   scale thing\n\
   'f' key                   - enter focus mode (<ESC> to leave)\n\
       scroll (wheel)          change focus distance\n\
   'z' key                   - enter zoom mode (<ESC> to leave)\n\
