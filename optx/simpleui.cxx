@@ -317,9 +317,9 @@ static void mousecliqCb( GLFWwindow* /*window*/, int key, int act, int /*mod*/ )
 		t5 = t6 ;
 
 		if ( 500ll>td )
-			simplesm->transition( Event::POS ) ;
+			simplesm->transition( Event::SCL ) ;
 		else
-			simplesm->transition( Event::PCD ) ;
+			simplesm->transition( Event::POS ) ;
 
 		return ;
 	}
