@@ -603,6 +603,20 @@ void SimpleSM::eaFocRet() {
 	EA_LEAVE( next ) ;
 }
 
+void SimpleSM::eaEdtPcd() {
+	EA_ENTER() ;
+	{ // perform action
+		SimpleSM::eaEdtSed() ; // SED group action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::SCL ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
 void SimpleSM::eaEdtPos() {
 	EA_ENTER() ;
 	{ // perform action
@@ -857,6 +871,62 @@ void SimpleSM::eaOpoScr() {
 	h_event_.pop() ;
 	// transition
 	const State next = State::OPO ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaSclScr() {
+	EA_ENTER() ;
+	{ // perform action
+		SmParam* smparam = static_cast<SmParam*>( glfwGetWindowUserPointer( window_ ) ) ;
+		float transform[12] ;
+		scene->get( smparam->pick_id, &transform[0] ) ;
+		// retrieve thing's SR matrix from instance transform
+		float msr[9] = {
+			transform[0*4+0], transform[0*4+1], transform[0*4+2],
+			transform[1*4+0], transform[1*4+1], transform[1*4+2],
+			transform[2*4+0], transform[2*4+1], transform[2*4+2],
+		} ;
+		// set up scale matrix
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
+		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
+		const float scl[9] = {
+			adj, 0.f, 0.f,
+			0.f, adj, 0.f,
+			0.f, 0.f, adj
+		} ;
+		// combine SR with scale matrix
+		matmul<3>( &msr[0], &scl[0] ) ;
+		// update instance transform
+		transform[0*4+0] = msr[0*3+0] ; transform[0*4+1] = msr[0*3+1] ; transform[0*4+2] = msr[0*3+2] ;
+		transform[1*4+0] = msr[1*3+0] ; transform[1*4+1] = msr[1*3+1] ; transform[1*4+2] = msr[1*3+2] ;
+		transform[2*4+0] = msr[2*3+0] ; transform[2*4+1] = msr[2*3+1] ; transform[2*4+2] = msr[2*3+2] ;
+		scene->set( smparam->pick_id, &transform[0] ) ;
+		scene->update( lp_general.is_handle ) ;
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::SCL ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaSclRet() {
+	EA_ENTER() ;
+	{ // perform action
+		// restore RT quality after editing
+		SmFrame smframe = h_values_.top() ;
+		lp_general.spp = smframe.spp ;
+		h_values_.pop() ;
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::EDT ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
 }

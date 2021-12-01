@@ -27,6 +27,9 @@ namespace cg {
 }
 using namespace cg ;
 
+// timestamps
+static auto t5 = std::chrono::high_resolution_clock::now() ; // double click detection
+
 // missing in GLFW
 void glfwSetScroll( GLFWwindow* window, const double xscroll, const double yscroll ) ;
 void glfwGetScroll( GLFWwindow* window, double* xscroll, double* yscroll ) ;
@@ -307,7 +310,19 @@ void SimpleUI::render() {
 
 // event callback table
 static void mousecliqCb( GLFWwindow* /*window*/, int key, int act, int /*mod*/ ) {
-	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::POS ) ; return ; }
+	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_LEFT )  {
+		const auto t6 = std::chrono::high_resolution_clock::now() ;
+		const auto td = std::chrono::duration_cast<std::chrono::milliseconds>( t6-t5 ).count() ;
+
+		t5 = t6 ;
+
+		if ( 500ll>td )
+			simplesm->transition( Event::POS ) ;
+		else
+			simplesm->transition( Event::PCD ) ;
+
+		return ;
+	}
 	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::DIR ) ; return ; }
 	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::RET ) ; return ; }
 	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::RET ) ; return ; }
