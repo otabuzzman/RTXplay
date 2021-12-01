@@ -310,19 +310,7 @@ void SimpleUI::render() {
 
 // event callback table
 static void mousecliqCb( GLFWwindow* /*window*/, int key, int act, int /*mod*/ ) {
-	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_LEFT )  {
-		const auto t6 = std::chrono::high_resolution_clock::now() ;
-		const auto td = std::chrono::duration_cast<std::chrono::milliseconds>( t6-t5 ).count() ;
-
-		t5 = t6 ;
-
-		if ( 500ll>td )
-			simplesm->transition( Event::SCL ) ;
-		else
-			simplesm->transition( Event::POS ) ;
-
-		return ;
-	}
+	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::POS ) ; return ; }
 	if ( act == GLFW_PRESS   && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::DIR ) ; return ; }
 	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_LEFT )  { simplesm->transition( Event::RET ) ; return ; }
 	if ( act == GLFW_RELEASE && key == GLFW_MOUSE_BUTTON_RIGHT ) { simplesm->transition( Event::RET ) ; return ; }
@@ -355,6 +343,8 @@ static void keyCb( GLFWwindow* /*window*/, int key, int /*scancode*/, int act, i
 			simplesm->transition( Event::EDT ) ; break ;
 		case GLFW_KEY_F:
 			simplesm->transition( Event::FOC ) ; break ;
+		case GLFW_KEY_S:
+			simplesm->transition( Event::SCL ) ; break ;
 		case GLFW_KEY_Z:
 			simplesm->transition( Event::ZOM ) ; break ;
 		case GLFW_KEY_ESCAPE:

@@ -102,7 +102,6 @@ class SimpleSM {
 		void eaBlrRet() ;
 		void eaFocScr() ;
 		void eaFocRet() ;
-		void eaEdtScl() ;
 		void eaEdtPos() ;
 		void eaEdtDir() ;
 		void eaEdtRet() ;
@@ -110,6 +109,7 @@ class SimpleSM {
 		void eaOdiRet() ;
 		void eaOpoMov() ;
 		void eaOdiMov() ;
+		void eaOpoScl() ;
 		void eaOpoScr() ;
 		void eaOdiScr() ;
 		void eaSclScr() ;
@@ -133,10 +133,10 @@ class SimpleSM {
 			/*ANM*/ &SimpleSM::eaReject, &SimpleSM::eaAnmBlr, &SimpleSM::eaAnmDir, &SimpleSM::eaAnmDns, &SimpleSM::eaAnmEdt, &SimpleSM::eaAnmFoc, &SimpleSM::eaReject, &SimpleSM::eaAnmPcd, &SimpleSM::eaAnmPos, &SimpleSM::eaAnmRet, &SimpleSM::eaAnmRsz, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaAnmZom,
 			/*BLR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaBlrRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaBlrScr, &SimpleSM::eaReject,
 			/*DIR*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaDirScr, &SimpleSM::eaReject,
-			/*EDT*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaEdtDir, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaEdtPos, &SimpleSM::eaEdtRet, &SimpleSM::eaReject, &SimpleSM::eaEdtScl, &SimpleSM::eaReject, &SimpleSM::eaReject,
+			/*EDT*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaEdtDir, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaEdtPos, &SimpleSM::eaEdtRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject,
 			/*FOC*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocScr, &SimpleSM::eaReject,
 			/*ODI*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOdiMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOdiRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOdiScr, &SimpleSM::eaReject,
-			/*OPO*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOpoMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOpoRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOpoScr, &SimpleSM::eaReject,
+			/*OPO*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOpoMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOpoRet, &SimpleSM::eaReject, &SimpleSM::eaOpoScl, &SimpleSM::eaOpoScr, &SimpleSM::eaReject,
 			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosScr, &SimpleSM::eaReject,
 			/*SCL*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaSclRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaSclScr, &SimpleSM::eaReject,
 			/*STL*/ &SimpleSM::eaStlAnm, &SimpleSM::eaStlBlr, &SimpleSM::eaStlDir, &SimpleSM::eaStlDns, &SimpleSM::eaStlEdt, &SimpleSM::eaStlFoc, &SimpleSM::eaReject, &SimpleSM::eaStlPcd, &SimpleSM::eaStlPos, &SimpleSM::eaStlRet, &SimpleSM::eaStlRsz, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaStlZom,

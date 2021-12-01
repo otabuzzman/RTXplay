@@ -603,20 +603,6 @@ void SimpleSM::eaFocRet() {
 	EA_LEAVE( next ) ;
 }
 
-void SimpleSM::eaEdtPcd() {
-	EA_ENTER() ;
-	{ // perform action
-		SimpleSM::eaEdtSed() ; // SED group action
-	}
-	// clear history (comment to keep)
-	h_state_.pop() ;
-	h_event_.pop() ;
-	// transition
-	const State next = State::SCL ;
-	h_state_.push( next ) ;
-	EA_LEAVE( next ) ;
-}
-
 void SimpleSM::eaEdtPos() {
 	EA_ENTER() ;
 	{ // perform action
@@ -767,6 +753,20 @@ void SimpleSM::eaOdiMov() {
 	h_event_.pop() ;
 	// transition
 	const State next = State::ODI ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
+void SimpleSM::eaOpoScl() {
+	EA_ENTER() ;
+	{ // perform action
+		SimpleSM::eaEdtSed() ; // SED group action
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::SCL ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
 }
@@ -926,7 +926,7 @@ void SimpleSM::eaSclRet() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	// transition
-	const State next = State::EDT ;
+	const State next = State::OPO ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
 }
