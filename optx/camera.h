@@ -58,6 +58,8 @@ class Camera {
 		void   aspratio( const float aspratio ) { set( eye_, pat_, vup_, fov_, aspratio,  aperture_, fostance_ ) ; }
 		float  aperture()                 const { return aperture_ ; }
 		void   aperture( const float aperture ) { set( eye_, pat_, vup_, fov_, aspratio_, aperture,  fostance_ ) ; }
+		float  fostance()                 const { return fostance_ ; }
+		void   fostance( const float fostance ) { set( eye_, pat_, vup_, fov_, aspratio_, aperture_, fostance ) ; }
 
 #ifdef __CUDACC__
 

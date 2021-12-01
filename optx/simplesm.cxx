@@ -516,6 +516,13 @@ void SimpleSM::eaZomRet() {
 void SimpleSM::eaBlrScr() {
 	EA_ENTER() ;
 	{ // perform action
+		// update camera
+		Camera& camera = lp_general.camera ;
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
+		const float adj = ( static_cast<float>( y )>0 ) ? 1.25f : 1/1.25f ;
+		const float fst = camera.fostance() ;
+		camera.fostance( adj*fst ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -543,7 +550,6 @@ void SimpleSM::eaBlrRet() {
 
 void SimpleSM::eaFocScr() {
 	EA_ENTER() ;
-	const State next = State::FOC ;
 	{ // perform action
 		// update camera
 		Camera& camera = lp_general.camera ;
@@ -557,6 +563,7 @@ void SimpleSM::eaFocScr() {
 	h_state_.pop() ;
 	h_event_.pop() ;
 	// transition
+	const State next = State::FOC ;
 	h_state_.push( next ) ;
 	EA_LEAVE( next ) ;
 }
