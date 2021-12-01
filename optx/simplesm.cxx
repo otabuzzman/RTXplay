@@ -288,6 +288,26 @@ void SimpleSM::eaAnmPos() {
 	EA_LEAVE( next ) ;
 }
 
+void SimpleSM::eaPosScr() {
+	EA_ENTER() ;
+	{ // perform action
+		// update camera
+		Camera& camera = lp_general.camera ;
+		const float3 pat = camera.pat() ;
+		double x, y ;
+		glfwGetScroll( window_, &x, &y ) ;
+		const float adj = ( static_cast<float>( y )>0 ) ? 1.1f : 1/1.1f ;
+		camera.eye( pat+adj*( camera.eye()-pat ) ) ;
+	}
+	// clear history (comment to keep)
+	h_state_.pop() ;
+	h_event_.pop() ;
+	// transition
+	const State next = State::POS ;
+	h_state_.push( next ) ;
+	EA_LEAVE( next ) ;
+}
+
 void SimpleSM::eaPosMov() {
 	EA_ENTER() ;
 	{ // perform action

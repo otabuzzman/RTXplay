@@ -83,6 +83,7 @@ class SimpleSM {
 		void eaDirRet() ;
 		void eaStlPos() ;
 		void eaAnmPos() ;
+		void eaPosScr() ;
 		void eaPosMov() ;
 		void eaPosRet() ;
 		void eaStlPcd() ;
@@ -133,7 +134,7 @@ class SimpleSM {
 			/*FOC*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaFocRet, &SimpleSM::eaReject, &SimpleSM::eaFocScr, &SimpleSM::eaReject,
 			/*ODI*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOdiMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOdiRet, &SimpleSM::eaReject, &SimpleSM::eaOdiScr, &SimpleSM::eaReject,
 			/*OPO*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOpoMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaOpoRet, &SimpleSM::eaReject, &SimpleSM::eaOpoScr, &SimpleSM::eaReject,
-			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject,
+			/*POS*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosMov, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaPosRet, &SimpleSM::eaReject, &SimpleSM::eaPosScr, &SimpleSM::eaReject,
 			/*STL*/ &SimpleSM::eaStlAnm, &SimpleSM::eaStlBlr, &SimpleSM::eaStlDir, &SimpleSM::eaStlDns, &SimpleSM::eaStlEdt, &SimpleSM::eaStlFoc, &SimpleSM::eaReject, &SimpleSM::eaStlPcd, &SimpleSM::eaStlPos, &SimpleSM::eaStlRet, &SimpleSM::eaStlRsz, &SimpleSM::eaReject, &SimpleSM::eaStlZom,
 			/*ZOM*/ &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaReject, &SimpleSM::eaZomRet, &SimpleSM::eaReject, &SimpleSM::eaZomScr, &SimpleSM::eaReject
 		} ;
