@@ -521,8 +521,8 @@ void SimpleSM::eaBlrScr() {
 		double x, y ;
 		glfwGetScroll( window_, &x, &y ) ;
 		const float adj = ( static_cast<float>( y )>0 ) ? 1.25f : 1/1.25f ;
-		const float fst = camera.fostance() ;
-		camera.fostance( adj*fst ) ;
+		const float apt = camera.aperture() ;
+		camera.aperture( adj*apt ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
@@ -556,8 +556,8 @@ void SimpleSM::eaFocScr() {
 		double x, y ;
 		glfwGetScroll( window_, &x, &y ) ;
 		const float adj = ( static_cast<float>( y )>0 ) ? 1.25f : 1/1.25f ;
-		const float apt = camera.aperture() ;
-		camera.aperture( adj*apt ) ;
+		const float fst = camera.fostance() ;
+		camera.fostance( adj*fst ) ;
 	}
 	// clear history (comment to keep)
 	h_state_.pop() ;
