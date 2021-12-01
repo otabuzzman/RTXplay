@@ -359,20 +359,26 @@ void glfwGetScroll( GLFWwindow* /*window*/, double* x, double* y ) {
 
 void SimpleUI::usage() {
 	std::cerr << "UI functions:\n\
-  window resize         - change viewport dimensions\n\
-  left button + move    - change camera position\n\
-  right button + move   - change camera direction\n\
-  right button + scroll - roll camera\n\
-  'a' key               - animate scene (<ESC> to stop)\n\
-  'b' key               - enter blur mode (<ESC> to leave)\n\
-      scroll (wheel)    - change defocus blur\n\
-  'd' key               - enable/ disable denoising and select\n\
-                          type (loop)\n\
-  'f' key               - enter focus mode (<ESC> to leave)\n\
-      scroll (wheel)    - change aperture\n\
-  'z' key               - enter zoom mode (<ESC> to leave)\n\
-      scroll (wheel)    - zoom in and out\n\
-  <ESC> key             - leave rtwo\n\
+  window resize             - change viewport dimensions\n\
+  left button + move        - change camera position\n\
+  right button + move       - change camera direction\n\
+  right button + scroll     - roll camera\n\
+  'a' key                   - animate scene (<ESC> to stop)\n\
+  'b' key                   - enter blur mode (<ESC> to leave)\n\
+      scroll (wheel)          change aperture\n\
+  'd' key                   - enable/ disable denoising and select\n\
+                              type (loop)\n\
+  'e' key                   - enter scene edit mode (<ESC> to leave)\n\
+      left button + move      pick thing and move v/ h\n\
+      left button + scroll    change distance\n\
+      right button + move     pick thing and turn/ nick\n\
+      right button + scroll   roll thing\n\
+      double click + scroll   scale thing\n\
+  'f' key                   - enter focus mode (<ESC> to leave)\n\
+      scroll (wheel)          change focus distance\n\
+  'z' key                   - enter zoom mode (<ESC> to leave)\n\
+      scroll (wheel)          zoom in and out\n\
+  <ESC> key                 - leave rtwo\n\
 \n\
 " ;
 }

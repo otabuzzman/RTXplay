@@ -115,20 +115,26 @@ Options:
                 Might improve denoising result even if no AOVs provided.
 
 UI functions:
-  window resize         - change viewport dimensions
-  left button + move    - change camera position
-  right button + move   - change camera direction
-  right button + scroll - roll camera
-  'a' key               - animate scene (<ESC> to stop)
-  'b' key               - enter blur mode (<ESC> to leave)
-      scroll (wheel)    - change defocus blur
-  'd' key               - enable/ disable denoising and select
-                          type (loop)
-  'f' key               - enter focus mode (<ESC> to leave)
-      scroll (wheel)    - change aperture
-  'z' key               - enter zoom mode (<ESC> to leave)
-      scroll (wheel)    - zoom in and out
-  <ESC> key             - leave rtwo
+  window resize             - change viewport dimensions
+  left button + move        - change camera position
+  right button + move       - change camera direction
+  right button + scroll     - roll camera
+  'a' key                   - animate scene (<ESC> to stop)
+  'b' key                   - enter blur mode (<ESC> to leave)
+      scroll (wheel)          change aperture
+  'd' key                   - enable/ disable denoising and select
+                              type (loop)
+  'e' key                   - enter scene edit mode (<ESC> to leave)
+      left button + move      pick thing and move v/ h
+      left button + scroll    change distance
+      right button + move     pick thing and turn/ nick
+      right button + scroll   roll thing
+      double click + scroll   scale thing
+  'f' key                   - enter focus mode (<ESC> to leave)
+      scroll (wheel)          change focus distance
+  'z' key                   - enter zoom mode (<ESC> to leave)
+      scroll (wheel)          zoom in and out
+  <ESC> key                 - leave rtwo
 ```
 
 ### Gallery
