@@ -43,8 +43,8 @@ unsigned int Scene::add( Object& object ) {
 	std::vector<OptixBuildInput> obi_object( object_size ) ;
 
 	// object's shapes V/I device buffers
-	std::vector<CUdeviceptr> obj_vces( object_size ) ;
-	std::vector<CUdeviceptr> obj_ices( object_size ) ;
+	vces_.push_back( std::vector<CUdeviceptr>( object_size, 0 ) ) ;
+	ices_.push_back( std::vector<CUdeviceptr>( object_size, 0 ) ) ;
 
 	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
@@ -62,17 +62,17 @@ unsigned int Scene::add( Object& object ) {
 
 		CUdeviceptr vces = 0 ;
 		copyDataToDevice<float3>( vces, shp_vces, shp_vces_size ) ;
-		obj_vces[s] = vces ;
+		vces_[id][s] = vces ;
 		obi_shape.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 		obi_shape.triangleArray.numVertices                 = shp_vces_size ;
-		obi_shape.triangleArray.vertexBuffers               = &obj_vces[s] ;
+		obi_shape.triangleArray.vertexBuffers               = &vces_[id][s] ;
 
 		CUdeviceptr ices = 0 ;
 		copyDataToDevice<uint3>( ices, shp_ices, shp_ices_size ) ;
-		obj_ices[s] = ices ;
+		ices_[id][s] = ices ;
 		obi_shape.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
 		obi_shape.triangleArray.numIndexTriplets            = shp_ices_size ;
-		obi_shape.triangleArray.indexBuffer                 = obj_ices[s] ;
+		obi_shape.triangleArray.indexBuffer                 = ices_[id][s] ;
 
 		obi_shape.triangleArray.flags                       = &obi_object_flags[0] ;
 		obi_shape.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
@@ -82,8 +82,6 @@ unsigned int Scene::add( Object& object ) {
 
 		obi_object[s] = obi_shape ;
 	}
-	vces_.push_back( obj_vces ) ;
-	ices_.push_back( obj_ices ) ;
 
 	// GAS options
 	OptixAccelBuildOptions oas_options = {} ;
