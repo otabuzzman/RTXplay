@@ -38,15 +38,13 @@ Scene::~Scene() noexcept ( false ) {
 unsigned int Scene::add( Object& object ) {
 	const unsigned int id = static_cast<unsigned int>( as_handle_.size() ) ;
 
-	// object's shapes V/I device buffers
+	// object's build input structures
 	const unsigned int object_size = static_cast<unsigned int>( object.size() ) ;
+	std::vector<OptixBuildInput> obi_object( object_size ) ;
+
+	// object's shapes V/I device buffers
 	std::vector<CUdeviceptr> obj_vces( object_size ) ;
 	std::vector<CUdeviceptr> obj_ices( object_size ) ;
-	vces_.push_back( obj_vces ) ;
-	ices_.push_back( obj_ices ) ;
-
-	// object's build input structures
-	std::vector<OptixBuildInput> obi_object( object_size ) ;
 
 	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
@@ -64,17 +62,17 @@ unsigned int Scene::add( Object& object ) {
 
 		CUdeviceptr vces = 0 ;
 		copyDataToDevice<float3>( vces, shp_vces, shp_vces_size ) ;
-		vces_[id][s] = vces ;
+		obj_vces[s] = vces ;
 		obi_shape.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 		obi_shape.triangleArray.numVertices                 = shp_vces_size ;
-		obi_shape.triangleArray.vertexBuffers               = &vces_[id][s] ;
+		obi_shape.triangleArray.vertexBuffers               = &obj_vces[s] ;
 
 		CUdeviceptr ices = 0 ;
 		copyDataToDevice<uint3>( ices, shp_ices, shp_ices_size ) ;
-		ices_[id][s] = ices ;
+		obj_ices[s] = ices ;
 		obi_shape.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
 		obi_shape.triangleArray.numIndexTriplets            = shp_ices_size ;
-		obi_shape.triangleArray.indexBuffer                 = ices_[id][s] ;
+		obi_shape.triangleArray.indexBuffer                 = obj_ices[s] ;
 
 		obi_shape.triangleArray.flags                       = &obi_object_flags[0] ;
 		obi_shape.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
@@ -84,6 +82,8 @@ unsigned int Scene::add( Object& object ) {
 
 		obi_object[s] = obi_shape ;
 	}
+	vces_.push_back( obj_vces ) ;
+	ices_.push_back( obj_ices ) ;
 
 	// GAS options
 	OptixAccelBuildOptions oas_options = {} ;
@@ -96,7 +96,7 @@ unsigned int Scene::add( Object& object ) {
 				optx_context_,
 				&oas_options,
 				obi_object.data(),
-				static_cast<unsigned int>( obi_object.size() ),
+				object_size,
 				&as_buffer_sizes
 				) ) ;
 
@@ -124,7 +124,7 @@ unsigned int Scene::add( Object& object ) {
 				0,
 				&oas_options,
 				obi_object.data(),
-				static_cast<unsigned int>( obi_object.size() ),
+				object_size,
 				as_tmpbuf,
 				as_buffer_sizes.tempSizeInBytes,
 				as_outbuf,
