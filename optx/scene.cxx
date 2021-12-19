@@ -38,22 +38,22 @@ Scene::~Scene() noexcept ( false ) {
 unsigned int Scene::add( Object& object ) {
 	const unsigned int id = static_cast<unsigned int>( as_handle_.size() ) ;
 
-	// object's build input structure
-	std::vector<OptixBuildInput> obi_object ;
-
-	// object's shapes device buffers
+	// object's shapes V/I device buffers
 	const unsigned int object_size = static_cast<unsigned int>( object.size() ) ;
 	std::vector<CUdeviceptr> obj_vces( object_size ) ;
 	std::vector<CUdeviceptr> obj_ices( object_size ) ;
 	vces_.push_back( obj_vces ) ;
 	ices_.push_back( obj_ices ) ;
 
+	// object's build input structures
+	std::vector<OptixBuildInput> obi_object( object_size ) ;
+
 	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
 	// one build input for each shape
 	for ( unsigned int s = 0 ; object_size>s ; s++ ) {
-		OptixBuildInput obi_thing = {} ;
-		obi_thing.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
+		OptixBuildInput obi_shape = {} ;
+		obi_shape.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
 		// object's shapes tuple
 		float3*      shp_vces ;
@@ -65,24 +65,24 @@ unsigned int Scene::add( Object& object ) {
 		CUdeviceptr vces = 0 ;
 		copyDataToDevice<float3>( vces, shp_vces, shp_vces_size ) ;
 		vces_[id][s] = vces ;
-		obi_thing.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
-		obi_thing.triangleArray.numVertices                 = shp_vces_size ;
-		obi_thing.triangleArray.vertexBuffers               = &vces_[id][s] ;
+		obi_shape.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
+		obi_shape.triangleArray.numVertices                 = shp_vces_size ;
+		obi_shape.triangleArray.vertexBuffers               = &vces_[id][s] ;
 
 		CUdeviceptr ices = 0 ;
 		copyDataToDevice<uint3>( ices, shp_ices, shp_ices_size ) ;
 		ices_[id][s] = ices ;
-		obi_thing.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
-		obi_thing.triangleArray.numIndexTriplets            = shp_ices_size ;
-		obi_thing.triangleArray.indexBuffer                 = ices_[id][s] ;
+		obi_shape.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
+		obi_shape.triangleArray.numIndexTriplets            = shp_ices_size ;
+		obi_shape.triangleArray.indexBuffer                 = ices_[id][s] ;
 
-		obi_thing.triangleArray.flags                       = &obi_object_flags[0] ;
-		obi_thing.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
-		obi_thing.triangleArray.sbtIndexOffsetBuffer        = 0 ;
-		obi_thing.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
-		obi_thing.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
+		obi_shape.triangleArray.flags                       = &obi_object_flags[0] ;
+		obi_shape.triangleArray.numSbtRecords               = 1 ; // number of SBT records in Hit Group section
+		obi_shape.triangleArray.sbtIndexOffsetBuffer        = 0 ;
+		obi_shape.triangleArray.sbtIndexOffsetSizeInBytes   = 0 ;
+		obi_shape.triangleArray.sbtIndexOffsetStrideInBytes = 0 ;
 
-		obi_object.push_back( obi_thing ) ;
+		obi_object[s] = obi_shape ;
 	}
 
 	// GAS options
@@ -96,7 +96,7 @@ unsigned int Scene::add( Object& object ) {
 				optx_context_,
 				&oas_options,
 				obi_object.data(),
-				1,
+				static_cast<unsigned int>( obi_object.size() ),
 				&as_buffer_sizes
 				) ) ;
 
@@ -124,7 +124,7 @@ unsigned int Scene::add( Object& object ) {
 				0,
 				&oas_options,
 				obi_object.data(),
-				1,
+				static_cast<unsigned int>( obi_object.size() ),
 				as_tmpbuf,
 				as_buffer_sizes.tempSizeInBytes,
 				as_outbuf,
@@ -300,4 +300,8 @@ void Scene::free() noexcept ( false ) {
 	if ( is_updbuf_ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( is_updbuf_ ) ) ) ;
 	if ( is_outbuf_ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( is_outbuf_ ) ) ) ;
 	if ( ises_      ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ises_      ) ) ) ;
+}
+
+unsigned int Scene::size() {
+	return static_cast<unsigned int>( things_.size() ) ;
 }

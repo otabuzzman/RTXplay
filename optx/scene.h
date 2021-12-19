@@ -23,7 +23,8 @@ class Scene {
 		Scene( const OptixDeviceContext& optx_context ) ;
 		virtual ~Scene() noexcept ( false ) ;
 
-		virtual unsigned int load() = 0 ;
+		virtual void load() = 0 ;
+		unsigned int size() ;
 
 		unsigned int add( Object& object ) ;                     // create GAS for object's submeshes
 		unsigned int add( Thing& thing, unsigned int as_id ) ;   // create instance and connect with GAS
@@ -39,7 +40,7 @@ class Scene {
 
 		// per object GAS handles
 		std::vector<OptixTraversableHandle>   as_handle_ ;
-		// per GAS device buffers
+		// per GAS associated device buffers
 		std::vector<CUdeviceptr>              as_outbuf_ ;
 		std::vector<std::vector<CUdeviceptr>> vces_ ;
 		std::vector<std::vector<CUdeviceptr>> ices_ ;

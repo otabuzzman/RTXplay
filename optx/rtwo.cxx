@@ -134,15 +134,17 @@ int main( int argc, char* argv[] ) {
 			public:
 				RTWO( const OptixDeviceContext& optx_context ) : Scene( optx_context ) {} ;
 
-				unsigned int load() override {
+				void load() override {
 					Object sphere_3( "sphere_3.scn" ) ;
 					Object sphere_6( "sphere_6.scn" ) ;
 					Object sphere_8( "sphere_8.scn" ) ;
 					Object sphere_9( "sphere_9.scn" ) ;
+					Object xwing( "star-wars-x-wing.obj" ) ;
 					unsigned int gas_3 = add( sphere_3 ) ;
 					unsigned int gas_6 = add( sphere_6 ) ;
 					unsigned int gas_8 = add( sphere_8 ) ;
 					unsigned int gas_9 = add( sphere_9 ) ;
+					unsigned int gas_x = add( xwing ) ;
 
 					Thing thing         = {} ;
 					float transform[12] = {
@@ -160,6 +162,18 @@ int main( int argc, char* argv[] ) {
 					transform[0*4+3] =     0.f ; // translate
 					transform[1*4+3] = -1000.f ;
 					transform[2*4+3] =     0.f ;
+					set( id, transform ) ;
+
+					thing.optics.type = Optics::TYPE_REFLECT ;
+					thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
+					thing.optics.reflect.fuzz   = 0.f ;
+					id = add( thing, gas_x ) ;
+					transform[0*4+0] = 1.f ;
+					transform[1*4+1] = 1.f ;
+					transform[2*4+2] = 1.f ;
+					transform[0*4+3] = 0.f ;
+					transform[1*4+3] = 4.f ;
+					transform[2*4+3] = 0.f ;
 					set( id, transform ) ;
 
 					for ( int a = -11 ; a<11 ; a++ ) {
@@ -220,9 +234,9 @@ int main( int argc, char* argv[] ) {
 					thing.optics.type = Optics::TYPE_DIFFUSE ;
 					thing.optics.diffuse.albedo = { .4f, .2f, .1f } ;
 					id = add( thing, gas_6 ) ;
-					transform[0*4+0] = 1.f ;
-					transform[1*4+1] = 1.f ;
-					transform[2*4+2] = 1.f ;
+					transform[0*4+0] =  1.f ;
+					transform[1*4+1] =  1.f ;
+					transform[2*4+2] =  1.f ;
 					transform[0*4+3] = -4.f ;
 					transform[1*4+3] =  1.f ;
 					transform[2*4+3] =  0.f ;
@@ -239,16 +253,15 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = 1.f ;
 					transform[2*4+3] = 0.f ;
 					set( id, transform ) ;
-
-					return id+1 ;
 				}
 		} ;
 
 		RTWO rtwo( optx_context ) ;
 		cg::scene = &rtwo ;
 
-		unsigned int rtwo_size = rtwo.load() ;
+		rtwo.load() ;
 		rtwo.build( &lp_general.is_handle ) ;
+		unsigned int rtwo_size = rtwo.size() ;
 
 
 
