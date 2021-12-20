@@ -63,7 +63,6 @@ unsigned int Scene::add( Object& object ) {
 		OptixBuildInput obi_shape = {} ;
 		obi_shape.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
-
 		obi_shape.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 		obi_shape.triangleArray.numVertices                 = shp_vces_size ;
 		obi_shape.triangleArray.vertexBuffers               = &vces_[id] ;
@@ -190,9 +189,9 @@ unsigned int Scene::add( Thing& thing, unsigned int object ) {
 
 	is_ises_.push_back( ois_object ) ;
 
-	const unsigned int object_size = static_cast<unsigned int>( vces_.size() ) ;
+	const unsigned int object_size = static_cast<unsigned int>( ices_[object].size() ) ;
 	for ( unsigned int s = 0 ; object_size>s ; s++ ) {
-		thing.vces = reinterpret_cast<float3*>( vces_[s] ) ;
+		thing.vces = reinterpret_cast<float3*>( vces_[object] ) ;
 		thing.ices = reinterpret_cast<uint3*> ( ices_[object][s] ) ;
 		things_.push_back( thing ) ;
 	}
