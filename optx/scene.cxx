@@ -42,7 +42,8 @@ unsigned int Scene::add( Object& object ) {
 	const unsigned int object_size = static_cast<unsigned int>( object.size() ) ;
 	std::vector<OptixBuildInput> obi_object( object_size ) ;
 
-	// object's shapes I device buffers
+	// object's shapes V/I device buffers
+	vces_.push_back( static_cast<CUdeviceptr>( 0 ) ) ;
 	ices_.push_back( std::vector<CUdeviceptr>( object_size, 0 ) ) ;
 
 	// object's shapes tuple
@@ -51,10 +52,7 @@ unsigned int Scene::add( Object& object ) {
 	uint3*       shp_ices ;
 	unsigned int shp_ices_size ;
 	std::tie( shp_vces, shp_vces_size, shp_ices, shp_ices_size ) = object[0] ;
-	CUdeviceptr vces = 0 ;
-	copyDataToDevice<float3>( vces, shp_vces, shp_vces_size ) ;
-	// object's shapes V device buffers
-	vces_.push_back( vces ) ;
+	copyDataToDevice<float3>( vces_[id], shp_vces, shp_vces_size ) ;
 
 	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
@@ -70,9 +68,7 @@ unsigned int Scene::add( Object& object ) {
 		// object's shapes
 		std::tie( shp_vces, shp_vces_size, shp_ices, shp_ices_size ) = object[s] ;
 
-		CUdeviceptr ices = 0 ;
-		copyDataToDevice<uint3>( ices, shp_ices, shp_ices_size ) ;
-		ices_[id][s] = ices ;
+		copyDataToDevice<uint3>( ices_[id][s], shp_ices, shp_ices_size ) ;
 		obi_shape.triangleArray.indexFormat                 = OPTIX_INDICES_FORMAT_UNSIGNED_INT3 ;
 		obi_shape.triangleArray.numIndexTriplets            = shp_ices_size ;
 		obi_shape.triangleArray.indexBuffer                 = ices_[id][s] ;
