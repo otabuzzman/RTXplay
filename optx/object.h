@@ -23,11 +23,11 @@ class Object {
 
 		Object( const std::string& wavefront ) ;
 
-		size_t size() const { return vces_.size() ; } ;
+		size_t size() const { return ices_.size() ; } ;
 
 	private:
-		std::vector<std::vector<float3>> vces_ ; // submesh's unique vertices...
-		std::vector<std::vector<uint3>>  ices_ ; // ...as indexed triangles
+		std::vector<float3>             vces_ ; // vertices shared by shapes
+		std::vector<std::vector<uint3>> ices_ ; // indexed triangles (shapes)
 
 		void procWavefrontObj( const std::string& wavefront ) ;
 } ;

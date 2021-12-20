@@ -30,8 +30,8 @@ Scene::Scene( const OptixDeviceContext& optx_context ) : optx_context_( optx_con
 
 Scene::~Scene() noexcept ( false ) {
 	for ( auto b : as_outbuf_ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( b ) ) ) ;
-	for ( auto v : vces_ ) for ( auto b : v ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( b ) ) ) ;
-	for ( auto v : ices_ ) for ( auto b : v ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( b ) ) ) ;
+	for ( auto b : vces_ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( b ) ) ) ;
+	for ( auto i : ices_ ) for ( auto b : i ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( b ) ) ) ;
 	free() ;
 }
 
@@ -42,9 +42,19 @@ unsigned int Scene::add( Object& object ) {
 	const unsigned int object_size = static_cast<unsigned int>( object.size() ) ;
 	std::vector<OptixBuildInput> obi_object( object_size ) ;
 
-	// object's shapes V/I device buffers
-	vces_.push_back( std::vector<CUdeviceptr>( object_size, 0 ) ) ;
+	// object's shapes I device buffers
 	ices_.push_back( std::vector<CUdeviceptr>( object_size, 0 ) ) ;
+
+	// object's shapes tuple
+	float3*      shp_vces ;
+	unsigned int shp_vces_size ;
+	uint3*       shp_ices ;
+	unsigned int shp_ices_size ;
+	std::tie( shp_vces, shp_vces_size, shp_ices, shp_ices_size ) = object[0] ;
+	CUdeviceptr vces = 0 ;
+	copyDataToDevice<float3>( vces, shp_vces, shp_vces_size ) ;
+	// object's shapes V device buffers
+	vces_.push_back( vces ) ;
 
 	const unsigned int obi_object_flags[1] = { OPTIX_GEOMETRY_FLAG_DISABLE_ANYHIT } ;
 
@@ -53,19 +63,13 @@ unsigned int Scene::add( Object& object ) {
 		OptixBuildInput obi_shape = {} ;
 		obi_shape.type                                      = OPTIX_BUILD_INPUT_TYPE_TRIANGLES ;
 
-		// object's shapes tuple
-		float3*      shp_vces ;
-		unsigned int shp_vces_size ;
-		uint3*       shp_ices ;
-		unsigned int shp_ices_size ;
-		std::tie( shp_vces, shp_vces_size, shp_ices, shp_ices_size ) = object[s] ;
 
-		CUdeviceptr vces = 0 ;
-		copyDataToDevice<float3>( vces, shp_vces, shp_vces_size ) ;
-		vces_[id][s] = vces ;
 		obi_shape.triangleArray.vertexFormat                = OPTIX_VERTEX_FORMAT_FLOAT3 ;
 		obi_shape.triangleArray.numVertices                 = shp_vces_size ;
-		obi_shape.triangleArray.vertexBuffers               = &vces_[id][s] ;
+		obi_shape.triangleArray.vertexBuffers               = &vces_[id] ;
+
+		// object's shapes
+		std::tie( shp_vces, shp_vces_size, shp_ices, shp_ices_size ) = object[s] ;
 
 		CUdeviceptr ices = 0 ;
 		copyDataToDevice<uint3>( ices, shp_ices, shp_ices_size ) ;
@@ -186,9 +190,9 @@ unsigned int Scene::add( Thing& thing, unsigned int object ) {
 
 	is_ises_.push_back( ois_object ) ;
 
-	const unsigned int object_size = static_cast<unsigned int>( vces_[object].size() ) ; 
+	const unsigned int object_size = static_cast<unsigned int>( vces_.size() ) ;
 	for ( unsigned int s = 0 ; object_size>s ; s++ ) {
-		thing.vces = reinterpret_cast<float3*>( vces_[object][s] ) ;
+		thing.vces = reinterpret_cast<float3*>( vces_[s] ) ;
 		thing.ices = reinterpret_cast<uint3*> ( ices_[object][s] ) ;
 		things_.push_back( thing ) ;
 	}

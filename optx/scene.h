@@ -42,7 +42,7 @@ class Scene {
 		std::vector<OptixTraversableHandle>   as_handle_ ;
 		// per GAS associated device buffers
 		std::vector<CUdeviceptr>              as_outbuf_ ;
-		std::vector<std::vector<CUdeviceptr>> vces_ ;
+		std::vector<CUdeviceptr>              vces_ ;
 		std::vector<std::vector<CUdeviceptr>> ices_ ;
 
 		// per instance host data structures

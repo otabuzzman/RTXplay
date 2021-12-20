@@ -26,7 +26,7 @@ Object::Object( const std::string& wavefront ) {
 
 const Mesh Object::operator[] ( unsigned int m ) {
 	return Mesh(
-		vces_[m].data(), static_cast<unsigned int>( vces_[m].size() ),
+		vces_.data(),    static_cast<unsigned int>( vces_.size() ),
 		ices_[m].data(), static_cast<unsigned int>( ices_[m].size() )
 	) ;
 }
@@ -44,7 +44,6 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 
 	// loop over shapes (submeshes)
 	for ( size_t s = 0 ; shapes.size()>s ; s++ ) {
-		std::vector<float3> vces ;
 		std::vector<uint3>  ices ;
 
 		// loop over faces (triangles)
@@ -68,16 +67,16 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 
 				// fetch triangle vertices
 				if ( recall.find( tol_i0 ) == recall.end() ) {
-					recall[tol_i0] = vces.size() ;
-					vces.push_back( { attrib.vertices[3*i0+0], attrib.vertices[3*i0+1], attrib.vertices[3*i0+2] } ) ;
+					recall[tol_i0] = vces_.size() ;
+					vces_.push_back( { attrib.vertices[3*i0+0], attrib.vertices[3*i0+1], attrib.vertices[3*i0+2] } ) ;
 				}
 				if ( recall.find( tol_i1 ) == recall.end() ) {
-					recall[tol_i1] = vces.size() ;
-					vces.push_back( { attrib.vertices[3*i1+0], attrib.vertices[3*i1+1], attrib.vertices[3*i1+2] } ) ;
+					recall[tol_i1] = vces_.size() ;
+					vces_.push_back( { attrib.vertices[3*i1+0], attrib.vertices[3*i1+1], attrib.vertices[3*i1+2] } ) ;
 				}
 				if ( recall.find( tol_i2 ) == recall.end() ) {
-					recall[tol_i2] = vces.size() ;
-					vces.push_back( { attrib.vertices[3*i2+0], attrib.vertices[3*i2+1], attrib.vertices[3*i2+2] } ) ;
+					recall[tol_i2] = vces_.size() ;
+					vces_.push_back( { attrib.vertices[3*i2+0], attrib.vertices[3*i2+1], attrib.vertices[3*i2+2] } ) ;
 				}
 			} else {
 				std::ostringstream comment ;
@@ -87,7 +86,6 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 			}
 		}
 
-		vces_.push_back( vces ) ;
 		ices_.push_back( ices ) ;
 	}
 }
@@ -104,20 +102,16 @@ int main( const int argc, const char** argv ) {
 	uint3*       ices ;
 	unsigned int ices_size ;
 
-	unsigned int v, vsum = 0 ;
-	for ( unsigned int o = 0 ; object.size()>o ; o++ ) {
-		std::tie( vces, vces_size, ices, ices_size ) = object[o] ;
-		for ( v = 0 ; vces_size>v ; v++ )
-			printf( "v %f %f %f\n", vces[v].x, vces[v].y, vces[v].z ) ;
-		vsum += v ;
-	}
-	std::cout << "# " << vsum << " vertices"  << std::endl ;
+	std::tie( vces, vces_size, ices, ices_size ) = object[0] ;
+	for ( unsigned int v = 0 ; vces_size>v ; v++ )
+		printf( "v %f %f %f\n", vces[v].x, vces[v].y, vces[v].z ) ;
+	std::cout << "# " << vces_size << " vertices" << std::endl ;
 
 	for ( unsigned int o = 0 ; object.size()>o ; o++ ) {
 		std::tie( vces, vces_size, ices, ices_size ) = object[o] ;
 		for ( unsigned int i = 0 ; ices_size>i ; i++ )
 			printf( "f %d %d %d\n", ices[i].x+1, ices[i].y+1, ices[i].z+1 ) ;
-		std::cout << "# " << ices_size << " triangles"  << std::endl ;
+		std::cout << "# " << ices_size << " triangles" << std::endl ;
 	}
 
 	return 0 ;
