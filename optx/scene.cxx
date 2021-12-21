@@ -51,6 +51,7 @@ unsigned int Scene::add( Object& object ) {
 	unsigned int shp_vces_size ;
 	uint3*       shp_ices ;
 	unsigned int shp_ices_size ;
+
 	std::tie( shp_vces, shp_vces_size, shp_ices, shp_ices_size ) = object[0] ;
 	copyDataToDevice<float3>( vces_[id], shp_vces, shp_vces_size ) ;
 
@@ -163,7 +164,7 @@ unsigned int Scene::add( Object& object ) {
 	return id ;
 }
 
-unsigned int Scene::add( Thing& thing, unsigned int object ) {
+unsigned int Scene::add( Thing& thing, const unsigned int object ) {
 	const unsigned int id = static_cast<unsigned int>( is_ises_.size() ) ;
 
 	// objects's instance structure
@@ -195,7 +196,7 @@ unsigned int Scene::add( Thing& thing, unsigned int object ) {
 	return id ;
 }
 
-bool Scene::set( unsigned int is_id, const float* transform ) {
+bool Scene::set( const unsigned int is_id, const float* transform ) {
 	if ( is_ises_.size()>is_id ) {
 		OptixInstance* is_instance = &is_ises_[is_id] ;
 		memcpy( &is_instance->transform, transform, sizeof( float )*12 ) ;
@@ -214,7 +215,7 @@ bool Scene::set( unsigned int is_id, const float* transform ) {
 		return false ;
 }
 
-bool Scene::get( unsigned int is_id, float* transform ) {
+bool Scene::get( const unsigned int is_id, float* transform ) {
 	if ( is_ises_.size()>is_id ) {
 		OptixInstance* is_instance = &is_ises_[is_id] ;
 		memcpy( transform, &is_instance->transform, sizeof( float )*12 ) ;

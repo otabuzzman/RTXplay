@@ -18,7 +18,7 @@
 
 class Scene {
 	public:
-		const Thing& operator[] ( unsigned int i ) { return things_[i] ; } ;
+		const Thing& operator[] ( const unsigned int i ) { return things_[i] ; } ;
 
 		Scene( const OptixDeviceContext& optx_context ) ;
 		virtual ~Scene() noexcept ( false ) ;
@@ -26,11 +26,11 @@ class Scene {
 		virtual void load() = 0 ;
 		unsigned int size() ;
 
-		unsigned int add( Object& object ) ;                     // create GAS for object's submeshes
-		unsigned int add( Thing& thing, unsigned int as_id ) ;   // create instance and connect with GAS
+		unsigned int add( Object& object ) ;                           // create GAS for object's shapes
+		unsigned int add( Thing& thing, const unsigned int as_id ) ;   // create instance and connect with GAS
 
-		bool set( unsigned int is_id, const float* transform ) ; // set instance transform
-		bool get( unsigned int is_id, float* transform ) ;       // get instance transform
+		bool set( const unsigned int is_id, const float* transform ) ; // set instance transform
+		bool get( const unsigned int is_id, float* transform ) ;       // get instance transform
 
 		void build( OptixTraversableHandle* is_handle ) ;
 		void update( OptixTraversableHandle is_handle ) ;
