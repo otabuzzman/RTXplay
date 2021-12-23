@@ -139,12 +139,10 @@ int main( int argc, char* argv[] ) {
 					Object sphere_6( "sphere_6.scn" ) ;
 					Object sphere_8( "sphere_8.scn" ) ;
 					Object sphere_9( "sphere_9.scn" ) ;
-					Object xwing( "star-wars-x-wing.obj" ) ;
-					unsigned int gas_3 = add( sphere_3 ) ;
-					unsigned int gas_6 = add( sphere_6 ) ;
-					unsigned int gas_8 = add( sphere_8 ) ;
-					unsigned int gas_9 = add( sphere_9 ) ;
-					unsigned int gas_x = add( xwing ) ;
+					unsigned int as_3 = add( sphere_3 ) ;
+					unsigned int as_6 = add( sphere_6 ) ;
+					unsigned int as_8 = add( sphere_8 ) ;
+					unsigned int as_9 = add( sphere_9 ) ;
 
 					float transform[12] = {
 						1., 0., 0., 0.,
@@ -152,7 +150,7 @@ int main( int argc, char* argv[] ) {
 						0., 0., 1., 0.
 					} ;
 
-					unsigned int id = add( gas_9 ) ;
+					unsigned int id = add( as_9 ) ;
 					transform[0*4+0] =  1000.f ; // scale
 					transform[1*4+1] =  1000.f ;
 					transform[2*4+2] =  1000.f ;
@@ -160,26 +158,10 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = -1000.f ;
 					transform[2*4+3] =     0.f ;
 					set( id, transform ) ;
-					Thing thing = ( *this )[id] ;
+					Thing thing = ( *this )[id] ; // one shape per sphere yields also one thing per sphere, so id is equal to thing index
 					thing.optics.type = Optics::TYPE_DIFFUSE ;
 					thing.optics.diffuse.albedo = { .5f, .5f, .5f } ;
-
-					id = add( gas_x ) ;
-					transform[0*4+0] = 1.f ;
-					transform[1*4+1] = 1.f ;
-					transform[2*4+2] = 1.f ;
-					transform[0*4+3] = 0.f ;
-					transform[1*4+3] = 4.f ;
-					transform[2*4+3] = 0.f ;
-					set( id, transform ) ;
-					unsigned int s = 0 ;
-					for ( ; xwing.size()>s ; s++ ) {
-						thing = ( *this )[id+s] ;
-						thing.optics.type = Optics::TYPE_REFLECT ;
-						thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
-						thing.optics.reflect.fuzz   = 0.f ;
-						( *this )[id+s] = thing ;
-					} s-- ;
+					( *this )[id] = thing ;
 
 					for ( int a = -11 ; a<11 ; a++ ) {
 						for ( int b = -11 ; b<11 ; b++ ) {
@@ -187,7 +169,7 @@ int main( int argc, char* argv[] ) {
 							const float3 center = { a+.9f*util::rnd(), .2f, b+.9f*util::rnd() } ;
 							if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 								if ( select<.8f ) {
-									id = add( gas_6 ) ;
+									id = add( as_6 ) ;
 									transform[0*4+0] = .2f ;
 									transform[1*4+1] = .2f ;
 									transform[2*4+2] = .2f ;
@@ -195,12 +177,12 @@ int main( int argc, char* argv[] ) {
 									transform[1*4+3] = center.y ;
 									transform[2*4+3] = center.z ;
 									set( id, transform ) ;
-									thing = ( *this )[id+s] ;
+									thing = ( *this )[id] ;
 									thing.optics.type = Optics::TYPE_DIFFUSE ;
 									thing.optics.diffuse.albedo = V::rnd()*V::rnd() ;
-									( *this )[id+s] = thing ;
+									( *this )[id] = thing ;
 								} else if ( select<.95f ) {
-									id = add( gas_6 ) ;
+									id = add( as_6 ) ;
 									transform[0*4+0] = .2f ;
 									transform[1*4+1] = .2f ;
 									transform[2*4+2] = .2f ;
@@ -208,13 +190,13 @@ int main( int argc, char* argv[] ) {
 									transform[1*4+3] = center.y ;
 									transform[2*4+3] = center.z ;
 									set( id, transform ) ;
-									thing = ( *this )[id+s] ;
+									thing = ( *this )[id] ;
 									thing.optics.type = Optics::TYPE_REFLECT ;
 									thing.optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
 									thing.optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
-									( *this )[id+s] = thing ;
+									( *this )[id] = thing ;
 								} else {
-									id = add( gas_3 ) ;
+									id = add( as_3 ) ;
 									transform[0*4+0] = .2f ;
 									transform[1*4+1] = .2f ;
 									transform[2*4+2] = .2f ;
@@ -222,16 +204,16 @@ int main( int argc, char* argv[] ) {
 									transform[1*4+3] = center.y ;
 									transform[2*4+3] = center.z ;
 									set( id, transform ) ;
-									thing = ( *this )[id+s] ;
+									thing = ( *this )[id] ;
 									thing.optics.type = Optics::TYPE_REFRACT ;
 									thing.optics.refract.index = 1.5f ;
-									( *this )[id+s] = thing ;
+									( *this )[id] = thing ;
 								}
 							}
 						}
 					}
 
-					id = add( gas_8 ) ;
+					id = add( as_8 ) ;
 					transform[0*4+0] = 1.f ;
 					transform[1*4+1] = 1.f ;
 					transform[2*4+2] = 1.f ;
@@ -239,12 +221,12 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = 1.f ;
 					transform[2*4+3] = 0.f ;
 					set( id, transform ) ;
-					thing = ( *this )[id+s] ;
+					thing = ( *this )[id] ;
 					thing.optics.type = Optics::TYPE_REFRACT ;
 					thing.optics.refract.index  = 1.5f ;
-					( *this )[id+s] = thing ;
+					( *this )[id] = thing ;
 
-					id = add( gas_6 ) ;
+					id = add( as_6 ) ;
 					transform[0*4+0] =  1.f ;
 					transform[1*4+1] =  1.f ;
 					transform[2*4+2] =  1.f ;
@@ -252,12 +234,12 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] =  1.f ;
 					transform[2*4+3] =  0.f ;
 					set( id, transform ) ;
-					thing = ( *this )[id+s] ;
+					thing = ( *this )[id] ;
 					thing.optics.type = Optics::TYPE_DIFFUSE ;
 					thing.optics.diffuse.albedo = { .4f, .2f, .1f } ;
-					( *this )[id+s] = thing ;
+					( *this )[id] = thing ;
 
-					id = add( gas_3 ) ;
+					id = add( as_3 ) ;
 					transform[0*4+0] = 1.f ;
 					transform[1*4+1] = 1.f ;
 					transform[2*4+2] = 1.f ;
@@ -265,11 +247,11 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = 1.f ;
 					transform[2*4+3] = 0.f ;
 					set( id, transform ) ;
-					thing = ( *this )[id+s] ;
+					thing = ( *this )[id] ;
 					thing.optics.type = Optics::TYPE_REFLECT ;
 					thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
 					thing.optics.reflect.fuzz   = 0.f ;
-					( *this )[id+s] = thing ;
+					( *this )[id] = thing ;
 				}
 		} ;
 
@@ -277,8 +259,34 @@ int main( int argc, char* argv[] ) {
 		cg::scene = &rtwo ;
 
 		rtwo.load() ;
+
+		Object xwing( "star-wars-x-wing.obj" ) ;
+		unsigned int as_x = rtwo.add( xwing ) ;
+		unsigned int rtwo_id = static_cast<unsigned int>( rtwo.size() ) ;
+		unsigned int id_x = rtwo.add( as_x ) ;
+		float transform[12] = {
+			1., 0., 0., 0.,
+			0., 1., 0., 0.,
+			0., 0., 1., 0.
+		} ;
+		transform[0*4+0] = 1.f ;
+		transform[1*4+1] = 1.f ;
+		transform[2*4+2] = 1.f ;
+		transform[0*4+3] = 0.f ;
+		transform[1*4+3] = 4.f ;
+		transform[2*4+3] = 0.f ;
+		rtwo.set( id_x, transform ) ;
+		unsigned int s = 0 ;
+		for ( ; xwing.size()>s ; s++ ) {
+			Thing thing = rtwo[rtwo_id+s] ;
+			thing.optics.type = Optics::TYPE_REFLECT ;
+			thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
+			thing.optics.reflect.fuzz   = 0.f ;
+			rtwo[rtwo_id+s] = thing ;
+		}
+
 		rtwo.build( &lp_general.is_handle ) ;
-		unsigned int rtwo_size = rtwo.size() ;
+		size_t rtwo_size = rtwo.size() ;
 
 
 

@@ -300,7 +300,3 @@ void Scene::free() noexcept ( false ) {
 	if ( is_outbuf_ ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( is_outbuf_ ) ) ) ;
 	if ( ises_      ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ises_      ) ) ) ;
 }
-
-unsigned int Scene::size() const {
-	return static_cast<unsigned int>( things_.size() ) ;
-}

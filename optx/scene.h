@@ -25,7 +25,7 @@ class Scene {
 		virtual ~Scene() noexcept ( false ) ;
 
 		virtual void load() = 0 ;
-		unsigned int size() const ;
+		size_t size() const { return things_.size() ; } ;
 
 		unsigned int add( Object& object ) ;                           // create GAS for object's shapes
 		unsigned int add( const unsigned int as_id ) ;                 // create instance and connect with GAS
