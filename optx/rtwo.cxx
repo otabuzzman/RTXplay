@@ -178,7 +178,8 @@ int main( int argc, char* argv[] ) {
 						thing.optics.type = Optics::TYPE_REFLECT ;
 						thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
 						thing.optics.reflect.fuzz   = 0.f ;
-					}
+						( *this )[id+s] = thing ;
+					} s-- ;
 
 					for ( int a = -11 ; a<11 ; a++ ) {
 						for ( int b = -11 ; b<11 ; b++ ) {
@@ -197,6 +198,7 @@ int main( int argc, char* argv[] ) {
 									thing = ( *this )[id+s] ;
 									thing.optics.type = Optics::TYPE_DIFFUSE ;
 									thing.optics.diffuse.albedo = V::rnd()*V::rnd() ;
+									( *this )[id+s] = thing ;
 								} else if ( select<.95f ) {
 									id = add( gas_6 ) ;
 									transform[0*4+0] = .2f ;
@@ -210,6 +212,7 @@ int main( int argc, char* argv[] ) {
 									thing.optics.type = Optics::TYPE_REFLECT ;
 									thing.optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
 									thing.optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
+									( *this )[id+s] = thing ;
 								} else {
 									id = add( gas_3 ) ;
 									transform[0*4+0] = .2f ;
@@ -222,6 +225,7 @@ int main( int argc, char* argv[] ) {
 									thing = ( *this )[id+s] ;
 									thing.optics.type = Optics::TYPE_REFRACT ;
 									thing.optics.refract.index = 1.5f ;
+									( *this )[id+s] = thing ;
 								}
 							}
 						}
@@ -238,6 +242,7 @@ int main( int argc, char* argv[] ) {
 					thing = ( *this )[id+s] ;
 					thing.optics.type = Optics::TYPE_REFRACT ;
 					thing.optics.refract.index  = 1.5f ;
+					( *this )[id+s] = thing ;
 
 					id = add( gas_6 ) ;
 					transform[0*4+0] =  1.f ;
@@ -250,6 +255,7 @@ int main( int argc, char* argv[] ) {
 					thing = ( *this )[id+s] ;
 					thing.optics.type = Optics::TYPE_DIFFUSE ;
 					thing.optics.diffuse.albedo = { .4f, .2f, .1f } ;
+					( *this )[id+s] = thing ;
 
 					id = add( gas_3 ) ;
 					transform[0*4+0] = 1.f ;
@@ -263,6 +269,7 @@ int main( int argc, char* argv[] ) {
 					thing.optics.type = Optics::TYPE_REFLECT ;
 					thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
 					thing.optics.reflect.fuzz   = 0.f ;
+					( *this )[id+s] = thing ;
 				}
 		} ;
 

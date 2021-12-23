@@ -18,6 +18,7 @@
 
 class Scene {
 	public:
+		Thing& operator[] ( const unsigned int i ) { return things_[i] ; } ;
 		const Thing& operator[] ( const unsigned int i ) const { return things_[i] ; } ;
 
 		Scene( const OptixDeviceContext& optx_context ) ;
