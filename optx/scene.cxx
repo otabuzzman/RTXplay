@@ -164,7 +164,7 @@ unsigned int Scene::add( Object& object ) {
 	return id ;
 }
 
-unsigned int Scene::add( Thing& thing, const unsigned int object ) {
+unsigned int Scene::add( const unsigned int object ) {
 	const unsigned int id = static_cast<unsigned int>( is_ises_.size() ) ;
 
 	// objects's instance structure
@@ -188,6 +188,7 @@ unsigned int Scene::add( Thing& thing, const unsigned int object ) {
 
 	const unsigned int object_size = static_cast<unsigned int>( ices_[object].size() ) ;
 	for ( unsigned int s = 0 ; object_size>s ; s++ ) {
+		Thing thing = { 0 } ;
 		thing.vces = reinterpret_cast<float3*>( vces_[object] ) ;
 		thing.ices = reinterpret_cast<uint3*> ( ices_[object][s] ) ;
 		things_.push_back( thing ) ;
@@ -300,6 +301,6 @@ void Scene::free() noexcept ( false ) {
 	if ( ises_      ) CUDA_CHECK( cudaFree( reinterpret_cast<void*>( ises_      ) ) ) ;
 }
 
-unsigned int Scene::size() {
+unsigned int Scene::size() const {
 	return static_cast<unsigned int>( things_.size() ) ;
 }
