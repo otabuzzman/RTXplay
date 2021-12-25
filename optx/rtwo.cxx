@@ -261,10 +261,11 @@ int main( int argc, char* argv[] ) {
 		rtwo.load() ;
 
 		while ( argc>optind+1 ) {
-			unsigned int th_id = static_cast<unsigned int>( rtwo.size() ) ;
-
 			Object object( argv[optind++] ) ;
-			unsigned int is_id = rtwo.add( object ) ;
+			unsigned int as = rtwo.add( object ) ;
+
+			unsigned int th = static_cast<unsigned int>( rtwo.size() ) ;
+			unsigned int is = rtwo.add( as ) ;
 
 			float transform[12] = {
 				1.f, 0.f, 0.f, 0.f,
@@ -274,14 +275,12 @@ int main( int argc, char* argv[] ) {
 			sscanf( argv[optind++], "%f:%f:%f:%f:%f:%f",
 				&transform[0*4+0], &transform[1*4+1], &transform[2*4+2],
 				&transform[0*4+3], &transform[1*4+3], &transform[2*4+3] ) ;
-			rtwo.set( is_id, transform ) ;
+			rtwo.set( is, transform ) ;
 
 			for ( unsigned int s = 0 ; object.size()>s ; s++ ) {
-				Thing thing = rtwo[th_id+s] ;
-				thing.optics.type = Optics::TYPE_REFLECT ;
-				thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
-				thing.optics.reflect.fuzz   = 0.f ;
-				rtwo[th_id+s] = thing ;
+				rtwo[th+s].optics.type = Optics::TYPE_REFLECT ;
+				rtwo[th+s].optics.reflect.albedo = { .7f, .6f, .5f } ;
+				rtwo[th+s].optics.reflect.fuzz   = 0.f ;
 			}
 		}
 
