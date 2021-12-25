@@ -14,6 +14,10 @@
 // file specific includes
 // none
 
+#ifdef _MSC_VER
+extern int optind ;
+#endif // _MSC_VER
+
 #define MAXOPT 32
 
 typedef struct { int w; int h ; } res ;

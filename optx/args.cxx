@@ -16,8 +16,14 @@
 // file specific includes
 #include "args.h"
 
+#ifdef _MSC_VER
+int optind = 0 ;
+#endif // _MSC_VER
+
 Args::Args( const int argc, char* const* argv ) noexcept( false ) {
+
 #ifndef _MSC_VER
+
 	int c, n = 0 ;
 
 	const char*         s_opts   = "g:a:s:d:vtqhA:GSD:" ;
@@ -119,7 +125,9 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 				break ;
 		}
 	} while ( c>-1 && MAXOPT>n++ ) ;
+
 #else
+
 	switch ( argc ) {
 		case 1:
 			break ;
@@ -132,7 +140,11 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 			std::cerr << "rtwo: unknown options" << std::endl ;
 			throw std::invalid_argument( "try 'rtwo /help' for more information." ) ;
 	}
+
+	optind = argc ;
+
 #endif // _MSC_VER
+
 }
 
 int  Args::param_w( const int dEfault ) const { return 0>g_w_ ? dEfault : g_w_ ; }

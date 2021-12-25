@@ -37,7 +37,13 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 
 	std::map<tinyobj::index_t, size_t> recall ; // already seen indices
 
-	reader.ParseFromFile( wavefront, config ) ;
+	if ( ! reader.ParseFromFile( wavefront, config ) ) {
+		std::ostringstream comment ;
+
+		comment << wavefront << ": could not parse" << std::endl ;
+		throw std::runtime_error( comment.str() ) ;
+	}
+
 	auto& shapes = reader.GetShapes() ;
 	auto& attrib = reader.GetAttrib() ;
 	const size_t vertices_size = attrib.vertices.size() ;

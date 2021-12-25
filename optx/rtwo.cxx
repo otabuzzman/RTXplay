@@ -158,7 +158,7 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = -1000.f ;
 					transform[2*4+3] =     0.f ;
 					set( id, transform ) ;
-					Thing thing = ( *this )[id] ; // one shape per sphere yields also one thing per sphere, so id is equal to thing index
+					Thing thing = ( *this )[id] ;
 					thing.optics.type = Optics::TYPE_DIFFUSE ;
 					thing.optics.diffuse.albedo = { .5f, .5f, .5f } ;
 					( *this )[id] = thing ;
@@ -260,29 +260,29 @@ int main( int argc, char* argv[] ) {
 
 		rtwo.load() ;
 
-		Object xwing( "star-wars-x-wing.obj" ) ;
-		unsigned int as_x = rtwo.add( xwing ) ;
-		unsigned int rtwo_id = static_cast<unsigned int>( rtwo.size() ) ;
-		unsigned int id_x = rtwo.add( as_x ) ;
-		float transform[12] = {
-			1., 0., 0., 0.,
-			0., 1., 0., 0.,
-			0., 0., 1., 0.
-		} ;
-		transform[0*4+0] = 1.f ;
-		transform[1*4+1] = 1.f ;
-		transform[2*4+2] = 1.f ;
-		transform[0*4+3] = 0.f ;
-		transform[1*4+3] = 4.f ;
-		transform[2*4+3] = 0.f ;
-		rtwo.set( id_x, transform ) ;
-		unsigned int s = 0 ;
-		for ( ; xwing.size()>s ; s++ ) {
-			Thing thing = rtwo[rtwo_id+s] ;
-			thing.optics.type = Optics::TYPE_REFLECT ;
-			thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
-			thing.optics.reflect.fuzz   = 0.f ;
-			rtwo[rtwo_id+s] = thing ;
+		while ( argc>optind+1 ) {
+			unsigned int th_id = static_cast<unsigned int>( rtwo.size() ) ;
+
+			Object object( argv[optind++] ) ;
+			unsigned int is_id = rtwo.add( object ) ;
+
+			float transform[12] = {
+				1.f, 0.f, 0.f, 0.f,
+				0.f, 1.f, 0.f, 0.f,
+				0.f, 0.f, 1.f, 0.f
+			} ;
+			sscanf( argv[optind++], "%f:%f:%f:%f:%f:%f",
+				&transform[0*4+0], &transform[1*4+1], &transform[2*4+2],
+				&transform[0*4+3], &transform[1*4+3], &transform[2*4+3] ) ;
+			rtwo.set( is_id, transform ) ;
+
+			for ( unsigned int s = 0 ; object.size()>s ; s++ ) {
+				Thing thing = rtwo[th_id+s] ;
+				thing.optics.type = Optics::TYPE_REFLECT ;
+				thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
+				thing.optics.reflect.fuzz   = 0.f ;
+				rtwo[th_id+s] = thing ;
+			}
 		}
 
 		rtwo.build( &lp_general.is_handle ) ;
