@@ -34,6 +34,7 @@ const Mesh Object::operator[] ( unsigned int m ) {
 void Object::procWavefrontObj( const std::string& wavefront ) {
 	tinyobj::ObjReader       reader ;
 	tinyobj::ObjReaderConfig config ;
+	config.mtl_search_path = "./" ;
 
 	std::map<tinyobj::index_t, size_t> recall ; // already seen indices
 
@@ -47,6 +48,7 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 	auto& shapes = reader.GetShapes() ;
 	auto& attrib = reader.GetAttrib() ;
 	const size_t vertices_size = attrib.vertices.size() ;
+	auto& materials = reader.GetMaterials();
 
 	// loop over shapes (submeshes)
 	for ( size_t s = 0 ; shapes.size()>s ; s++ ) {
@@ -90,6 +92,22 @@ void Object::procWavefrontObj( const std::string& wavefront ) {
 				comment << wavefront << ": triangle faces expected" << std::endl ;
 				throw std::runtime_error( comment.str() ) ;
 			}
+
+			unsigned int m = shapes[s].mesh.material_ids[f] ;
+			if ( m == -1 )
+				continue ; // shape without material
+
+			// RTOW: albedo
+			const float3 Kd = {
+				materials[m].diffuse[0],
+				materials[m].diffuse[1],
+				materials[m].diffuse[2]
+			} ;
+			// RTOW: index
+			const float Ni  = materials[m].ior ;
+			// RTOW: fuzz
+			std::map<std::string, std::string>::const_iterator kv = materials[m].unknown_parameter.find( "sharpness" ) ;
+			unsigned int sharpness = kv == materials[m].unknown_parameter.end() ? 60 : sscanf( kv->second.c_str(), "%u", &sharpness ) ;
 		}
 
 		ices_.push_back( ices ) ;

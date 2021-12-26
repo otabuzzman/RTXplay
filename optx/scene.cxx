@@ -188,7 +188,7 @@ unsigned int Scene::add( const unsigned int object ) {
 
 	const unsigned int object_size = static_cast<unsigned int>( ices_[object].size() ) ;
 	for ( unsigned int s = 0 ; object_size>s ; s++ ) {
-		Thing thing = { 0 } ;
+		Thing thing = {} ;
 		thing.vces = reinterpret_cast<float3*>( vces_[object] ) ;
 		thing.ices = reinterpret_cast<uint3*> ( ices_[object][s] ) ;
 		things_.push_back( thing ) ;

@@ -158,10 +158,8 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = -1000.f ;
 					transform[2*4+3] =     0.f ;
 					set( id, transform ) ;
-					Thing thing = ( *this )[id] ;
-					thing.optics.type = Optics::TYPE_DIFFUSE ;
-					thing.optics.diffuse.albedo = { .5f, .5f, .5f } ;
-					( *this )[id] = thing ;
+					( *this )[id].optics.type = Optics::TYPE_DIFFUSE ;
+					( *this )[id].optics.diffuse.albedo = { .5f, .5f, .5f } ;
 
 					for ( int a = -11 ; a<11 ; a++ ) {
 						for ( int b = -11 ; b<11 ; b++ ) {
@@ -177,10 +175,8 @@ int main( int argc, char* argv[] ) {
 									transform[1*4+3] = center.y ;
 									transform[2*4+3] = center.z ;
 									set( id, transform ) ;
-									thing = ( *this )[id] ;
-									thing.optics.type = Optics::TYPE_DIFFUSE ;
-									thing.optics.diffuse.albedo = V::rnd()*V::rnd() ;
-									( *this )[id] = thing ;
+									( *this )[id].optics.type = Optics::TYPE_DIFFUSE ;
+									( *this )[id].optics.diffuse.albedo = V::rnd()*V::rnd() ;
 								} else if ( select<.95f ) {
 									id = add( as_6 ) ;
 									transform[0*4+0] = .2f ;
@@ -190,11 +186,9 @@ int main( int argc, char* argv[] ) {
 									transform[1*4+3] = center.y ;
 									transform[2*4+3] = center.z ;
 									set( id, transform ) ;
-									thing = ( *this )[id] ;
-									thing.optics.type = Optics::TYPE_REFLECT ;
-									thing.optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
-									thing.optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
-									( *this )[id] = thing ;
+									( *this )[id].optics.type = Optics::TYPE_REFLECT ;
+									( *this )[id].optics.reflect.albedo = V::rnd( .5f, 1.f ) ;
+									( *this )[id].optics.reflect.fuzz = util::rnd( 0.f, .5f ) ;
 								} else {
 									id = add( as_3 ) ;
 									transform[0*4+0] = .2f ;
@@ -204,10 +198,8 @@ int main( int argc, char* argv[] ) {
 									transform[1*4+3] = center.y ;
 									transform[2*4+3] = center.z ;
 									set( id, transform ) ;
-									thing = ( *this )[id] ;
-									thing.optics.type = Optics::TYPE_REFRACT ;
-									thing.optics.refract.index = 1.5f ;
-									( *this )[id] = thing ;
+									( *this )[id].optics.type = Optics::TYPE_REFRACT ;
+									( *this )[id].optics.refract.index = 1.5f ;
 								}
 							}
 						}
@@ -221,10 +213,8 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = 1.f ;
 					transform[2*4+3] = 0.f ;
 					set( id, transform ) ;
-					thing = ( *this )[id] ;
-					thing.optics.type = Optics::TYPE_REFRACT ;
-					thing.optics.refract.index  = 1.5f ;
-					( *this )[id] = thing ;
+					( *this )[id].optics.type = Optics::TYPE_REFRACT ;
+					( *this )[id].optics.refract.index  = 1.5f ;
 
 					id = add( as_6 ) ;
 					transform[0*4+0] =  1.f ;
@@ -234,10 +224,8 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] =  1.f ;
 					transform[2*4+3] =  0.f ;
 					set( id, transform ) ;
-					thing = ( *this )[id] ;
-					thing.optics.type = Optics::TYPE_DIFFUSE ;
-					thing.optics.diffuse.albedo = { .4f, .2f, .1f } ;
-					( *this )[id] = thing ;
+					( *this )[id].optics.type = Optics::TYPE_DIFFUSE ;
+					( *this )[id].optics.diffuse.albedo = { .4f, .2f, .1f } ;
 
 					id = add( as_3 ) ;
 					transform[0*4+0] = 1.f ;
@@ -247,11 +235,9 @@ int main( int argc, char* argv[] ) {
 					transform[1*4+3] = 1.f ;
 					transform[2*4+3] = 0.f ;
 					set( id, transform ) ;
-					thing = ( *this )[id] ;
-					thing.optics.type = Optics::TYPE_REFLECT ;
-					thing.optics.reflect.albedo = { .7f, .6f, .5f } ;
-					thing.optics.reflect.fuzz   = 0.f ;
-					( *this )[id] = thing ;
+					( *this )[id].optics.type = Optics::TYPE_REFLECT ;
+					( *this )[id].optics.reflect.albedo = { .7f, .6f, .5f } ;
+					( *this )[id].optics.reflect.fuzz   = 0.f ;
 				}
 		} ;
 
@@ -279,7 +265,7 @@ int main( int argc, char* argv[] ) {
 
 			for ( unsigned int s = 0 ; object.size()>s ; s++ ) {
 				rtwo[th+s].optics.type = Optics::TYPE_REFLECT ;
-				rtwo[th+s].optics.reflect.albedo = { .7f, .6f, .5f } ;
+				rtwo[th+s].optics.reflect.albedo = { .667f, .663f, .678f } ;
 				rtwo[th+s].optics.reflect.fuzz   = 0.f ;
 			}
 		}
