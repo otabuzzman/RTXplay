@@ -266,7 +266,7 @@ int main( int argc, char* argv[] ) {
 			for ( unsigned int s = 0 ; object.size()>s ; s++ ) {
 				rtwo[th+s].optics.type = Optics::TYPE_REFLECT ;
 				rtwo[th+s].optics.reflect.albedo = { .667f, .663f, .678f } ;
-				rtwo[th+s].optics.reflect.fuzz   = 0.f ;
+				rtwo[th+s].optics.reflect.fuzz   = .125f ;
 			}
 		}
 

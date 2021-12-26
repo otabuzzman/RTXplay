@@ -10,6 +10,10 @@ Usage: rtwo [OPTION...]
   renders and displays results. A (rather) simple UI allows for basic
   interactions.
 
+  Additional objects in FILE must conform to Wavefront OBJ and each have
+  have a TRANSFOM. The format is sx:sy:sz:tx:ty:tz with floats in s[xyz]
+  and t[xyz] for scaling and translating.
+
 Examples:
   # render and convert image to PNG. Print statistical information on stderr.
   rtwo -S | magick ppm:- rtwo.png

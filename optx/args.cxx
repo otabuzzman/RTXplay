@@ -164,7 +164,7 @@ bool Args::flag_A( const Aov select )   const { return A_rpp_ == select ; }
 
 void Args::usage() {
 #ifndef _MSC_VER
-	std::cerr << "Usage: rtwo [OPTION...]\n\
+	std::cerr << "Usage: rtwo [OPTION]... [FILE TRANSFORM]...\n\
   rtwo renders the final image from Pete Shirley's book Ray Tracing in\n\
   One Weekend using NVIDIA's OptiX Ray Tracing Engine and pipes the result\n\
   (PPM) to stdout for easy batch post-processing (e.g. ImageMagick).\n\
@@ -172,6 +172,10 @@ void Args::usage() {
   If the host execs an X server (GLX enabled) as well, rtwo continuously\n\
   renders and displays results. A (rather) simple UI allows for basic\n\
   interactions.\n\
+\n\
+  Additional objects in FILE must conform to Wavefront OBJ and each\n\
+  have a TRANSFOM. The format is sx:sy:sz:tx:ty:tz with floats in s[xyz]\n\
+  and t[xyz] for scaling and translating.\n\
 \n\
 Examples:\n\
   # render and convert image to PNG. Print statistical information on stderr.\n\
