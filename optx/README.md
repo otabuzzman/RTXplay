@@ -11,8 +11,8 @@ Usage: rtwo [OPTION...]
   interactions.
 
   Additional objects in FILE must conform to Wavefront OBJ and each have
-  have a TRANSFOM. The format is sx:sy:sz:tx:ty:tz with floats in s[xyz]
-  and t[xyz] for scaling and translating.
+  a TRANSFOM. The format is sx:sy:sz:tx:ty:tz with floats for scaling
+  and translating in sx, sy, sz and tx, ty, tz respectively.
 
 Examples:
   # render and convert image to PNG. Print statistical information on stderr.

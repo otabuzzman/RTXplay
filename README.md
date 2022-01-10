@@ -1,5 +1,5 @@
 # RTXplay
-A lab for playing around with NVIDIA's realtime raytracing concept. The lab intends to migrate Pete Shirley's raytracer presented in his book series [Raytracing in one weekend](https://github.com/RayTracing/raytracing.github.io/) (RTOW) to become Raytracing with OptiX (RTWO) which utilizes the new RT cores introduced by NVIDIA with Turing microarchitecture.
+A lab for playing around with NVIDIA's realtime ray tracing concept. The lab intends to migrate Pete Shirley's ray tracer presented in his book series [Ray Tracing in one weekend](https://github.com/RayTracing/raytracing.github.io/) (RTOW) to become Ray Tracing with OptiX (RTWO) which utilizes the new RT cores introduced by NVIDIA with Turing microarchitecture.
 
 Code in the top-level folder was created while working through the [first book](https://raytracing.github.io/books/RayTracingInOneWeekend.html) of Pete's series. Creation followed the suggested method of typing yourself and foregoing copy and paste. Doing so there have been few changes to the code logic. Most changes concerned with style guide and naming.
 
@@ -81,7 +81,7 @@ Due to lack of appropriate hardware development and tests had been split on Wind
 
 ### Gallery
 
-|RTWO (Raytracing with OptiX) samples|   |
+|RTWO (Ray Tracing with OptiX) samples|   |
 |:---|:---|
 |1 spp (samples per pixel) in 189 milliseconds|50 spp in 776 milliseconds|
 |![1 spp in 189 milliseconds](./optx/img/rtwo-1spp-189.png)|![50 spp in 776 milliseconds](./optx/img/rtwo-50spp-776.png)|

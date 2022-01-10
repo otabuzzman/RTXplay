@@ -173,9 +173,9 @@ void Args::usage() {
   renders and displays results. A (rather) simple UI allows for basic\n\
   interactions.\n\
 \n\
-  Additional objects in FILE must conform to Wavefront OBJ and each\n\
-  have a TRANSFOM. The format is sx:sy:sz:tx:ty:tz with floats in s[xyz]\n\
-  and t[xyz] for scaling and translating.\n\
+  Additional objects in FILE must conform to Wavefront OBJ and each have\n\
+  a TRANSFOM. The format is sx:sy:sz:tx:ty:tz with floats for scaling\n\
+  and translating in sx, sy, sz and tx, ty, tz respectively.\n\
 \n\
 Examples:\n\
   # render and convert image to PNG. Print statistical information on stderr.\n\
