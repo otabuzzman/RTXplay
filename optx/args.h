@@ -76,6 +76,7 @@ class Args {
 		bool flag_t()                     const ; // -t, --trace-sm
 		bool flag_G()                     const ; // -G, --print-guides
 		bool flag_S()                     const ; // -S, --print-statistics
+		bool flag_b()                     const ; // -b, --batch-mode
 
 		bool flag_A( const Aov select )   const ; // -A, --print-aov
 
@@ -94,6 +95,7 @@ class Args {
 		int t_     =  0 ;
 		int G_     =  0 ;
 		int S_     =  0 ;
+		int b_     =  0 ;
 		Aov A_rpp_ = Aov::NONE ;
 } ;
 

@@ -82,7 +82,7 @@ const Things scene() {
 int main() {
 	Things things = ::scene() ;
 
-	double aspratio = 16./9. ;
+	double aspratio = 4./3. ;
 
 	P eye( 13., 2., 3. ) ; /*eye*/
 	P pat(  0., 0., 0. ) ; /*pat*/
@@ -93,10 +93,10 @@ int main() {
 	Camera camera ;
 	camera.set( eye, pat, vup, 20., aspratio, aperture, fostance ) ;
 
-	const int w = 1280 ;                           // image width in pixels
+	const int w = 320 ;                           // image width in pixels
 	const int h = static_cast<int>( w/aspratio ) ; // image height in pixels
-	const int spp = 10 ;                           // samples per pixel
-	const int depth = 50 ;                         // recursion depth
+	const int spp = 1 ;                           // samples per pixel
+	const int depth = 1 ;                         // recursion depth
 
 	std::cout
 		<< "P3\n"	// magic PPM header

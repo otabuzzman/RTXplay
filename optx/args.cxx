@@ -26,7 +26,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 
 	int c, n = 0 ;
 
-	const char*         s_opts   = "g:a:s:d:vtqhA:GSD:" ;
+	const char*         s_opts   = "g:a:s:d:vtqhA:GSD:b" ;
 	const struct option l_opts[] = {
 		{ "geometry",          required_argument, 0, 'g' },
 		{ "aspect-ratio",      required_argument, 0, 'a' },
@@ -42,6 +42,7 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		{ "print-guides",      no_argument,       &G_, 1 },
 		{ "print-statistics",  no_argument,       &S_, 1 },
 		{ "apply-denoiser",    required_argument, 0, 'D' },
+		{ "batch-mode",        required_argument, &b_, 1 },
 		{ 0, 0, 0, 0 }
 	} ;
 
@@ -118,6 +119,9 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 						std::cerr << "rtwo: unknown argument for option D ignored -- " << optarg << std::endl ;
 				}
 				break ;
+			case 'b':
+				b_ = 1 ;
+				break ;
 			case '?':
 				throw std::invalid_argument( "try 'rtwo --help' for more information." ) ;
 				break ;
@@ -134,6 +138,10 @@ Args::Args( const int argc, char* const* argv ) noexcept( false ) {
 		case 2:
 			if ( ! strcasecmp( argv[1], "/h" ) || ! strcasecmp( argv[1], "/help" ) ) {
 				h_ = 1 ;
+				break ;
+			}
+			if ( strcasecmp( argv[1], "/b" ) || strcasecmp( argv[1], "/batch-mode" ) ) {
+				b_ = 1 ;
 				break ;
 			}
 		default:
@@ -159,6 +167,7 @@ bool Args::flag_q()                     const { return q_>0 ; }
 bool Args::flag_t()                     const { return t_>0 ; }
 bool Args::flag_G()                     const { return G_>0 ; }
 bool Args::flag_S()                     const { return S_>0 ; }
+bool Args::flag_b()                     const { return b_>0 ; }
 
 bool Args::flag_A( const Aov select )   const { return A_rpp_ == select ; }
 
@@ -281,6 +290,9 @@ Options:\n\
       AOV (5) - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV.\n\
                 Might improve denoising result even if no AOVs provided.\n\
 \n\
+  -b, --batch-mode\n\
+    Force batch mode even when running a GLX-enabled X server.\n\
+\n\
 " ;
 #else
 	std::cerr << "Usage: rtwo [/h|/help]\n\
@@ -300,6 +312,9 @@ Options:\n\
 \n\
   /h, /help\n\
     Print this help.\n\
+\n\
+  /b, /batch-mode\n\
+    Force batch mode even when running a GLX-enabled X server.\n\
 \n\
 " ;
 #endif // _MSC_VER
@@ -329,6 +344,7 @@ int main( int argc, char* argv[] ) {
 		std::cout << "trace-sm   : " << ( args.flag_t() ? "set" : "not set" ) << std::endl ;
 		std::cout << "guides     : " << ( args.flag_G() ? "set" : "not set" ) << std::endl ;
 		std::cout << "statistics : " << ( args.flag_S() ? "set" : "not set" ) << std::endl ;
+		std::cout << "batch-mode : " << ( args.flag_b() ? "set" : "not set" ) << std::endl ;
 
 		std::cout << "aov RPP    : " << ( args.flag_A( Aov::RPP ) ? "set" : "not set" ) << std::endl ;
 	} catch ( const std::invalid_argument& e ) {

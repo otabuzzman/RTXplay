@@ -3,6 +3,7 @@
 
 // system includes
 #include <tuple>
+#include <string>
 #include <vector>
 
 // subsystem includes

@@ -701,8 +701,8 @@ void SimpleSM::eaOdiMov() {
 		glfwGetCursorPos( window_, &x, &y ) ;
 		int dx, dy ;
 		paddle_->move( static_cast<int>( x ), static_cast<int>( y ), &dx, &dy ) ;
-		const float lo = util::rad( .5f*dx ) ;
-		const float la = util::rad( .5f*dy ) ;
+		const float lo = util::rad( .5f*float(dx) ) ;
+		const float la = util::rad( .5f*float(dy) ) ;
 		const float cosx = cosf( la ) ;
 		const float sinx = sqrtf( 1.f-cosx*cosx ) ;
 		// set x-axis in terms of camera up direction
@@ -815,7 +815,7 @@ void SimpleSM::eaOdiScr() {
 		// set up z rotate matrix
 		double x, y ;
 		glfwGetScroll( window_, &x, &y ) ;
-		const float phi = util::rad( 2.f*static_cast<int>( y ) ) ;
+		const float phi = util::rad( 2.f*static_cast<float>( y ) ) ;
 		const float cosz = cosf( phi ) ;
 		const float sinz = sqrtf( 1.f-cosz*cosz ) ;
 		// set z-axis in terms of camera up direction

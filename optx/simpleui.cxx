@@ -299,7 +299,7 @@ void SimpleUI::render() {
 			long long lt = std::chrono::duration_cast<std::chrono::milliseconds>( t3-t0 ).count() ;
 			long long rc = 0 ; for ( auto const& c : rpp ) rc = rc+c ; // accumulate rays per pixel
 			long long tt = std::chrono::duration_cast<std::chrono::milliseconds>( t4-t1 ).count() ;
-			fprintf( stderr, "%6llu %9u %12llu %4llu (lapse, pixels, rays, msec) %6.2f fps\n", lt, w*h, rc, dt, 1000.f/tt ) ;
+			fprintf( stderr, "%6llu %9u %12llu %4llu (lapse, pixels, rays, msec) %6.2f fps\n", lt, w*h, rc, dt, 1000.f/float(tt) ) ;
 		}
 
 		simplesm->transition( Event::PCD ) ;

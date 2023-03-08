@@ -52,7 +52,7 @@ SCN = \
 
 # default target
 $(IMG): $(EXE) $(SCN)
-	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< | magick ppm:- $@
+	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< /b | magick ppm:- $@
 
 # preprocessor macros:
 # -DRECURSIVE - use recursive shaders instead of iterative
@@ -60,15 +60,16 @@ $(IMG): $(EXE) $(SCN)
 
 ifdef winos
 # prerequisites:
-# install VS2017 (Community)
+# install VS2022 (Community)
 # install Cygwin (gcc, g++, make, ...)
 # install CUDA Toolkit (use defaults)
 # install OptiX SDK (use defaults)
-# add cl.exe to PATH
+# add cl.exe and nvcc.exe to PATH
 
 # ignored warnings (known):
 # C4061: unused enumerator
 # C4100: unreferenced formal parameter
+# C4189: local variable not referenced
 # C4191: <some type> unsafe type conversion
 # C4245: <some type> unsigned int conversion
 # C4365: <some type> unsigned int conversion
@@ -88,10 +89,12 @@ ifdef winos
 # C5027: shift constructor defined as deleted
 # C5039: risk of undefined behaviour on exception
 # C5045: Spectre mitigation inserted
+# C5264: variable not used
 
 IGNORED_WARNINGS = \
 	/wd4061 \
 	/wd4100 \
+	/wd4189 \
 	/wd4191 \
 	/wd4245 \
 	/wd4365 \
@@ -111,19 +114,20 @@ IGNORED_WARNINGS = \
 	/wd5027 \
 	/wd5039 \
 	/wd5045 \
+	/wd5264 \
 
 CXXFLAGS  = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG $$CXXDEFS
-LDFLAGS   = /WX /NODEFAULTLIB:MSVCRT # /VERBOSE:LIB
-NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_75 -use_fast_math -lineinfo
+LDFLAGS   = /WX /NODEFAULTLIB:MSVCRTD # /VERBOSE:LIB
+NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_61 -use_fast_math -lineinfo
 
 INC = \
-	-I"$$(cygpath -w '/cygdrive/c/program files/nvidia gpu computing toolkit/cuda/v11.4/include')" \
-	-I"$$(cygpath -w '/cygdrive/c/programdata/nvidia corporation/optix sdk 7.3.0/include')" \
+	-I"$$(cygpath -w '/cygdrive/c/program files/nvidia gpu computing toolkit/cuda/v12.1/include')" \
+	-I"$$(cygpath -w '/cygdrive/c/programdata/nvidia corporation/optix sdk 7.6.0/include')" \
 	-I$$(cygpath -w /usr/local/include) \
 
 LIB = \
-	-L"$$(cygpath -w '/cygdrive/c/program files/nvidia gpu computing toolkit/cuda/v11.4/lib/x64')" \
-	-L$$(cygpath -w /usr/local/lib) -lglfw3_mt -lopengl32 \
+	-L"$$(cygpath -w '/cygdrive/c/program files/nvidia gpu computing toolkit/cuda/v12.1/lib/x64')" \
+	-L$$(cygpath -w /usr/local/lib) -lglfw3 -lopengl32 \
 	-ladvapi32 -lshell32 -luser32 -lgdi32 -lkernel32 \
 
 # native OpenGL image viewer

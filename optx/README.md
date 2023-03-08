@@ -118,6 +118,9 @@ Options:
       AOV (5) - The NAA type using OPTIX_DENOISER_MODEL_KIND_AOV.
                 Might improve denoising result even if no AOVs provided.
 
+  -b, --batch-mode
+    Force batch mode even when running a GLX-enabled X server.
+
 UI functions:
   window resize             - change viewport dimensions
   left button + move        - change camera position
@@ -159,8 +162,8 @@ UI functions:
 ### Build
 On your Linux box with NVIDIA Turing or Ampere graphics card install these (cues in Linux section of [../README.md](../README.md#linux)):
 - Common development tools (gcc, g++, make ...)
-- CUDA 11.4
-- OptiX 7.3
+- CUDA 12.1
+- OptiX 7.6
 - ImageMagick 7
 - GLFW (see [below](#compile-optiX-7-course))
 - Download RTXplay repo (this)
@@ -331,10 +334,17 @@ Steps below assume a working instance of the [RTXplay](https://github.com/otabuz
   cd ~/lab ; git clone https://github.com/glfw/glfw.git ; cd glfw
 
   # build GLFW
-  mkdir build ; cd build ; cmake3 .. ; make
+  mkdir build ; cd build ; cmake -S .. ; make
+
+  # build GLFW (Cygwin)
+  # in VS developer command prompt (Start menu) run following and compile in VS
+  md build ; cd build ; cmake -S .. -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
   # install GLFW
   sudo make install
+
+  # install GLFW (Cygwin)
+  copy src\debug\glfw3.lib %USERPROFILE%\local\lib
   ```
 
 2. Install OptiX 7 course tutorial
