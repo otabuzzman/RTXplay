@@ -163,12 +163,12 @@ UI functions:
 On your Linux box with NVIDIA Turing or Ampere graphics card install these (cues in Linux section of [../README.md](../README.md#linux)):
 - Common development tools (gcc, g++, make ...)
 - CUDA 12.1
-- OptiX 7.6
+- OptiX 7.7
 - ImageMagick 7
 - GLFW (see [below](#compile-optiX-7-course))
 - Download RTXplay repo (this)
 - Run `make` in `optx` subfolder (follow first-time instructions for GLAD)
-- Run `make` again
+- Run `make -j`
 
 If all went well you now have `rtwo.png`.
 
@@ -338,7 +338,7 @@ Steps below assume a working instance of the [RTXplay](https://github.com/otabuz
 
   # build GLFW (Cygwin)
   # in VS developer command prompt (Start menu) run following and compile in VS
-  md build ; cd build ; cmake -S .. -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+  md build & cd build & cmake -S .. -D CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
 
   # install GLFW
   sudo make install

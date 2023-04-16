@@ -1,7 +1,6 @@
 .vscode/
 KHR/
-OptixCache_ec2-user/
-OptixCache_BUI+jschuck/
+OptixCache_*/
 glad/
 tmp/
 vid/

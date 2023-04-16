@@ -164,7 +164,7 @@ int main( int argc, char* argv[] ) {
 					for ( int a = -11 ; a<11 ; a++ ) {
 						for ( int b = -11 ; b<11 ; b++ ) {
 							auto select = util::rnd() ;
-							const float3 center = { a+.9f*util::rnd(), .2f, b+.9f*util::rnd() } ;
+							const float3 center = { static_cast<float>(a)+.9f*util::rnd(), .2f, static_cast<float>(b)+.9f*util::rnd() } ;
 							if ( V::len( center-make_float3( 4.f, .2f, 0.f ) )>.9f ) {
 								if ( select<.8f ) {
 									id = add( as_6 ) ;
@@ -299,7 +299,10 @@ int main( int argc, char* argv[] ) {
 
 			// compile (each) shader source file into a module
 			const size_t camera_ptx_size = strlen( camera_ptx ) ;
-			OPTX_CHECK_LOG( optixModuleCreateFromPTX(
+#if (OPTIX_VERSION < 70700)
+#define optixModuleCreate optixModuleCreateFromPTX
+#endif
+			OPTX_CHECK_LOG( optixModuleCreate(
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
@@ -311,7 +314,7 @@ int main( int argc, char* argv[] ) {
 						) ) ;
 
 			const size_t optics_ptx_size = strlen( optics_ptx ) ;
-			OPTX_CHECK_LOG( optixModuleCreateFromPTX(
+			OPTX_CHECK_LOG( optixModuleCreate(
 						optx_context,
 						&module_cc_options,
 						&pipeline_cc_options,
@@ -407,7 +410,9 @@ int main( int argc, char* argv[] ) {
 
 			OptixPipelineLinkOptions pipeline_ld_options = {} ;
 			pipeline_ld_options.maxTraceDepth            = max_trace_depth ;
+#if (OPTIX_VERSION < 70700)
 			pipeline_ld_options.debugLevel               = OPTIX_COMPILE_DEBUG_LEVEL_DEFAULT ;  // OPTIX_COMPILE_DEBUG_LEVEL_FULL
+#endif
 			OPTX_CHECK_LOG( optixPipelineCreate(
 						optx_context,
 						&pipeline_cc_options,
@@ -425,7 +430,11 @@ int main( int argc, char* argv[] ) {
 			***/
 			OptixStackSizes stack_sizes = {} ;
 			for ( auto& prog_group : program_groups )
+#if (OPTIX_VERSION >= 70700)
+				OPTX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes, pipeline ) ) ;
+#else
 				OPTX_CHECK( optixUtilAccumulateStackSizes( prog_group, &stack_sizes ) ) ;
+#endif
 //			fprintf( stderr, "cssRG: %u, cssMS: %u, cssCH: %u, cssAH: %u, cssIS: %u, cssCC: %u, dssDC: %u\n",
 //				stack_sizes.cssRG,
 //				stack_sizes.cssMS,
@@ -610,7 +619,7 @@ int main( int argc, char* argv[] ) {
 							) ) ;
 				long long dt = std::chrono::duration_cast<std::chrono::milliseconds>( t1-t0 ).count() ;
 				long long sr = 0 ; for ( auto const& c : rpp ) sr = sr+c ; // accumulate rays per pixel
-				fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w*h, sr, dt, 1000.f/dt ) ;
+				fprintf( stderr, "%9u %12llu %4llu (pixel, rays, milliseconds) %6.2f fps\n", w*h, sr, dt, 1000.f/static_cast<float>(dt) ) ;
 			}
 		}
 

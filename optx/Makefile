@@ -118,11 +118,11 @@ IGNORED_WARNINGS = \
 
 CXXFLAGS  = /Wall $(IGNORED_WARNINGS) /O2 -DNOMINMAX -DNDEBUG $$CXXDEFS
 LDFLAGS   = /WX /NODEFAULTLIB:MSVCRTD # /VERBOSE:LIB
-NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_61 -use_fast_math -lineinfo
+NVCCFLAGS = -Xcompiler $(subst $(space),$(comma),$(CXXFLAGS)) -Xlinker $(subst $(space),$(comma),$(LDFLAGS)) -arch sm_86 -use_fast_math -lineinfo
 
 INC = \
 	-I"$$(cygpath -w '/cygdrive/c/program files/nvidia gpu computing toolkit/cuda/v12.1/include')" \
-	-I"$$(cygpath -w '/cygdrive/c/programdata/nvidia corporation/optix sdk 7.6.0/include')" \
+	-I"$$(cygpath -w '/cygdrive/c/programdata/nvidia corporation/optix sdk 7.7.0/include')" \
 	-I$$(cygpath -w /usr/local/include) \
 
 LIB = \
