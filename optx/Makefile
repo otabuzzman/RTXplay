@@ -52,9 +52,11 @@ SCN = \
 
 # default target
 $(IMG): $(EXE) $(SCN)
-	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< /b | magick ppm:- $@
 #ifdef winos
+	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< /b | magick ppm:- $@
 	cmd /c $@
+#else
+	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< -b | magick ppm:- $@
 #endif
 
 # preprocessor macros:
