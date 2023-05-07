@@ -86,8 +86,8 @@ int main( int argc, char* argv[] ) {
 		return 0 ;
 	}
 
-	lp_general.image_w = args.param_w( 1280 ) ; // image width in pixels
-	lp_general.image_h = args.param_h( 720 )  ; // image height in pixels
+	lp_general.image_w = args.param_w( 1920 ) ; // image width in pixels
+	lp_general.image_h = args.param_h( 1080 )  ; // image height in pixels
 	lp_general.spp     = args.param_s( 50 )   ; // samples per pixel
 #ifdef RECURSIVE
 #define MAX_DEPTH 16
@@ -563,7 +563,7 @@ int main( int argc, char* argv[] ) {
 		Launcher launcher( pipeline, sbt ) ;
 		cg::launcher = &launcher ;
 
-		if ( display_dev>0 ) {
+		if ( !args.flag_b() && display_dev>0 ) {
 			SimpleUI simpleui( optx_context, "RTWO" ) ;
 			simpleui.render() ;
 		} else {

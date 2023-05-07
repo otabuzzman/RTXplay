@@ -53,6 +53,9 @@ SCN = \
 # default target
 $(IMG): $(EXE) $(SCN)
 	OPTIX_CACHE_PATH=$${OPTIX_CACHE_PATH:-$(OPTIX_CACHE_PATH)} ./$< /b | magick ppm:- $@
+#ifdef winos
+	cmd /c $@
+#endif
 
 # preprocessor macros:
 # -DRECURSIVE - use recursive shaders instead of iterative
