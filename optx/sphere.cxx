@@ -116,7 +116,7 @@ int main( const int argc, const char** argv ) {
 	Sphere sphere( radius, ndiv ) ;
 
 	std::cout << "# sphere approximation by `inflated' tetrahedron" << std::endl ;
-	std::cout << "# obtained by 6-fold triangular area subdivision" << std::endl ;
+	std::cout << "# obtained by " << ndiv << "-fold triangular area subdivision" << std::endl ;
 
 	std::cout << "o sphere_" << ndiv << std::endl ;
 
